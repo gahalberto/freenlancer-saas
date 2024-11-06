@@ -1,44 +1,49 @@
-/*
-// pages/api/whatsapp.js
-
 import { NextApiRequest, NextApiResponse } from 'next';
-import Whatsapp  from 'whatsapp-business-api';
-
-const whatsapp = new Whatsapp({
-  accessToken: process.env.NEXT_PUBLIC_METATOKEN,
-  phoneNumberId: '409640815575363',
-});
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === 'POST') {
     try {
-      // Verificar a autenticidade da solicitação
+      // 1. Verificar a assinatura da solicitação (opcional, mas recomendado)
       // ...
 
-      // Extrair a mensagem do freelancer
-      const { from, message } = req.body;
+      // 2. Processar a mensagem recebida
+      const message = req.body.entry[0].changes[0].value.messages[0];
+      const sender = message.from;
+      const messageContent = message.text.body;
 
-      // Processar a mensagem
-      let response;
-      if (message.toLowerCase() === 'oi') {
-        response = 'Olá! Bem-vindo ao [Nome do seu SaaS]. Que tipo de trabalho você procura?';
+      // 3. Implementar a lógica do seu robô
+      if (messageContent.toLowerCase() === 'oi') {
+        // Enviar uma mensagem de volta
+        await sendMessage(sender, 'Olá! Como posso te ajudar?');
       } else {
-        // Consultar a API JSON para buscar trabalhos
-        const trabalhos = await buscarTrabalhos(message);
-        response = formatarTrabalhos(trabalhos);
+        // Responder com uma mensagem padrão
+        await sendMessage(sender, 'Não entendi a sua mensagem.');
       }
 
-      // Enviar a resposta
-      await whatsapp.sendMessage(from, response);
-
-      res.status(200).end();
+      // 4. Retornar uma resposta de sucesso
+      res.status(200).json({ message: 'Webhook recebido com sucesso!' });
     } catch (error) {
       console.error(error);
-      res.status(500).end();
+      res.status(500).json({ message: 'Erro ao processar o webhook.' });
     }
   } else {
-    res.status(405).end();
+    // Lidar com a verificação do token (GET request)
+    const verifyToken = process.env.WHATSAPP_VERIFY_TOKEN; 
+    const mode = req.query['hub.mode'];
+    const token = req.query['hub.verify_token'];
+    const challenge = req.query['hub.challenge'];
+
+    if (mode && token) {
+      if (mode === 'subscribe' && token === verifyToken) {
+        res.status(200).send(challenge);
+      } else {
+        res.status(403);
+      }
+    }
   }
 }
 
-*/ 
+async function sendMessage(to: string, message: string) {
+  // Implementar a lógica para enviar mensagens usando a API do WhatsApp
+  // ...
+}
