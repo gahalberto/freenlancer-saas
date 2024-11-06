@@ -19,6 +19,7 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
+    "postinstall": "prisma migrate deploy",
     "lint": "next lint",
     "zip": "git archive -o $npm_package_config_zipPrefix-$npm_package_config_theme-v$npm_package_version.zip -9 HEAD"
   },
