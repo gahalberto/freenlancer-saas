@@ -1,0 +1,9 @@
+.simplebar-content {
+  display: flex;
+  flex-direction: column;
+  padding: var(--cui-sidebar-nav-padding-y) var(--cui-sidebar-nav-padding-x);
+}
+
+.simplebar-wrapper {
+  margin: calc(var(--cui-sidebar-nav-padding-y) * -1) calc(var(--cui-sidebar-nav-padding-x) * -1);
+}
