@@ -66,7 +66,7 @@
     "react-quill": "^2.0.0",
     "react-redux": "^9.1.2",
     "simplebar-react": "^3.2.5",
-    "stripe": "^17.2.0",
+    "stripe": "^17.3.1",
     "typescript": "5.4.5",
     "uuid": "^10.0.0",
     "whatsapp-business-api": "^0.0.4",
