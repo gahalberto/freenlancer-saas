@@ -28,7 +28,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
   } else {
     // Lidar com a verificação do token (GET request)
-    const verifyToken = process.env.WHATSAPP_VERIFY_TOKEN; 
+    const verifyToken = process.env.NEXT_PUBLIC_METATOKEN; 
     const mode = req.query['hub.mode'];
     const token = req.query['hub.verify_token'];
     const challenge = req.query['hub.challenge'];
