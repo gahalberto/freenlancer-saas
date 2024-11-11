@@ -19,14 +19,11 @@ import { sygnet } from '@/public/brand/sygnet'
 
 // sidebar nav config
 import navigation from '../_nav'
-import { useSession } from 'next-auth/react'
 
 const AppSidebar = (): JSX.Element => {
   const dispatch = useDispatch()
   const unfoldable = useTypedSelector((state) => state.sidebarUnfoldable)
   const sidebarShow = useTypedSelector((state) => state.sidebarShow)
-  const { data: session, status } = useSession();
-  const userRoleId = session?.user.roleId;
 
   return (
     <CSidebar
@@ -50,7 +47,7 @@ const AppSidebar = (): JSX.Element => {
           onClick={() => dispatch({ type: 'set', sidebarShow: false })}
         />
       </CSidebarHeader>
-      <AppSidebarNav items={navigation.filter(item => !item.roleId || item.roleId === userRoleId)} />
+      <AppSidebarNav items={navigation} />
       <CSidebarFooter className="border-top d-none d-lg-flex">
         <CSidebarToggler
           onClick={() => dispatch({ type: 'set', sidebarUnfoldable: !unfoldable })}
