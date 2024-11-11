@@ -10,12 +10,14 @@ import 'simplebar-react/dist/simplebar.min.css'
 import { CBadge, CNavLink, CSidebarNav } from '@coreui/react-pro'
 
 import { Badge, NavItem } from '../_nav'
+import { useSession } from 'next-auth/react'
 
 interface AppSidebarNavProps {
   items: NavItem[]
 }
 
 export default function AppSidebarNav({ items }: AppSidebarNavProps) {
+  const { data: session, status } = useSession();
   const location = usePathname()
   const navLink = (
     name: string | JSX.Element,
@@ -28,10 +30,10 @@ export default function AppSidebarNav({ items }: AppSidebarNavProps) {
         {icon
           ? icon
           : indent && (
-              <span className="nav-icon">
-                <span className="nav-icon-bullet"></span>
-              </span>
-            )}
+            <span className="nav-icon">
+              <span className="nav-icon-bullet"></span>
+            </span>
+          )}
         {name && name}
         {badge && (
           <CBadge color={badge.color} className="ms-auto">
@@ -81,6 +83,6 @@ export default function AppSidebarNav({ items }: AppSidebarNavProps) {
         items.map((item: NavItem, index: number) =>
           item.items ? navGroup(item, index) : navItem(item, index),
         )}
-     </CSidebarNav>
+    </CSidebarNav>
   )
 }

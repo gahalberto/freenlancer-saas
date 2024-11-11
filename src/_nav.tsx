@@ -30,12 +30,14 @@ export type NavItem = {
   badge?: Badge
   href?: string
   items?: NavItem[]
+  roleId: string
 }
 
 const _nav = [
   {
     component: CNavItem,
     name: 'Dashboard',
+    roleId: 1,
     icon: <CIcon icon={cilSpeedometer} customClassName="nav-icon" />,
     badge: {
       color: 'info-gradient',
@@ -46,10 +48,12 @@ const _nav = [
   {
     component: CNavTitle,
     name: 'Admin',
+    roleId: 1,
   },
   {
     component: CNavGroup,
     name: 'Usuários',
+    roleId: 1,
     icon: <CIcon icon={cilUser} customClassName="nav-icon" />,
     items: [
       {
@@ -59,12 +63,14 @@ const _nav = [
         icon: <CIcon icon={cilUser} customClassName="nav-icon" />,
       },
       {
+        roleId: 1,
         component: CNavItem,
         name: 'Estabelecimentos',
         href: '/admin/estabelecimentos',
         icon: <CIcon icon={cilInstitution} customClassName="nav-icon" />,
       },
       {
+        roleId: 1,
         component: CNavItem,
         name: 'Questionários',
         href: '/admin/questionarios',
@@ -75,6 +81,7 @@ const _nav = [
   },
   {
     component: CNavGroup,
+    roleId: 1,
     name: 'Eventos & Serviços',
     icon: <CIcon icon={cilExpandDown} customClassName="nav-icon" />,
     items: [
@@ -101,6 +108,7 @@ const _nav = [
   {
     component: CNavGroup,
     name: 'Cursos Online',
+    roleId: 1,
     icon: <CIcon icon={cilStar} customClassName="nav-icon" />,
     items: [
       {
@@ -130,6 +138,7 @@ const _nav = [
   {
     component: CNavTitle,
     name: 'Cursos Online',
+    roleId: [1, 2]
   },
   {
     component: CNavItem,
@@ -140,16 +149,6 @@ const _nav = [
   {
     component: CNavTitle,
     name: 'Trabalhos Disponíveis',
-  },
-  {
-    component: CNavItem,
-    name: 'Trabalhos Fixos',
-    href: '/theme/colors',
-    icon: <CIcon icon={cilGem} customClassName="nav-icon" />,
-    badge: {
-      color: 'info-gradient',
-      text: '+2',
-    },
   },
   {
     component: CNavItem,
