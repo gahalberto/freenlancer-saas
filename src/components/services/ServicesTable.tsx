@@ -84,6 +84,26 @@ export default function ServicesTable() {
                     setVisible(false)
                     fetchEvents();
                     addToast();  // Adiciona o toast de confirmação
+
+                    const whatsapp = await fetch('https://graph.facebook.com/v21.0/409640815575363/messages', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': 'Bearer EAAVdEBsjVVIBO8XQ8G80ZBfSN8JMZC6ZBBHbZB0oua3ZBLdXlrYeKZC36KEezqbxZCZCcRreugx2meg7nctBff4q8SZAtFJIyxmz0JAidZBj03ZAfE4aKNnGHAZAxgrUQ887GbdIdT4mZA2nKQC0RQQ0bvGZABAY3aItf0K5fMHPn6rxE6VHwsESUofFFt2D5glXQS58C4HilG4WRyHhCDanxuudMIi4lrKFV2EWKl15WJaQeGCGQZD'
+                        },
+                        body: JSON.stringify(
+                            {
+                                "messaging_product": "whatsapp",
+                                "recipient_type": "individual",
+                                "to": "5511994917885",
+                                "type": "text",
+                                "text": {
+                                    "preview_url": false,
+                                    "body": `Mashguiach(a), você confirmou um serviço. *Evento:* Casamento do Duda, você precisa chegar no dia 25/11/2024 7h00 até as 16h00! Bom serviço! `
+                                }
+                            }
+                        )
+                    })
                 }
             } catch (error) {
                 console.error('Erro ao pegar o serviço:', error);
