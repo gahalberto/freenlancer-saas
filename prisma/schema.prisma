@@ -33,6 +33,7 @@ model User {
   address          String? // Endereço do usuário (opcional)
   synagogueId      Int? // Relacionamento opcional com a tabela Synagogue
   roleId           Int // Relacionamento com a tabela Role
+  role_type        ROLES?
   status           Boolean       @default(true)
   jewishName       String?
   asweredQuestions Boolean?      @default(false)
@@ -53,6 +54,12 @@ model User {
   mashguiachJobs FixedJobs[] // Relacionamento inverso: um mashguiach pode ter vários trabalhos
 
   @@map("users") // Mapeia o nome da tabela para 'users'
+}
+
+enum ROLES {
+  Mashguiach
+  Estabelecimento
+  Admin
 }
 
 enum TransactionStatus {

@@ -1,26 +1,11 @@
 import React, { ElementType } from 'react'
 import {
-  cilBell,
-  cilCalculator,
   cilCalendar,
-  cilChartPie,
-  cilCursor,
-  cilDrop,
   cilInstitution,
-  cilEnvelopeOpen,
   cilFile,
-  cilGrid,
-  cilLayers,
-  cilMap,
-  cilNotes,
-  cilPencil,
-  cilPuzzle,
   cilSpeedometer,
-  cilSpreadsheet,
   cilStar,
-  cilStorage,
   cilUser,
-  cilInputPower,
   cilCenterFocus,
   cilMoney,
   cilGem,
@@ -31,6 +16,7 @@ import {
 } from '@coreui/icons'
 import CIcon from '@coreui/icons-react'
 import { CNavGroup, CNavItem, CNavTitle } from '@coreui/react-pro'
+import { useSession } from 'next-auth/react'
 
 export type Badge = {
   color: string
