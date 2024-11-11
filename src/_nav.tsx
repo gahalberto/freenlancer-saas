@@ -192,7 +192,7 @@ const _nav = [
   {
     component: CNavItem,
     name: 'Meus Eventos',
-    href: '/events',
+    href: '/estabelecimento/events',
     icon: <CIcon icon={cilGem} customClassName="nav-icon" />,
   },
   {
