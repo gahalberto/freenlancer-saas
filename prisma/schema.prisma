@@ -31,6 +31,11 @@ model User {
   phone            String? // Telefone do usuário (opcional)
   password         String // Senha do usuário
   address          String? // Endereço do usuário (opcional)
+  address_street   String        @default("")
+  address_number   String        @default("")
+  address_neighbor String        @default("")
+  address_zicode   String        @default("")
+  address_state    String        @default("")
   synagogueId      Int? // Relacionamento opcional com a tabela Synagogue
   roleId           Int // Relacionamento com a tabela Role
   status           Boolean       @default(true)
