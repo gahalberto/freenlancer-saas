@@ -12,6 +12,8 @@ import {
   CFormInput,
   CFormLabel,
   CFormSelect,
+  CInputGroup,
+  CInputGroupText,
   CRow,
 } from "@coreui/react-pro";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -21,13 +23,20 @@ import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { getStores } from "@/app/_actions/stores/getStores";
 import { Stores } from "@prisma/client";
+import CIcon from "@coreui/icons-react";
+import { cilMap, cilSearch } from "@coreui/icons";
 
 const schema = z.object({
   title: z.string().min(1, { message: "Digite um título para o evento" }),
   responsable: z.string().min(1, { message: "Digite o responsável pelo evento" }),
   responsableTelephone: z.string().min(1, { message: "Digite o número de um responsável pelo evento." }),
   nrPax: z.string(),
-  address: z.string().min(1, { message: "Digite o nome do cliente do evento" }),
+  address_zicode: z.string().min(1, { message: "Digite o CEP e clique em buscar" }),
+  address_street: z.string().min(1, { message: "Digite a rua, digite o CEP e clique em buscar" }),
+  address_number: z.string().min(1, { message: "Digite o número do endereço" }),
+  address_neighbor: z.string().min(1, { message: "Digite o bairro" }),
+  address_city: z.string().min(1, { message: "Digite a cidade" }),
+  address_state: z.string().min(1, { message: "Digite o Estado" }),
   store: z.string().min(1, { message: "Selecione uma loja" }),
   eventType: z.string().min(1, { message: "Digite o tipo do evento, bar mitzvah?" }),
   serviceType: z.string().min(1, { message: "O que será servido? Qual tipo de serviço?" }),
@@ -43,26 +52,24 @@ const CreateEventForm = () => {
   const { data: session, status } = useSession();
   const [selectedDate, setSelectedDate] = useState<string>("");
   const [disabled, setDisabled] = useState(false);
-  const [storeList, setStoreList] = useState<Stores []>([]);
-
-  const fetchStores = async () => {
-    try {
-      if (session?.user?.id) {
-        const response = await getStores(session.user.id);
-        if (response) {
-          setStoreList(response);
-        }
-      }
-    } catch (error) {
-      console.error("Erro ao buscar lojas:", error);
-    }
-  };
+  const [storeList, setStoreList] = useState<Stores[]>([]);
 
   useEffect(() => {
-    if (status === "authenticated" && session?.user?.id) {
-      fetchStores();
-    }
-  }, [session, status]);
+    const fetchStores = async () => {
+      try {
+        if (session?.user?.id) {
+          const response = await getStores(session.user.id);
+          if (response) {
+            setStoreList(response);
+          }
+        }
+      } catch (error) {
+        console.error("Erro ao buscar lojas:", error);
+      }
+    };
+
+    fetchStores();
+  }, [session?.user?.id]);
 
   const router = useRouter();
 
@@ -71,6 +78,7 @@ const CreateEventForm = () => {
     handleSubmit,
     formState: { errors },
     setValue,
+    getValues,
   } = useForm<FormData>({
     resolver: zodResolver(schema),
   });
@@ -89,7 +97,12 @@ const CreateEventForm = () => {
       responsable: data.responsable,
       responsableTelephone: data.responsableTelephone,
       nrPax: parseInt(data.nrPax),
-      address: data.address,
+      address_zicode: data.address_zicode,
+      address_street: data.address_street,
+      address_number: data.address_number,
+      address_city: data.address_city,
+      address_neighbor: data.address_neighbor,
+      address_state: data.address_city,
       eventType: data.eventType,
       serviceType: data.serviceType,
       date: new Date(selectedDate),
@@ -102,7 +115,7 @@ const CreateEventForm = () => {
       clientName: data.responsable,
       isApproved: false,
     };
-    
+
     try {
       const response = await CreateEvent(eventData);
       if (response) {
@@ -112,10 +125,27 @@ const CreateEventForm = () => {
       console.error("Erro ao criar o evento:", error);
       setDisabled(false); // Reabilitar o formulário em caso de erro
     }
-    
-    
-    
   };
+
+  const handlecep = async () => {
+    const newCep = getValues('address_zicode').replace(/\D/g, '');
+
+    if (newCep.length >= 8) {
+      const response = await fetch(`https://viacep.com.br/ws/${newCep}/json/`);
+      const cepData = await response.json();
+      if (cepData.erro) {
+        alert("CEP não encontrado. Verifique o CEP e tente novamente.");
+        return;
+      }
+      setValue("address_street", cepData.logradouro || "");
+      setValue("address_neighbor", cepData.bairro || "");
+      setValue("address_city", cepData.localidade || "");
+      setValue("address_state", cepData.uf || "");
+
+    } else {
+      alert("CEP inválido, digite um CEP válido!")
+    }
+  }
 
   return (
     <CRow>
@@ -176,15 +206,89 @@ const CreateEventForm = () => {
 
                 {errors.store && <p>{errors.store.message}</p>}
               </CCol>
-              <CCol md={12}>
-                <CFormLabel>Endereço do Evento:</CFormLabel>
+              <CFormLabel>CEP do local do evento:</CFormLabel>
+              <CInputGroup>
+                <CInputGroupText>
+                  <CIcon icon={cilMap} />
+                </CInputGroupText>
+                <CFormInput
+                  placeholder="Digite o seu cep!"
+                  autoComplete="address"
+                  {...register("address_zicode")}
+                />
+                <CButton type="button" onClick={handlecep} color="primary"><CIcon icon={cilSearch} style={{ marginRight: 6 }} />Buscar</CButton>
+              </CInputGroup>
+
+
+              <CCol md={6}>
+                <CFormLabel>Rua:</CFormLabel>
                 <CFormInput
                   type="text"
                   disabled={disabled}
-                  {...register("address")}
-                  invalid={!!errors.address}
+                  {...register("address_street")}
+                  invalid={!!errors.address_street}
                 />
-                {errors.address && <p>{errors.address.message}</p>}
+                {errors.address_street && <p>{errors.address_street.message}</p>}
+              </CCol>
+
+
+              <CCol md={2}>
+                <CFormLabel>Número:</CFormLabel>
+                <CFormInput
+                  type="text"
+                  disabled={disabled}
+                  {...register("address_number")}
+                  invalid={!!errors.address_number}
+                />
+                {errors.address_number && <p>{errors.address_number.message}</p>}
+              </CCol>
+
+
+              <CCol md={4}>
+                <CFormLabel>Bairro:</CFormLabel>
+                <CFormInput
+                  type="text"
+                  disabled={disabled}
+                  {...register("address_neighbor")}
+                  invalid={!!errors.address_neighbor}
+                />
+                {errors.address_neighbor && <p>{errors.address_neighbor.message}</p>}
+              </CCol>
+
+
+              <CCol md={6}>
+                <CFormLabel>Cidade:</CFormLabel>
+                <CFormInput
+                  type="text"
+                  disabled={disabled}
+                  {...register("address_city")}
+                  invalid={!!errors.address_city}
+                />
+                {errors.address_city && <p>{errors.address_city.message}</p>}
+              </CCol>
+
+
+              <CCol md={6}>
+                <CFormLabel>Estado:</CFormLabel>
+                <CFormInput
+                  type="text"
+                  disabled={disabled}
+                  {...register("address_state")}
+                  invalid={!!errors.address_state}
+                />
+                {errors.address_state && <p>{errors.address_state.message}</p>}
+              </CCol>
+
+
+              <CCol md={6}>
+                <CFormLabel>Tipo do Evento:</CFormLabel>
+                <CFormInput
+                  type="text"
+                  disabled={disabled}
+                  {...register("eventType")}
+                  invalid={!!errors.eventType}
+                />
+                {errors.eventType && <p>{errors.eventType.message}</p>}
               </CCol>
 
               <CCol md={6}>

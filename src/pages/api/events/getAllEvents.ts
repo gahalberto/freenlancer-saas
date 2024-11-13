@@ -1,44 +1,38 @@
-import { getServerSession } from 'next-auth/next'
 import { db } from '@/app/_lib/prisma'
+import { getServerSession } from 'next-auth/next'
 import { NextApiRequest, NextApiResponse } from 'next'
 import { authOptions } from '../auth/[...nextauth]'
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  // Verifica a sessão do usuário
   const session = await getServerSession(req, res, authOptions)
 
-  // if (!session) {
-  //   // Se não estiver logado, retorna status 401 (Não autorizado)
-  //   return res.status(401).json({ error: 'Usuário não autenticado' })
-  // }
-
-  // Usuário autenticado, continua o processamento
- // console.log('Usuário autenticado:', session.user)
-
   try {
-    // Obtém a data atual
+    // Cria a data de hoje no horário local de Brasília
     const today = new Date()
+    today.setHours(0, 0, 0, 0) // Ajusta para 00:00:00 no horário local
 
-    // Consulta apenas eventos cuja data é igual ou maior que hoje
+    // Converte a data para o formato ISO-8601
+    const localDate = today.toISOString().split('T')[0]
+    const localToday = new Date(today.getTime() - today.getTimezoneOffset() * 60000) // Ajuste para horário local
+
+    // Consulta eventos com data maior ou igual à data ajustada para o horário local
     const events = await db.storeEvents.findMany({
       where: {
         date: {
-          gte: today, // Filtra eventos com data maior ou igual a hoje
+          gte: localToday, // Ajusta o fuso horário para GMT-3
         },
       },
       include: {
         EventsServices: {
           where: {
-            mashguiachId: null, // Filtra serviços onde mashguiachId é null (não atribuído)
-          }
-        }, // Inclui apenas serviços onde o mashguiachId é null
+            mashguiachId: null,
+          },
+        },
       },
       orderBy: {
-        date: 'asc', // Ordena em ordem crescente de data (eventos mais próximos primeiro)
+        date: 'asc',
       },
-    });
-
-    console.log('Eventos futuros encontrados:', events)
+    })
 
     // Responde com os eventos encontrados
     res.status(200).json(events)

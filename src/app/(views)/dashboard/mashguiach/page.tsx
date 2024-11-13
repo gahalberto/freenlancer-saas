@@ -98,11 +98,8 @@ export default function MashguiachDashboard() {
 
   return (
     <>
-      {hasAnsweredQuestions ? (
-        <h1>respondeu</h1>
-      ) : (
-        <DangerAlert msg={`Olá ${userName}, vimos que você ainda não respondeu o questionário do Mashguiach!`} />
-      )}
+      {!hasAnsweredQuestions && <DangerAlert msg={`Olá ${userName}, vimos que você ainda não respondeu o questionário do Mashguiach!`} />
+      }
 
       {/* Agrupando os cards em um único CRow */}
       <CRow>
@@ -187,7 +184,7 @@ export default function MashguiachDashboard() {
         ))}
       </CRow>
 
-      <CRow>
+      <CRow style={{ justifyItems: 'center', alignItems: 'center' }}>
         <CCol xs={12} sm={6} md={4}>
           <MashguiachButtonGroup url="/services" title="Freelancers Disponíveis" textColor="white" icon={cilBadge} color="primary" />
         </CCol>

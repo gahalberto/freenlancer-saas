@@ -30,12 +30,14 @@ model User {
   email            String        @unique // Email do usuário, definido como único
   phone            String? // Telefone do usuário (opcional)
   password         String // Senha do usuário
-  address          String? // Endereço do usuário (opcional)
   address_street   String        @default("")
   address_number   String        @default("")
   address_neighbor String        @default("")
   address_zicode   String        @default("")
   address_state    String        @default("")
+  address_city     String        @default("")
+  address_lat      String?
+  address_lng      String?
   synagogueId      Int? // Relacionamento opcional com a tabela Synagogue
   roleId           Int // Relacionamento com a tabela Role
   status           Boolean       @default(true)
@@ -228,7 +230,12 @@ model StoreEvents {
   date                 DateTime
   nrPax                Int
   clientName           String
-  address              String
+  address_street       String           @default("")
+  address_number       String           @default("")
+  address_neighbor     String           @default("")
+  address_zicode       String           @default("")
+  address_state        String           @default("")
+  address_city         String           @default("")
   storeId              String           @default("")
   eventType            String
   serviceType          String
@@ -254,6 +261,7 @@ model EventsServices {
   responseDate            DateTime?
   mashguiachPrice         Float             @default(0)
   mashguiachPricePerHour  Float             @default(0)
+  transport_price         Float             @default(0)
   observationText         String?
   paymentStatus           TransactionStatus @default(Pending)
 

@@ -4,6 +4,7 @@ import { aproveEvent } from "@/app/_actions/events/aproveEvent";
 import { getEventInfo } from "@/app/_actions/events/getEventInfo";
 import ButtonCompo from "@/components/CButtonCom";
 import { EventsTableByEvent } from "@/components/events/eventsTable";
+import Map from "@/components/googleMaps";
 import { CBadge, CButton, CCard, CCardBody, CCardHeader, CCardImage, CCardText, CCardTitle, CCol, CDatePicker, CFormInput, CFormLabel, CPlaceholder, CRow } from "@coreui/react-pro";
 import { StoreEvents } from "@prisma/client";
 import { useSession } from "next-auth/react";
@@ -103,7 +104,7 @@ const EditEventPage = ({ params }: ParamsType) => {
                                 <CFormInput
                                     type="text"
                                     disabled={disabled}
-                                    value={event?.address || ""}
+                                    value={event?.address_zicode || ""}
                                 />
                             </CCol>
                         </CRow>
@@ -147,6 +148,18 @@ const EditEventPage = ({ params }: ParamsType) => {
                                 />
                             </CCol>
                         </CRow>
+
+                    </CCardBody>
+                </CCard>
+
+                {/* CARD DO MAPA DO GOOGLE */}
+
+                <CCard style={{ marginBottom: 20 }}>
+                    <CCardHeader>
+                        <CCardTitle>Mapa</CCardTitle>
+                    </CCardHeader>
+                    <CCardBody>
+                        <Map zipcode={event?.address_zicode as string} />
                     </CCardBody>
                 </CCard>
 
@@ -156,9 +169,13 @@ const EditEventPage = ({ params }: ParamsType) => {
                 ) : (
                     <>
                         <CCard style={{ width: '100%' }}>
+                            <CCardHeader>
+                                <CCardTitle>Solicitação de Mashguiach</CCardTitle>
+                            </CCardHeader>
                             <CCardBody>
-                                <CPlaceholder as={CCardTitle} animation="glow" xs={7}>
-                                    <CBadge color="danger">Esse Evento ainda não foi aprovado pelo rabino!</CBadge>
+                                <CPlaceholder as={CCardTitle} animation="glow" xs={12}>
+                                    <CBadge color="danger">EVENTO EM ANÁLISE!</CBadge>
+                                    <p> Você receberá um e-mail quando o evento for aprovado pelos rabinos.</p>
                                     <CPlaceholder xs={6} />
                                 </CPlaceholder>
                                 <CPlaceholder as={CCardText} animation="glow">
@@ -174,7 +191,6 @@ const EditEventPage = ({ params }: ParamsType) => {
 
                     </>
                 )}
-
             </CCol>
         </CRow>
     );

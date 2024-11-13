@@ -1,8 +1,10 @@
 "use client"
 import { getServicesCount } from "@/app/_actions/services/getServicesCount"
-import { CButton, CCard, CCardBody, CCardFooter, CCardText, COffcanvas, COffcanvasBody, COffcanvasHeader, COffcanvasTitle, CCloseButton, CCol, CRow, CBadge, CToast, CToastHeader, CToastBody, CToaster } from "@coreui/react-pro"
+import { CButton, CCard, CCardBody, CCardFooter, CCardText, COffcanvas, COffcanvasBody, COffcanvasHeader, COffcanvasTitle, CCloseButton, CCol, CRow, CBadge, CToast, CToastHeader, CToastBody, CToaster, CDropdownDivider, CHeaderDivider, CHeader, CCardTitle, CCardHeader } from "@coreui/react-pro"
+import { StoreEvents } from "@prisma/client"
 import { useSession } from "next-auth/react"
 import { useEffect, useRef, useState } from "react"
+import Map from "../googleMaps"
 
 interface Service {
     id: string;
@@ -12,15 +14,6 @@ interface Service {
     observationText?: string;
 }
 
-interface StoreEvents {
-    id: string;
-    title: string;
-    address: string;
-    date: Date;
-    eventType: string;
-    serviceType: string;
-    EventsServices: Service[];  // Propriedade de serviços do evento
-}
 
 export default function ServicesTable() {
     const [events, setEvents] = useState<StoreEvents[]>([])
@@ -28,7 +21,7 @@ export default function ServicesTable() {
     const [selectedEvent, setSelectedEvent] = useState<StoreEvents | null>(null) // Evento selecionado
     const [servicesCount, setServicesCount] = useState<{ [key: string]: number }>({}) // Contagem de serviços por evento
     const { data: session } = useSession() // Sessão do usuário logado
-
+    const [address, setAddress] = useState("");
     // Função para buscar os eventos da API
     const fetchEvents = async () => {
         try {
@@ -38,8 +31,6 @@ export default function ServicesTable() {
             }
             const data = await response.json()
             setEvents(data)
-            console.log('Eventos carregados:', data)
-
             // Busca a contagem de serviços para cada evento
             data.forEach(async (event: StoreEvents) => {
                 const count = await getServicesCount(event.id);
@@ -151,19 +142,14 @@ export default function ServicesTable() {
                             <CCard>
                                 <CCardBody>
                                     <CCardText>
-                                        <p><b>Evento:</b><small> {item.title}</small></p>
-                                        <p><b>Endereço:</b><small> {item.address} </small> | <b>Data: </b><small>
+                                        <p><b>Evento:</b><small> {item.title} - <CBadge color="primary">{item.eventType}</CBadge></small></p>
+                                        <p><b>Endereço:</b><small>  {item.address_street} {item.address_number}, {item.address_zicode} </small> | <b>Data: </b><small>
                                             {new Date(item.date).toLocaleDateString('pt-BR')}
                                         </small></p>
-                                        {servicesCount[item.id] === 0 ? (
-                                            <CBadge color="danger">Não tem serviço disponível</CBadge>
-                                        ) : (
-                                            <CBadge color="warning">Serviços Disponíveis: {servicesCount[item.id] || 0}</CBadge>
-                                        )}
                                     </CCardText>
                                 </CCardBody>
                                 <CCardFooter>
-                                    <CButton color="primary" onClick={() => handleShowDetails(item)}>{servicesCount[item.id]} serviços disponíveis</CButton>
+                                    <CButton color="primary" onClick={() => handleShowDetails(item)}>+{servicesCount[item.id]} serviços disponíveis</CButton>
                                 </CCardFooter>
                             </CCard>
                         </CCol>
@@ -172,38 +158,29 @@ export default function ServicesTable() {
 
             <COffcanvas backdrop="static" placement="start" visible={visible} onHide={() => setVisible(false)}>
                 <COffcanvasHeader>
-                    <COffcanvasTitle>Detalhes do Evento</COffcanvasTitle>
+                    <COffcanvasTitle>Freelancers Disponíveis</COffcanvasTitle>
                     <CCloseButton className="text-reset" onClick={() => setVisible(false)} />
                 </COffcanvasHeader>
                 <COffcanvasBody>
                     {selectedEvent ? (
                         <>
-                            <p><b>Evento: </b>
-                                <CBadge color="warning-gradient">
-                                    {selectedEvent.title}
-                                </CBadge>
-                            </p>
-                            <p><b>Endereço:</b> {selectedEvent.address}</p>
-                            <p><b>Data:</b> {new Date(selectedEvent.date).toLocaleDateString('pt-BR')}</p>
-                            <p><b>Tipo de Evento:</b> {selectedEvent.eventType}</p>
-                            <p><b>Tipo de Serviço:</b> {selectedEvent.serviceType}</p>
-
                             {/* Renderizando os serviços do evento */}
-                            <h5>Serviços Disponiveis:</h5>
-                            {selectedEvent?.EventsServices?.map((service: Service) => (
+                            <CHeaderDivider />
+                            {selectedEvent?.EventsServices?.map((service: Service, index: number) => (
                                 <div key={service.id}>
-                                    <CCard className="text-left" style={{ marginBottom: '10px' }}>
+                                    <CCard color="light" className="text-left" style={{ marginBottom: '10px' }}>
                                         <CCardBody>
                                             <CCardText>
                                                 <p><b>Dia:</b> {new Date(service.endMashguiachTime).toLocaleDateString('pt-BR')}</p>
-                                                <p><b>Chegada Mashguiach:</b> {new Date(service.arriveMashguiachTime).toLocaleTimeString('pt-BR')}</p>
-                                                <p><b>Dia:</b> {new Date(service.endMashguiachTime).toLocaleTimeString('pt-BR')}</p>
-                                                <p><b>Saída Mashguiach:</b> {new Date(service.endMashguiachTime).toLocaleTimeString('pt-BR')}</p>
+                                                <p><b>Entrada prevista:</b> {new Date(service.arriveMashguiachTime).toLocaleTimeString('pt-BR')}</p>
+                                                <p><b>Saída prevista:</b> {new Date(service.endMashguiachTime).toLocaleTimeString('pt-BR')}</p>
                                                 <p><b>Preço do Mashguiach:</b> R${service.mashguiachPrice.toFixed(2)}</p>
                                                 {service.observationText && <p><b>Observações:</b> {service.observationText}</p>}
                                             </CCardText>
-                                            <CButton size="sm" color="primary" onClick={() => handleGetJob(service.id)}>Pegar Serviço</CButton>
                                         </CCardBody>
+                                        <CCardFooter>
+                                            <CButton color="primary" onClick={() => handleGetJob(service.id)}>Pegar Serviço</CButton>
+                                        </CCardFooter>
                                     </CCard>
                                 </div>
                             ))}
