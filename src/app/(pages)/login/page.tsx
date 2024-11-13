@@ -24,8 +24,8 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 
 const loginSchema = z.object({
-  email: z.string().nonempty("O nome de usuário deve ser igual ao do Habbo"),
-  password: z.string().min(6, "A sua senha deve conter no mínimo 6 caracteres")
+  email: z.string().nonempty("Digite o seu e-mail"),
+  password: z.string().nonempty("Digite a sua senha")
 });
 
 type LoginFormValues = z.infer<typeof loginSchema>;
@@ -48,7 +48,7 @@ const Login = () => {
         password: data.password,
         redirect: false  // Evita redirecionamento automático
       });
-  
+
       if (result?.error) {
         setError(result.error); // Mostra a mensagem de erro no frontend
       } else {
@@ -61,7 +61,7 @@ const Login = () => {
       setIsLoading(false);
     }
   };
-  
+
   return (
     <div className="bg-body-tertiary min-vh-100 d-flex flex-row align-items-center">
       <CContainer>
@@ -71,40 +71,40 @@ const Login = () => {
               <CCard className="p-4">
                 <CCardBody>
                   <CForm onSubmit={handleSubmit(onSubmit)}>
-                    <h1>Login</h1>
-                    <p className="text-medium-emphasis">Sign In to your account</p>
+                    <h1>Beit Yaakov</h1>
+                    <h3>Dept. de Kashrut</h3>
+                    <p className="text-medium-emphasis">Entre na sua conta ou registre-se!</p>
 
                     {/* Exibe a mensagem de erro se existir */}
                     {error && (
-                      <div className="text-danger mb-3">
-                        {error}
+                      <div className="text-danger mb-10">
+                        {error && <span className='text-danger'>E-mail e/ou senha inválidos!</span>}
                       </div>
                     )}
-
+                    {errors.email && <div className=''><span className="text-danger">{errors.email.message}</span></div>}
                     <CInputGroup className="mb-3">
                       <CInputGroupText>
                         <CIcon icon={cilUser} />
                       </CInputGroupText>
                       <CFormInput
-                        placeholder="Email"
+                        placeholder="Digite o seu e-mail"
                         autoComplete="username"
                         {...register("email")}
                       />
                     </CInputGroup>
-                    {errors.email && <span className="text-danger">{errors.email.message}</span>}
-                    
+                    {errors.password && <span className="text-danger">{errors.password.message}</span>}
+
                     <CInputGroup className="mb-4">
                       <CInputGroupText>
                         <CIcon icon={cilLockLocked} />
                       </CInputGroupText>
                       <CFormInput
                         type="password"
-                        placeholder="Password"
+                        placeholder="Digite a sua senha"
                         autoComplete="current-password"
                         {...register("password")}
                       />
                     </CInputGroup>
-                    {errors.password && <span className="text-danger">{errors.password.message}</span>}
 
                     <CRow>
                       <CCol xs={6}>
@@ -114,24 +114,23 @@ const Login = () => {
                       </CCol>
                       <CCol xs={6} className="text-right">
                         <CButton color="link" className="px-0">
-                          Forgot password?
+                          Esqueceu a senha?
                         </CButton>
                       </CCol>
                     </CRow>
                   </CForm>
                 </CCardBody>
               </CCard>
-              <CCard className="text-white bg-primary py-5" style={{ width: '44%' }}>
+              <CCard className="text-white bg-primary py-5" >
                 <CCardBody className="text-center">
                   <div>
-                    <h2>Sign up</h2>
+                    <h2>Registre-se</h2>
                     <p>
-                      Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod
-                      tempor incididunt ut labore et dolore magna aliqua.
+                      Se você ainda não é cadastrado como Mashguiach ou Estabelecimento, você deve se registrar na nossa plataforma! Clique abaixo em registre-se!
                     </p>
                     <Link href="/register">
                       <CButton color="primary" className="mt-3" active tabIndex={-1}>
-                        Register Now!
+                        Registre-se!
                       </CButton>
                     </Link>
                   </div>

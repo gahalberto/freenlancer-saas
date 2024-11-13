@@ -10,7 +10,7 @@ import { useRouter } from "next/navigation";
 
 // Esquema de validação usando Zod
 const registerSchema = z.object({
-    roleId: z.string(),
+    roleId: z.string().min(1, { message: "Escolha se você é um Mashguiach ou Restaurante!" }),
     name: z.string().min(1, { message: "Nome é obrigatório" }),
     email: z.string().email({ message: "Email inválido" }),
     phone: z.string().min(6, ({ message: "Telefone é obrigatório" })),
@@ -42,7 +42,6 @@ const RegisterForm = () => {
         } catch (error) {
             if (error instanceof Error) {
                 // Se for um erro do tipo Error, acesse a mensagem
-                alert(error.message);
             } else {
                 // Se for outro tipo de erro, exiba uma mensagem genérica
                 alert("Ocorreu um erro desconhecido.");
@@ -54,24 +53,26 @@ const RegisterForm = () => {
         <>
             <CForm onSubmit={handleSubmit(onSubmit)}>
                 <h1>Registre-se</h1>
-                <p className="text-medium-emphasis">Mashguiach App Beit Yaakov</p>
-
+                <p className="text-medium-emphasis">Crie uma conta na plataforma do Dept. de Kashrut da Beit Yaakov.</p>
                 <CInputGroup className="mb-3">
-                <CInputGroupText>
+                    {errors.roleId && <span className="text-danger">{errors.roleId.message}</span>}
+                    <CInputGroupText>
                         <CIcon icon={cilApplications} />
                     </CInputGroupText>
                     <CFormSelect id="inputState"
                         {...register("roleId")}
                         invalid={!!errors.roleId}
                     >
-                        <option>Escolha...</option>
+                        <option>Escolha uma opção</option>
                         <option value={1}>Mashguiach(a)</option>
                         <option value={2}>Estabelecimento</option>
                     </CFormSelect>
 
                 </CInputGroup>
 
+                {errors.name && <span className="text-danger">{errors.name.message}</span>}
                 <CInputGroup className="mb-3">
+
                     <CInputGroupText>
                         <CIcon icon={cilUser} />
                     </CInputGroupText>
@@ -81,8 +82,8 @@ const RegisterForm = () => {
                         {...register("name")}
                     />
                 </CInputGroup>
-                {errors.name && <span className="text-danger">{errors.name.message}</span>}
 
+                {errors.email && <span className="text-danger">{errors.email.message}</span>}
                 <CInputGroup className="mb-3">
                     <CInputGroupText>@</CInputGroupText>
                     <CFormInput
@@ -91,9 +92,8 @@ const RegisterForm = () => {
                         {...register("email")}
                     />
                 </CInputGroup>
-                {errors.email && <span className="text-danger">{errors.email.message}</span>}
 
-
+                {errors.phone && <span className="text-danger">{errors.phone.message}</span>}
                 <CInputGroup className="mb-3">
                     <CInputGroupText>
                         <CIcon icon={cilPhone} />
@@ -104,8 +104,8 @@ const RegisterForm = () => {
                         {...register("phone")}
                     />
                 </CInputGroup>
-                {errors.email && <span className="text-danger">{errors.email.message}</span>}
 
+                {errors.address && <span className="text-danger">{errors.address.message}</span>}
                 <CInputGroup className="mb-3">
                     <CInputGroupText>
                         <CIcon icon={cilMap} />
@@ -116,9 +116,8 @@ const RegisterForm = () => {
                         {...register("address")}
                     />
                 </CInputGroup>
-                {errors.email && <span className="text-danger">{errors.email.message}</span>}
 
-
+                {errors.password && <span className="text-danger">{errors.password.message}</span>}
                 <CInputGroup className="mb-3">
                     <CInputGroupText>
                         <CIcon icon={cilLockLocked} />
@@ -130,7 +129,10 @@ const RegisterForm = () => {
                         {...register("password")}
                     />
                 </CInputGroup>
-                {errors.password && <span className="text-danger">{errors.password.message}</span>}
+
+                {errors.confirmPassword && (
+                    <span className="text-danger">{errors.confirmPassword.message}</span>
+                )}
 
                 <CInputGroup className="mb-4">
                     <CInputGroupText>
@@ -143,9 +145,6 @@ const RegisterForm = () => {
                         {...register("confirmPassword")}
                     />
                 </CInputGroup>
-                {errors.confirmPassword && (
-                    <span className="text-danger">{errors.confirmPassword.message}</span>
-                )}
 
                 <div className="d-grid">
                     <CButton type="submit" color="success">Criar conta</CButton>
