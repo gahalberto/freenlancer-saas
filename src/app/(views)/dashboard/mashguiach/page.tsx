@@ -119,7 +119,7 @@ export default function MashguiachDashboard() {
                   </CCardHeader>
                   <CCardBody className="flex justify-center text-center items-center">
                     <p><b>Evento:</b> {item.StoreEvents?.title} | <b> Responsavél:</b> {item.StoreEvents?.responsable}
-                      | <b> Endereço:</b> {item.StoreEvents?.address}</p>
+                      | <b> Endereço:</b> {item.StoreEvents?.address_street}</p>
                     <Link href={`https://wa.me/${item.StoreEvents.responsableTelephone}`}>
                       <CButton size="sm" color="primary"><CIcon icon={cilPhone} />  Chamar o responsável no whatsapp: {item.StoreEvents.responsableTelephone}</CButton>
                     </Link>
