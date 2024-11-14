@@ -19,11 +19,19 @@ import { sygnet } from '@/public/brand/sygnet'
 
 // sidebar nav config
 import navigation from '../_nav'
+import { useSession } from 'next-auth/react'
 
 const AppSidebar = (): JSX.Element => {
   const dispatch = useDispatch()
   const unfoldable = useTypedSelector((state) => state.sidebarUnfoldable)
   const sidebarShow = useTypedSelector((state) => state.sidebarShow)
+  const { data: session, status } = useSession(); // Adicionando status para verificar o carregamento
+  const roleUserId = session?.user.roleId;
+
+  // Só renderiza o menu após a sessão estar carregada
+  if (status === 'loading') {
+    return <></>; // Ou um componente de carregamento, como um spinner
+  }
 
   return (
     <CSidebar
@@ -47,7 +55,13 @@ const AppSidebar = (): JSX.Element => {
           onClick={() => dispatch({ type: 'set', sidebarShow: false })}
         />
       </CSidebarHeader>
-      <AppSidebarNav items={navigation} />
+      {roleUserId && (
+        <AppSidebarNav
+          items={navigation.filter(item =>
+            Array.isArray(item.roleId) ? item.roleId.includes(roleUserId) : item.roleId === roleUserId
+          )}
+        />
+      )}
       <CSidebarFooter className="border-top d-none d-lg-flex">
         <CSidebarToggler
           onClick={() => dispatch({ type: 'set', sidebarUnfoldable: !unfoldable })}
