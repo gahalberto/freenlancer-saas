@@ -261,7 +261,7 @@ model EventsServices {
   responseDate            DateTime?
   mashguiachPrice         Float             @default(0)
   mashguiachPricePerHour  Float             @default(0)
-  transport_price         Float             @default(0)
+  transport_price         Float?             @default(0)
   observationText         String?
   paymentStatus           TransactionStatus @default(Pending)
 

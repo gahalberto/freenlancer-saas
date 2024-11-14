@@ -1,7 +1,7 @@
 "use client"
 import { getServicesCount } from "@/app/_actions/services/getServicesCount"
 import { CButton, CCard, CCardBody, CCardFooter, CCardText, COffcanvas, COffcanvasBody, COffcanvasHeader, COffcanvasTitle, CCloseButton, CCol, CRow, CBadge, CToast, CToastHeader, CToastBody, CToaster, CDropdownDivider, CHeaderDivider, CHeader, CCardTitle, CCardHeader } from "@coreui/react-pro"
-import { StoreEvents } from "@prisma/client"
+import { EventsServices, StoreEvents } from "@prisma/client"
 import { useSession } from "next-auth/react"
 import { useEffect, useRef, useState } from "react"
 import Map from "../googleMaps"
@@ -14,11 +14,15 @@ interface Service {
     observationText?: string;
 }
 
+interface StoreEventsWithServices extends StoreEvents {
+    EventsServices: EventsServices[]
+}
+
 
 export default function ServicesTable() {
     const [events, setEvents] = useState<StoreEvents[]>([])
     const [visible, setVisible] = useState(false)
-    const [selectedEvent, setSelectedEvent] = useState<StoreEvents | null>(null) // Evento selecionado
+    const [selectedEvent, setSelectedEvent] = useState<StoreEventsWithServices | null>(null) // Evento selecionado
     const [servicesCount, setServicesCount] = useState<{ [key: string]: number }>({}) // Contagem de serviços por evento
     const { data: session } = useSession() // Sessão do usuário logado
     const [address, setAddress] = useState("");
@@ -50,7 +54,7 @@ export default function ServicesTable() {
 
     // Função para abrir o Offcanvas e definir o evento selecionado
     const handleShowDetails = (event: StoreEvents) => {
-        setSelectedEvent(event)
+        setSelectedEvent(event as StoreEventsWithServices)
         setVisible(true)
         console.log('Evento selecionado:', event)
     }
@@ -166,7 +170,7 @@ export default function ServicesTable() {
                         <>
                             {/* Renderizando os serviços do evento */}
                             <CHeaderDivider />
-                            {selectedEvent?.EventsServices?.map((service: Service, index: number) => (
+                            {selectedEvent?.EventsServices?.map((service: EventsServices, index: number) => (
                                 <div key={service.id}>
                                     <CCard color="light" className="text-left" style={{ marginBottom: '10px' }}>
                                         <CCardBody>

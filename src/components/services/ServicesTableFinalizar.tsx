@@ -138,7 +138,7 @@ export default function ServicesTableFinalizar() {
 
                                         <p><b>Valor Reservado: </b> R$ {item.mashguiachPrice}</p>
                                         <p><b>Total a pagar: </b> R$ {totalToPay.toFixed(2)}</p>
-                                        <p><b>Mashguiach:</b> <small>{item.Mashguiach.name}</small> </p>
+                                        <p><b>Mashguiach:</b> <small>{item.Mashguiach?.name}</small> </p>
                                         <p><b>Data: </b><small>{new Date(item.arriveMashguiachTime).toLocaleDateString()}</small></p>
                                     </CCardText>
                                 </CCardBody>
