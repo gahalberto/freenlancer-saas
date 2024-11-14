@@ -16,8 +16,6 @@ import {
 } from '@coreui/icons'
 import CIcon from '@coreui/icons-react'
 import { CNavGroup, CNavItem, CNavTitle } from '@coreui/react-pro'
-import { useSession } from 'next-auth/react'
-import { getStoreCount } from './app/_actions/dashboards/getStoreCount'
 
 export type Badge = {
   color: string

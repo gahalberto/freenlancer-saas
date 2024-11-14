@@ -1,7 +1,7 @@
 "use client";
 
 import { useSession } from "next-auth/react";
-import { cilAvTimer, cilBadge, cilCalendar, cilClock, cilList, cilPhone, cilPlus, cilStar } from "@coreui/icons";
+import { cilAvTimer, cilBadge, cilCalendar, cilClock, cilList, cilNotes, cilPhone, cilPlus, cilStar, cilWarning } from "@coreui/icons";
 import DangerAlert from "@/components/alerts/DangerAlert";
 import MashguiachButtonGroup from "@/components/dashboard/MashguiachButtonGroupt";
 import { CButton, CCard, CCardBody, CCardHeader, CCardTitle, CCol, CDatePicker, CFormLabel, CModal, CModalBody, CModalHeader, CRow, CToast, CToastBody, CToastClose, CToaster, CToastHeader } from "@coreui/react-pro";
@@ -9,10 +9,10 @@ import CIcon from "@coreui/icons-react";
 import { getServicesByDate } from "@/app/_actions/services/getServicesdByDate";
 import { useEffect, useRef, useState } from "react";
 import { EventsServices, StoreEvents } from "@prisma/client";
-import { EventApi } from "@fullcalendar/core";
 import { confirmExit } from "@/app/_actions/events/confirmExitTime";
 import { confirmEntrance } from "@/app/_actions/events/confirmHours";
 import Link from "next/link";
+import EventInfoModal from "@/components/dashboard/EventsInfoModal";
 
 // Extender o tipo EventsServices para incluir StoreEvents
 interface EventsServicesWithStoreEvents extends EventsServices {
@@ -28,8 +28,9 @@ export default function MashguiachDashboard() {
   const [serviceData, setServiceData] = useState<EventsServicesWithStoreEvents[] | null>(null);
   const [arriveMashguiachTime, setArriveMashguiachTime] = useState<Date | null>(new Date());
   const [endMashguiachTime, setEndMashguiachTime] = useState<Date | null>(new Date());
-  const [selectedEvent, setSelectedEvent] = useState<EventApi | null>(null)
+  const [selectedEvent, setSelectedEvent] = useState<EventsServicesWithStoreEvents | null>(null)
   const [visible, setVisible] = useState(false)
+  const [visibleInfoModal, setVisibleInfoModal] = useState(false)
   const [toast, addToast] = useState(0)
   const toaster = useRef();
 
@@ -95,6 +96,11 @@ export default function MashguiachDashboard() {
 
   }
 
+  const handleInfoModal = (event: EventsServicesWithStoreEvents) => {
+    setVisibleInfoModal(true)
+    setSelectedEvent(event)
+  }
+
 
   return (
     <>
@@ -102,6 +108,9 @@ export default function MashguiachDashboard() {
       }
 
       {/* Agrupando os cards em um único CRow */}
+      {visibleInfoModal && (
+        <EventInfoModal visible={visibleInfoModal} onClose={() => setVisibleInfoModal(visible)} selectedEvent={selectedEvent} />
+      )}
       <CRow>
         {serviceData?.map(item => (
           <>
@@ -115,16 +124,18 @@ export default function MashguiachDashboard() {
                   onMouseLeave={(e) => (e.currentTarget.style.transform = "scale(1)")} // Remove o efeito ao retirar o mouse
                 >
                   <CCardHeader>
-                    <CCardTitle>Check-in/Check-out</CCardTitle>
+                    <CCardTitle><CIcon icon={cilWarning} style={{ marginRight: 10 }} /><b>Você tem um evento HOJE!</b></CCardTitle>
                   </CCardHeader>
                   <CCardBody className="flex justify-center text-center items-center">
-                    <p><b>Evento:</b> {item.StoreEvents?.title} | <b> Responsavél:</b> {item.StoreEvents?.responsable}
-                      | <b> Endereço:</b> {item.StoreEvents?.address_street}</p>
-                    <Link href={`https://wa.me/${item.StoreEvents.responsableTelephone}`}>
-                      <CButton size="sm" color="primary"><CIcon icon={cilPhone} />  Chamar o responsável no whatsapp: {item.StoreEvents.responsableTelephone}</CButton>
-                    </Link>
-                    <p className="mt-3"><b>Entrada prevista:</b> {new Date(item.arriveMashguiachTime).toLocaleString('pt-BR')}</p>
-                    <p><b>Entrada prevista:</b> {new Date(item.endMashguiachTime).toLocaleString('pt-BR')}</p>
+                    <p><b>{item.StoreEvents?.title}</b>  </p>
+
+                    <CCol>
+                      <CButton color="light" size="sm" className="mt-2 mb-2" onClick={() => handleInfoModal(item as any)}>
+                        <CIcon icon={cilNotes} /> Ver detalhes
+                      </CButton>
+                    </CCol>
+
+
                     <CButton color="light" size="sm" className="mt-2" onClick={() => handleConfirmEntrance(item.id)}>
                       <CIcon icon={cilClock} /> Confirmar horário de entrada/saída
                     </CButton>
