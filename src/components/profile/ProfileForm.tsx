@@ -44,7 +44,6 @@ const ProfileForm = ({ userId }: TypeProps) => {
                 setValue("name", userInfo.name || "");
                 setValue("email", userInfo.email || "");
                 setValue("phone", userInfo.phone || "");
-                setValue("address", userInfo.address || "");
                 setValue("jewishName", userInfo.jewishName || "");
             } else {
                 console.error("Nenhum usuário encontrado.");

@@ -73,7 +73,7 @@ const Invoice = ({ params }: PropsType) => {
                         <div>
                             <strong>{service?.StoreEvents?.title || "N/A"}</strong>
                         </div>
-                        <div>{service?.StoreEvents?.address || "Endereço não informado"}</div>
+                        <div>{service?.StoreEvents?.address_street || "Endereço não informado"}</div>
                         <strong>Cliente:</strong> {service?.StoreEvents?.clientName || "Cliente não informado"}
                     </CCol>
                     <CCol sm={4}>
@@ -81,7 +81,7 @@ const Invoice = ({ params }: PropsType) => {
                         <div>
                             <strong>Mashguiach: {service?.Mashguiach?.name || "Cliente não informado"}</strong>
                         </div>
-                        <div>{service?.StoreEvents?.address || "Endereço do cliente não informado"}</div>
+                        <div>{service?.StoreEvents?.address_street || "Endereço do cliente não informado"}</div>
                     </CCol>
                     <CCol sm={4}>
                         <h6 className="mb-3">Detalhes:</h6>

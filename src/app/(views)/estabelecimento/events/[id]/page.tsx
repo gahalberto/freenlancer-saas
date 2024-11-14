@@ -159,7 +159,7 @@ const EditEventPage = ({ params }: ParamsType) => {
                         <CCardTitle>Mapa</CCardTitle>
                     </CCardHeader>
                     <CCardBody>
-                        <Map zipcode={event?.address_zicode as string} />
+                        <Map zipcode={event?.address_zicode as string} showButtons={false} />
                     </CCardBody>
                 </CCard>
 
