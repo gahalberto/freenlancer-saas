@@ -25,12 +25,12 @@ const AppSidebar = (): JSX.Element => {
   const dispatch = useDispatch()
   const unfoldable = useTypedSelector((state) => state.sidebarUnfoldable)
   const sidebarShow = useTypedSelector((state) => state.sidebarShow)
-  const { data: session, status } = useSession(); // Adicionando status para verificar o carregamento
-  const roleUserId = session?.user.roleId;
+  const { data: session, status } = useSession() // Adicionando status para verificar o carregamento
+  const roleUserId = session?.user.roleId
 
   // Só renderiza o menu após a sessão estar carregada
   if (status === 'loading') {
-    return <></>; // Ou um componente de carregamento, como um spinner
+    return <></> // Ou um componente de carregamento, como um spinner
   }
 
   return (
@@ -57,8 +57,10 @@ const AppSidebar = (): JSX.Element => {
       </CSidebarHeader>
       {roleUserId && (
         <AppSidebarNav
-          items={navigation.filter(item =>
-            Array.isArray(item.roleId) ? item.roleId.includes(roleUserId) : item.roleId === roleUserId
+          items={navigation.filter((item) =>
+            Array.isArray(item.roleId)
+              ? item.roleId.includes(roleUserId)
+              : item.roleId === roleUserId,
           )}
         />
       )}

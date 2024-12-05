@@ -37,7 +37,7 @@ const _nav = [
     name: 'Início',
     roleId: 1,
     icon: <CIcon icon={cilSpeedometer} customClassName="nav-icon" />,
-    href: '/',
+    href: '/app',
   },
   {
     component: CNavItem,
@@ -48,7 +48,7 @@ const _nav = [
       color: 'info-gradient',
       text: 'NEW',
     },
-    href: '/',
+    href: '/app',
   },
   {
     component: CNavItem,
@@ -59,7 +59,7 @@ const _nav = [
       color: 'info-gradient',
       text: 'NEW',
     },
-    href: '/',
+    href: '/app',
   },
   {
     component: CNavTitle,
@@ -75,22 +75,21 @@ const _nav = [
       {
         component: CNavItem,
         name: 'Mashguichim',
-        href: '/admin/users',
+        href: '/app/admin/users',
         icon: <CIcon icon={cilUser} customClassName="nav-icon" />,
       },
       {
         component: CNavItem,
         name: 'Estabelecimentos',
-        href: '/admin/estabelecimentos',
+        href: '/app/admin/estabelecimentos',
         icon: <CIcon icon={cilInstitution} customClassName="nav-icon" />,
       },
       {
         component: CNavItem,
         name: 'Questionários',
-        href: '/admin/questionarios',
+        href: '/app/admin/questionarios',
         icon: <CIcon icon={cilFile} customClassName="nav-icon" />,
       },
-
     ],
   },
   {
@@ -101,21 +100,20 @@ const _nav = [
       {
         component: CNavItem,
         name: 'Todos os eventos!',
-        href: '/admin/events',
+        href: '/app/admin/events',
       },
       {
         component: CNavItem,
         name: 'Estabelecimentos',
-        href: '/admin/estabelecimentos',
+        href: '/app/admin/estabelecimentos',
         icon: <CIcon icon={cilInstitution} customClassName="nav-icon" />,
       },
       {
         component: CNavItem,
         name: 'Questionários',
-        href: '/admin/questionarios',
+        href: '/app/admin/questionarios',
         icon: <CIcon icon={cilFile} customClassName="nav-icon" />,
       },
-
     ],
   },
   {
@@ -127,37 +125,36 @@ const _nav = [
       {
         component: CNavItem,
         name: 'Cursos',
-        href: '/admin/courses',
+        href: '/app/admin/courses',
       },
       {
         component: CNavItem,
         name: 'Aulas',
-        href: '/cursos/aulas',
+        href: '/app/cursos/aulas',
       },
       {
         component: CNavItem,
         name: 'Avaliações',
-        href: '/cursos/provas',
+        href: '/app/cursos/provas',
       },
       {
         component: CNavItem,
         name: 'Questionários',
-        href: '/admin/questionarios',
+        href: '/app/admin/questionarios',
         icon: <CIcon icon={cilFile} customClassName="nav-icon" />,
       },
-
     ],
   },
   {
     component: CNavTitle,
     name: 'Cursos Online',
-    roleId: [1, 2, 3]
+    roleId: [1, 2, 3],
   },
   {
     component: CNavItem,
     name: 'Cursos',
     roleId: [1, 2, 3],
-    href: '/courses',
+    href: '/app/courses',
     icon: <CIcon icon={cilStar} customClassName="nav-icon" />,
   },
   {
@@ -169,9 +166,8 @@ const _nav = [
     component: CNavItem,
     name: 'Freelancers',
     roleId: [1, 3],
-    href: '/services',
+    href: '/app/services',
     icon: <CIcon icon={cilMoney} customClassName="nav-icon" />,
-
   },
   {
     component: CNavTitle,
@@ -182,7 +178,7 @@ const _nav = [
     component: CNavItem,
     name: 'Calendário',
     roleId: [1, 2, 3],
-    href: '/mashguiach/freelancers',
+    href: '/app/mashguiach/freelancers',
     icon: <CIcon icon={cilCalendar} customClassName="nav-icon" />,
   },
   {
@@ -194,14 +190,14 @@ const _nav = [
     component: CNavItem,
     name: 'Criar Relatório ',
     roleId: [1, 2, 3],
-    href: '/relatorios/create',
+    href: '/app/relatorios/create',
     icon: <CIcon icon={cilCalendar} customClassName="nav-icon" />,
   },
   {
     component: CNavItem,
     name: 'Todos Relatórios ',
     roleId: [1, 2, 3],
-    href: '/relatorios',
+    href: '/app/relatorios',
     icon: <CIcon icon={cilFlagAlt} customClassName="nav-icon" />,
   },
   {
@@ -213,37 +209,37 @@ const _nav = [
     component: CNavItem,
     name: 'Meus Estabelecimentos',
     roleId: [2, 3],
-    href: '/stores',
+    href: '/app/stores',
     icon: <CIcon icon={cilCenterFocus} customClassName="nav-icon" />,
   },
   {
     component: CNavItem,
     name: 'Meus Eventos',
     roleId: [2, 3],
-    href: '/estabelecimento/events',
+    href: '/app/estabelecimento/events',
     icon: <CIcon icon={cilGem} customClassName="nav-icon" />,
   },
   {
     component: CNavItem,
     name: 'Criar Evento',
     roleId: [2, 3],
-    href: '/estabelecimento/events/create',
+    href: '/app/estabelecimento/events/create',
     icon: <CIcon icon={cilPlus} customClassName="nav-icon" />,
   },
   {
     component: CNavItem,
     name: 'Buscar Mashguiach',
     roleId: [2, 3],
-    href: '/theme/colors',
+    href: '/app/theme/colors',
     icon: <CIcon icon={cilSearch} customClassName="nav-icon" />,
   },
   {
     component: CNavItem,
     name: 'Finalizar eventos',
     roleId: [2, 3],
-    href: '/services/finalizar',
+    href: '/app/services/finalizar',
     icon: <CIcon icon={cilMoney} customClassName="nav-icon" />,
-  }
+  },
 ]
 
 export default _nav

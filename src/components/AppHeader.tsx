@@ -15,7 +15,7 @@ import {
   CNavItem,
   useColorModes,
 } from '@coreui/react-pro'
-import { cilApplicationsSettings, cilContrast, cilMenu, cilMoon, cilSun } from '@coreui/icons'
+import { cilContrast, cilMenu, cilMoon, cilSun } from '@coreui/icons'
 import CIcon from '@coreui/icons-react'
 
 import { useTypedSelector } from './../store'
@@ -32,12 +32,13 @@ import { useSession } from 'next-auth/react'
 import { getCreditsByUser } from '@/app/_actions/getCreditsByUser'
 
 const AppHeader = (): JSX.Element => {
-  const { data: session, status } = useSession();
-  const [credits, setCredits] = useState(0);
-
+  const { data: session, status } = useSession()
+  const [credits, setCredits] = useState(0)
 
   const headerRef = useRef<HTMLDivElement>(null)
-  const { colorMode, setColorMode } = useColorModes('coreui-pro-next-js-admin-template-theme-default')
+  const { colorMode, setColorMode } = useColorModes(
+    'coreui-pro-next-js-admin-template-theme-default',
+  )
 
   const dispatch = useDispatch()
   const sidebarShow = useTypedSelector((state) => state.sidebarShow)
@@ -47,16 +48,16 @@ const AppHeader = (): JSX.Element => {
     document.addEventListener('scroll', () => {
       headerRef.current &&
         headerRef.current.classList.toggle('shadow-sm', document.documentElement.scrollTop > 0)
-    });
+    })
 
     const fetchCredits = async () => {
-      const response = await getCreditsByUser();
+      const response = await getCreditsByUser()
       if (response) {
-        setCredits(response.credits);
+        setCredits(response.credits)
       }
     }
 
-    fetchCredits();
+    fetchCredits()
   }, [])
 
   return (
@@ -138,12 +139,12 @@ const AppHeader = (): JSX.Element => {
             <li className="nav-item py-1">
               <div className="vr h-100 mx-2 text-body text-opacity-75"></div>
             </li>
-            <div className="d-flex justify-content-center align-items-center
-            ">
+            <div
+              className="d-flex justify-content-center align-items-center
+            "
+            >
               <Link href={`/credits`}>
-                <div className='text-opacity-75'>
-                  R$ {credits}
-                </div>
+                <div className="text-opacity-75">R$ {credits}</div>
               </Link>
             </div>
           </CHeaderNav>
