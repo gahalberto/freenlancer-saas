@@ -2,7 +2,8 @@
   "compilerOptions": {
     "baseUrl": ".",
     "typeRoots": ["./types", "./node_modules/@types"],
-    "target": "es5",
+    "module": "CommonJS",
+    "target": "ES6",
     "lib": [
       "dom",
       "dom.iterable",
@@ -14,7 +15,6 @@
     "forceConsistentCasingInFileNames": true,
     "noEmit": true,
     "esModuleInterop": true,
-    "module": "esnext",
     "moduleResolution": "node",
     "resolveJsonModule": true,
     "isolatedModules": true,
