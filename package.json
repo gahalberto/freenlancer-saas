@@ -18,6 +18,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
+    "seed": "ts-node prisma/seed.ts",
     "start": "next start",
     "postinstall": "prisma migrate deploy",
     "lint": "next lint",
