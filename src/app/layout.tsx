@@ -7,13 +7,14 @@ import store from './../store'
 import './../styles/style.scss'
 // We use those styles to show code examples, you should remove them in your application.
 import './../styles/examples.scss'
-import { SessionProvider } from "next-auth/react";
+import { SessionProvider } from 'next-auth/react'
+import { Metadata } from 'next'
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
       <head>
-        <title>Beit Yaakov - Mashguiach</title>
+        <title>Beit Yaacov - Dep. Cashrut</title>
         <Script
           id="get-color-scheme"
           strategy="beforeInteractive"

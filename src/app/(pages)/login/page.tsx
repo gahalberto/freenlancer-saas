@@ -22,6 +22,7 @@ import { useRouter } from 'next/navigation'
 import { z } from 'zod'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
+import { Metadata } from 'next'
 
 const loginSchema = z.object({
   email: z.string().nonempty('Digite o seu e-mail'),
@@ -68,6 +69,7 @@ const Login = () => {
 
   return (
     <div className="bg-body-tertiary min-vh-100 d-flex flex-row align-items-center">
+      <title>Beit Yaacov - Login</title>
       <CContainer>
         <CRow className="justify-content-center">
           <CCol md={8}>

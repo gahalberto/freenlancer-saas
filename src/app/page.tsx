@@ -7,6 +7,7 @@ import { CFormInput } from '@coreui/react-pro'
 const Home = () => {
   return (
     <>
+      <title>Beit Yaacov - Departamento de Kashrut</title>
       <HomeNavBar />
       <div
         style={{
@@ -22,7 +23,7 @@ const Home = () => {
       >
         <h2 className="text-1xl text-center pb-4">Estabelecimentos</h2>
         <p>
-          Supervisionados pela <b>Beit Yaakov</b>
+          Supervisionados pela <b>Beit Yaacov</b>
         </p>
       </div>
       <div
