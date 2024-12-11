@@ -42,9 +42,10 @@ const HomeNavBar = () => {
                 <CNavLink href="/login">Login</CNavLink>
               </CNavItem>
               <CNavItem>
-                <CNavLink href="#" disabled>
-                  Dashboard
-                </CNavLink>
+                <CNavLink href="/register">Registre-se</CNavLink>
+              </CNavItem>
+              <CNavItem>
+                <CNavLink href="/app">Dashboard</CNavLink>
               </CNavItem>
             </CNavbarNav>
           </CCollapse>

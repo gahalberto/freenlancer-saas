@@ -200,14 +200,19 @@ model LessonOrder {
 }
 
 model Stores {
-  id           String   @id @default(uuid())
-  title        String
-  address      String
-  userId       String
-  isAutomated  Boolean?
-  isMashguiach Boolean?
-  mashguiachId String?
-  storeTypeId  String
+  id               String   @id @default(uuid())
+  title            String
+  address_zipcode  String
+  address_street   String
+  address_number   String
+  address_neighbor String
+  address_city     String
+  address_state    String
+  userId           String
+  isAutomated      Boolean?
+  isMashguiach     Boolean?
+  mashguiachId     String?
+  storeTypeId      String
 
   storeType   StoresType    @relation(fields: [storeTypeId], references: [id])
   reports     Reports[]
@@ -261,7 +266,7 @@ model EventsServices {
   responseDate            DateTime?
   mashguiachPrice         Float             @default(0)
   mashguiachPricePerHour  Float             @default(0)
-  transport_price         Float?             @default(0)
+  transport_price         Float?            @default(0)
   observationText         String?
   paymentStatus           TransactionStatus @default(Pending)
 
