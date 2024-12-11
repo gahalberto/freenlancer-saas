@@ -70,9 +70,11 @@ const Home = () => {
             padding: '20px',
           }}
         >
-          {stores.map((store, index) => (
-            <StoreItem key={index} store={store} />
-          ))}
+          {stores ? (
+            stores.map((store) => <StoreItem key={store.id} store={store} />)
+          ) : (
+            <p>Carregando...</p>
+          )}
         </div>
       </div>
     </>
