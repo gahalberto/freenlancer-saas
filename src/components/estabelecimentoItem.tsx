@@ -1,17 +1,27 @@
 import { CButton, CCard, CCardBody, CCardImage, CCardText, CCardTitle } from '@coreui/react-pro'
+import { Stores } from '@prisma/client'
+interface StoreItemProps {
+  store: {
+    id: string
+    title: string
+    address: string
+    userId: string
+    isAutomated: boolean | null
+    isMashguiach: boolean | null
+    mashguiachId: string | null
+    storeTypeId: string
+  }
+}
 
-const StoreItem = () => {
+const StoreItem = (store: StoreItemProps) => {
   return (
     <CCard style={{ width: '18rem' }}>
       <CCardImage orientation="top" src={`/images/react.jpg`} />
       <CCardBody>
-        <CCardTitle>Card title</CCardTitle>
-        <CCardText>
-          Some quick example text to build on the card title and make up the bulk of the cards
-          content.
-        </CCardText>
+        <CCardTitle>{store.store.title}</CCardTitle>
+        <CCardText>Certificado em: 11/2023 até 11/2025</CCardText>
         <CButton color="primary" href="#">
-          Go somewhere
+          Ver certificado de Kosher
         </CButton>
       </CCardBody>
     </CCard>

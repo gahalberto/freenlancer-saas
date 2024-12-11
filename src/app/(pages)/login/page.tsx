@@ -57,7 +57,7 @@ const Login = () => {
       if (result?.error) {
         setError(result.error) // Mostra a mensagem de erro no frontend
       } else {
-        router.push('/') // Redireciona para a página protegida após o login bem-sucedido
+        router.push('/app') // Redireciona para a página protegida após o login bem-sucedido
       }
     } catch (error) {
       setError('Erro ao tentar fazer login.')
