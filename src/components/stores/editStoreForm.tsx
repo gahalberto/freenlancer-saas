@@ -40,7 +40,20 @@ const storeSchema = z.object({
 type FormData = z.infer<typeof storeSchema>
 
 interface EditStoreFormProps {
-  storeData: FormData & { id: string } // Dados do estabelecimento para edição
+  storeData: {
+    id: string
+    title: string
+    address_zipcode: string
+    address_street: string
+    address_number: string
+    address_neighbor: string
+    address_city: string
+    address_state: string
+    isAutomated: boolean | null
+    isMashguiach: boolean | null
+    storeTypeId: string
+    mashguiachId?: string | null
+  }
 }
 
 const EditStoreForm: React.FC<EditStoreFormProps> = ({ storeData }) => {
@@ -52,7 +65,12 @@ const EditStoreForm: React.FC<EditStoreFormProps> = ({ storeData }) => {
     formState: { errors },
   } = useForm<FormData>({
     resolver: zodResolver(storeSchema),
-    defaultValues: storeData, // Preenche o formulário com os dados existentes
+    defaultValues: {
+      ...storeData,
+      isAutomated: storeData.isAutomated ?? false, // Converte null para false
+      isMashguiach: storeData.isMashguiach ?? false, // Converte null para false
+      mashguiachId: storeData.mashguiachId ?? undefined, // Converte null para undefined
+    },
   })
 
   const [mashguiachim, setMashguiachim] = useState<any[]>([])
@@ -106,8 +124,14 @@ const EditStoreForm: React.FC<EditStoreFormProps> = ({ storeData }) => {
 
   const onSubmit = async (formData: FormData) => {
     try {
-      const updatedFormData = { ...formData, id: storeData.id }
-      await editStore(updatedFormData) // Chama a ação de atualização
+      // Adapte o valor de mashguiachId para garantir compatibilidade com o tipo esperado
+      const updatedFormData = {
+        ...formData,
+        id: storeData.id,
+        mashguiachId: formData.mashguiachId ?? null, // Converte undefined para null
+      }
+
+      await editStore(updatedFormData)
       alert('Estabelecimento atualizado com sucesso!')
     } catch (error) {
       console.error('Erro ao atualizar estabelecimento:', error)

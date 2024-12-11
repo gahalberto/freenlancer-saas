@@ -208,7 +208,7 @@ model Stores {
   address_neighbor String
   address_city     String
   address_state    String
-  userId           String
+  userId           String?
   isAutomated      Boolean?
   isMashguiach     Boolean?
   mashguiachId     String?

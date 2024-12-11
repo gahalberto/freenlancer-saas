@@ -10,7 +10,7 @@ interface StoreItemProps {
     address_neighbor: string
     address_city: string
     address_state: string
-    userId: string
+    userId: string | null
     isAutomated: boolean | null
     isMashguiach: boolean | null
     mashguiachId: string | null
