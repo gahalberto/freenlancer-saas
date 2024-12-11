@@ -4,7 +4,12 @@ interface StoreItemProps {
   store: {
     id: string
     title: string
-    address: string
+    address_zipcode: string
+    address_street: string
+    address_number: string
+    address_neighbor: string
+    address_city: string
+    address_state: string
     userId: string
     isAutomated: boolean | null
     isMashguiach: boolean | null
