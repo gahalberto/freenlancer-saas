@@ -58,6 +58,7 @@ model User {
   StoreEvents    StoreEvents[]
   EventsServices EventsServices[]
   mashguiachJobs FixedJobs[] // Relacionamento inverso: um mashguiach pode ter vários trabalhos
+  Certifications Certifications[] // Relacionamento com Hashgachot
 
   @@map("users") // Mapeia o nome da tabela para 'users'
 }
@@ -213,10 +214,37 @@ model Stores {
   isMashguiach     Boolean?
   mashguiachId     String?
   storeTypeId      String
+  comercialPhone   String   @default("")
+  phone            String   @default("")
 
-  storeType   StoresType    @relation(fields: [storeTypeId], references: [id])
-  reports     Reports[]
-  StoreEvents StoreEvents[]
+  storeType      StoresType       @relation(fields: [storeTypeId], references: [id])
+  reports        Reports[]
+  StoreEvents    StoreEvents[]
+  Certifications Certifications[]
+}
+
+enum HashgachotTypeEnum {
+  CHALAVI
+  BASSARI
+  PARVE
+}
+
+model Certifications {
+  id                 String             @id @default(uuid())
+  storeId            String
+  userId             String
+  description        String
+  englishDescription String?
+  observation        String?
+  kasherLePessach    Boolean            @default(false)
+  HashgachotType     HashgachotTypeEnum
+  issueDate          DateTime
+  validationDate     DateTime
+  createdAt          DateTime           @default(now())
+
+  // Relacionamento com o modelo User
+  user  User   @relation(fields: [userId], references: [id])
+  store Stores @relation(fields: [storeId], references: [id])
 }
 
 model StoresType {

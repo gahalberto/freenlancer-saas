@@ -19,7 +19,7 @@ import { z } from 'zod'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
 import CIcon from '@coreui/icons-react'
-import { cilMap, cilSearch } from '@coreui/icons'
+import { cilContact, cilMap, cilPhone, cilSearch } from '@coreui/icons'
 import { editStore } from '@/app/_actions/stores/editStore'
 
 // Zod schema para validação do formulário
@@ -33,6 +33,8 @@ const storeSchema = z.object({
   address_state: z.string().min(1, { message: 'Digite o Estado' }),
   isAutomated: z.boolean(),
   isMashguiach: z.boolean(),
+  phone: z.string().nullable().default(''), // Aceita string ou null
+  comercialPhone: z.string().nullable().default(''), // Aceita string ou null
   mashguiachId: z.string().optional().nullable(),
   storeTypeId: z.string().min(1, { message: 'Selecione o tipo de estabelecimento' }),
 })
@@ -53,6 +55,8 @@ interface EditStoreFormProps {
     isMashguiach: boolean | null
     storeTypeId: string
     mashguiachId?: string | null
+    phone: string | null
+    comercialPhone: string | null
   }
 }
 
@@ -124,11 +128,13 @@ const EditStoreForm: React.FC<EditStoreFormProps> = ({ storeData }) => {
 
   const onSubmit = async (formData: FormData) => {
     try {
-      // Adapte o valor de mashguiachId para garantir compatibilidade com o tipo esperado
+      // Adapte os valores opcionais para garantir compatibilidade
       const updatedFormData = {
         ...formData,
         id: storeData.id,
         mashguiachId: formData.mashguiachId ?? null, // Converte undefined para null
+        phone: formData.phone || '', // Converte undefined ou null para string vazia
+        comercialPhone: formData.comercialPhone || '', // Converte undefined ou null para string vazia
       }
 
       await editStore(updatedFormData)
@@ -241,6 +247,32 @@ const EditStoreForm: React.FC<EditStoreFormProps> = ({ storeData }) => {
                 placeholder="Digite o Estado"
                 autoComplete="address"
                 {...register('address_state')}
+              />
+            </CInputGroup>
+
+            {errors.phone && <span className="text-danger">{errors.phone.message}</span>}
+            <CInputGroup className="mb-3">
+              <CInputGroupText>
+                <CIcon icon={cilPhone} />
+              </CInputGroupText>
+              <CFormInput
+                placeholder="Digite um número de telefone"
+                autoComplete="phone"
+                {...register('phone')}
+              />
+            </CInputGroup>
+
+            {errors.comercialPhone && (
+              <span className="text-danger">{errors.comercialPhone.message}</span>
+            )}
+            <CInputGroup className="mb-3">
+              <CInputGroupText>
+                <CIcon icon={cilContact} />
+              </CInputGroupText>
+              <CFormInput
+                placeholder="Digite um número de telefone"
+                autoComplete="comercialPhone"
+                {...register('comercialPhone')}
               />
             </CInputGroup>
 
