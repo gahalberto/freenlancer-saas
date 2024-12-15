@@ -176,7 +176,7 @@ const NewStoreForm = () => {
                 <CIcon icon={cilPhone} />
               </CInputGroupText>
               <CFormInput
-                placeholder="Número comercial"
+                placeholder="Telefone Comercial"
                 autoComplete="comercialPhone"
                 {...register('comercialPhone')}
               />
@@ -187,7 +187,7 @@ const NewStoreForm = () => {
                 <CIcon icon={cilPhone} />
               </CInputGroupText>
               <CFormInput
-                placeholder="Digite o telefone"
+                placeholder="Telefone Pessoal"
                 autoComplete="phone"
                 {...register('phone')}
               />
