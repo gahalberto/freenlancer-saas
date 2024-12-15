@@ -22,7 +22,7 @@ import { useForm } from 'react-hook-form'
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import CIcon from '@coreui/icons-react'
-import { cilMap, cilSearch } from '@coreui/icons'
+import { cilMap, cilPhone, cilSearch } from '@coreui/icons'
 
 // Zod schema para validar o formulário
 const storeSchema = z.object({
@@ -35,6 +35,8 @@ const storeSchema = z.object({
   address_state: z.string().min(1, { message: 'Digite o Estado' }),
   isAutomated: z.boolean(),
   isMashguiach: z.boolean(),
+  comercialPhone: z.string().optional().nullable(), // Opcional
+  phone: z.string().optional().nullable(), // Opcional
   mashguiachId: z.string().optional().nullable(), // Opcional se não for um mashguiach fixo
   storeTypeId: z.string().min(1, { message: 'Selecione o tipo de estabelecimento' }), // Não permitir vazio
 })
@@ -126,6 +128,8 @@ const NewStoreForm = () => {
       address_neighbor: formData.address_neighbor,
       address_city: formData.address_city,
       address_state: formData.address_state,
+      comercialPhone: formData.comercialPhone || '', // Se não for fornecido, defina como null
+      phone: formData.phone || '', // Se não for fornecido, defina como null
       userId, // Inclua o userId
       isAutomated: formData.isAutomated ?? null, // Se não for fornecido, defina como null
       isMashguiach: formData.isMashguiach ?? null, // Se não for fornecido, defina como null
@@ -166,6 +170,28 @@ const NewStoreForm = () => {
               <CFormInput type="text" id="title" {...register('title')} invalid={!!errors.title} />
               {errors.title && <span>{errors.title.message}</span>}
             </div>
+
+            <CInputGroup className="mb-3">
+              <CInputGroupText>
+                <CIcon icon={cilPhone} />
+              </CInputGroupText>
+              <CFormInput
+                placeholder="Número comercial"
+                autoComplete="comercialPhone"
+                {...register('comercialPhone')}
+              />
+            </CInputGroup>
+
+            <CInputGroup className="mb-3">
+              <CInputGroupText>
+                <CIcon icon={cilPhone} />
+              </CInputGroupText>
+              <CFormInput
+                placeholder="Digite o telefone"
+                autoComplete="phone"
+                {...register('phone')}
+              />
+            </CInputGroup>
 
             {errors.address_zipcode && (
               <span className="text-danger">{errors.address_zipcode.message}</span>
