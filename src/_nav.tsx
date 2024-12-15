@@ -74,21 +74,33 @@ const _nav = [
     items: [
       {
         component: CNavItem,
-        name: 'Mashguichim',
+        name: 'Lista de Usuários',
         href: '/app/admin/users',
         icon: <CIcon icon={cilUser} customClassName="nav-icon" />,
-      },
-      {
-        component: CNavItem,
-        name: 'Estabelecimentos',
-        href: '/app/admin/estabelecimentos',
-        icon: <CIcon icon={cilInstitution} customClassName="nav-icon" />,
       },
       {
         component: CNavItem,
         name: 'Questionários',
         href: '/app/admin/questionarios',
         icon: <CIcon icon={cilFile} customClassName="nav-icon" />,
+      },
+    ],
+  },
+  {
+    component: CNavGroup,
+    name: 'Estabelecimentos',
+    roleId: 3,
+    icon: <CIcon icon={cilInstitution} customClassName="nav-icon" />,
+    items: [
+      {
+        component: CNavItem,
+        name: 'Lista ',
+        href: '/app/admin/estabelecimentos',
+      },
+      {
+        component: CNavItem,
+        name: 'Tipos',
+        href: '/app/admin/estabelecimentos/tipos',
       },
     ],
   },
