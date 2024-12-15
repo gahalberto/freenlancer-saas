@@ -18,7 +18,7 @@ const HomeNavBar = () => {
     <>
       <CNavbar
         expand="lg"
-        style={{ backgroundColor: '#212631' }}
+        style={{ backgroundColor: '#1e384c' }}
         className="border-end"
         colorScheme="dark"
       >
@@ -39,10 +39,14 @@ const HomeNavBar = () => {
                 </CNavLink>
               </CNavItem>
               <CNavItem>
-                <CNavLink href="/login">Login</CNavLink>
+                <CNavLink href="/sobre">Sobre nós</CNavLink>
               </CNavItem>
               <CNavItem>
-                <CNavLink href="/register">Registre-se</CNavLink>
+                <CNavLink href="/sobre">Certifique-se</CNavLink>
+              </CNavItem>
+
+              <CNavItem>
+                <CNavLink href="/login">Login</CNavLink>
               </CNavItem>
               <CNavItem>
                 <CNavLink href="/app">Dashboard</CNavLink>

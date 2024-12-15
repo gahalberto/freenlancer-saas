@@ -2,13 +2,14 @@
 
 import StoreItem from '@/components/estabelecimentoItem'
 import HomeNavBar from '@/components/navBar'
-import { CFormInput } from '@coreui/react-pro'
+import { CButton, CFormInput } from '@coreui/react-pro'
 import { Stores } from '@prisma/client'
 import { useEffect, useState } from 'react'
 import { getAllStores } from './_actions/stores/getAllStores'
 
 const Home = () => {
   const [stores, setStores] = useState<Stores[]>([])
+  const [searchTerm, setSearchTerm] = useState('')
 
   useEffect(() => {
     const fetchStores = async () => {
@@ -23,57 +24,129 @@ const Home = () => {
     fetchStores()
   }, [])
 
+  const filteredStores = stores.filter((store) =>
+    store.title.toLowerCase().includes(searchTerm.toLowerCase()),
+  )
+
   return (
     <>
       <title>Beit Yaacov - Departamento de Kashrut</title>
       <HomeNavBar />
+
+      {/* Header Section */}
       <div
         style={{
-          backgroundColor: '#D7E0DA',
-          height: '200px',
+          position: 'relative',
+          minHeight: '200px',
           display: 'flex',
-          padding: '20px',
           flexDirection: 'column',
           justifyContent: 'center',
           alignItems: 'center',
+          padding: '40px',
+          paddingTop: '40px',
+          paddingBlockEnd: '60px',
         }}
         className="w-screen"
       >
-        <h2 className="text-1xl text-center pb-4">Estabelecimentos</h2>
-        <p>
-          Pesquise os estabelecimentos <b>supervisionados pela BYK</b>
-        </p>
+        <div
+          style={{
+            position: 'absolute',
+            top: 0,
+
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundImage: 'url(/images/kosher.png)',
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+            opacity: 0.4,
+            zIndex: -1,
+          }}
+        ></div>
+        <h2
+          style={{
+            fontFamily: 'revert',
+            fontWeight: 'bold',
+            color: '#1e384c',
+            textAlign: 'center',
+            marginBottom: '20px',
+          }}
+        >
+          Descubra e promova a alimentação Kosher com facilidade
+        </h2>
+        <div
+          style={{
+            paddingTop: '20px',
+            display: 'flex',
+            gap: '20px',
+            justifyContent: 'center',
+            alignItems: 'center',
+          }}
+        >
+          <CButton color="secondary">Solicitar Certificação Kosher</CButton>
+          <CButton style={{ backgroundColor: '#1e384c', color: '#FFFFFF' }}>
+            Buscar Estabelecimentos
+          </CButton>
+        </div>
       </div>
+
+      {/* Search Section */}
       <div
         style={{
           display: 'flex',
           flexDirection: 'column',
-          justifyItems: 'center',
           alignItems: 'center',
-          padding: '50px',
+          padding: '40px',
+          backgroundColor: '#1e384c',
         }}
       >
+        <p
+          style={{
+            fontFamily: 'revert',
+            color: '#FFFFFF',
+            opacity: '0.8',
+            fontSize: '16px',
+            textAlign: 'center',
+            marginBottom: '20px',
+          }}
+        >
+          Encontre estabelecimentos certificados pelo Departamento de Kashrut da Congregação Beit
+          Yaacov
+        </p>
         <CFormInput
           style={{
-            maxWidth: '300px',
+            maxWidth: '400px',
+            borderRadius: '8px',
             marginBottom: '20px',
           }}
           type="text"
-          placeholder="Digite o nome do estabelecimento"
+          placeholder="Digite o nome do restaurante ou mercado..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
         />
+      </div>
+      {/* Store Listing Section */}
+      <div
+        style={{
+          backgroundColor: '#F9F9F9',
+          width: '100%',
+          padding: '20px 40px',
+        }}
+      >
         <div
           style={{
             display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', // Responsivo com largura mínima
-            gap: '20px', // Espaçamento entre os itens
-            width: '100%',
-            padding: '20px',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
+            gap: '20px',
+            justifyItems: 'center',
           }}
         >
-          {stores ? (
-            stores.map((store) => <StoreItem key={store.id} store={store} />)
+          {filteredStores.length > 0 ? (
+            filteredStores.map((store) => <StoreItem key={store.id} store={store} />)
           ) : (
-            <p>Carregando...</p>
+            <p style={{ color: '#1e384c', fontSize: '18px', fontWeight: 'bold' }}>
+              Carregando estabelecimentos...
+            </p>
           )}
         </div>
       </div>

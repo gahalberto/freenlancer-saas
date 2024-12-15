@@ -9,10 +9,15 @@ import './../styles/style.scss'
 import './../styles/examples.scss'
 import { SessionProvider } from 'next-auth/react'
 import { Metadata } from 'next'
+import { Inter } from 'next/font/google'
 
+const inter = Inter({
+  subsets: ['latin'],
+  weight: ['400', '500', '600', '700'],
+})
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
+    <html lang="en" className={inter.className}>
       <head>
         <title>Beit Yaacov - Dep. Cashrut</title>
         <Script

@@ -25,7 +25,7 @@ const StoreItem = (store: StoreItemProps) => {
       <CCardBody>
         <CCardTitle>{store.store.title}</CCardTitle>
         <CCardText>Certificado em: 11/2023 até 11/2025</CCardText>
-        <CButton color="primary" href="#">
+        <CButton color="secondary" href="#">
           Certificado de Kashrut
         </CButton>
       </CCardBody>
