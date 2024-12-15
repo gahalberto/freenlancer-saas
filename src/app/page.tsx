@@ -15,7 +15,8 @@ const Home = () => {
     const fetchStores = async () => {
       try {
         const response = await getAllStores()
-        setStores(response)
+        console.log('Estabelecimentos retornados:', response)
+        setStores(response || [])
       } catch (error) {
         console.error('Erro ao buscar estabelecimentos:', error)
       }
@@ -145,7 +146,7 @@ const Home = () => {
             filteredStores.map((store) => <StoreItem key={store.id} store={store} />)
           ) : (
             <p style={{ color: '#1e384c', fontSize: '18px', fontWeight: 'bold' }}>
-              Carregando estabelecimentos...
+              Nenhum estabelecimento encontrado.
             </p>
           )}
         </div>
