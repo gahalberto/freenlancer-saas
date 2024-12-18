@@ -52,22 +52,6 @@ const StoreRegisterForm = () => {
     formState: { errors },
   } = useForm<registerStoreSchema>({
     resolver: zodResolver(registerStoreSchema),
-    defaultValues: {
-      name: 'Gabriel Alberto',
-      title: 'Meu Estabelecimento',
-      email: 'teste@example.com',
-      address_zipcode: '12345678',
-      address_street: 'Rua Exemplo',
-      address_number: '123',
-      address_neighbor: 'Bairro Exemplo',
-      address_city: 'Cidade Exemplo',
-      address_state: 'SP',
-      phone: '11987654321',
-      comercialPhone: '1133334444',
-      password: 'senha123',
-      confirmPassword: 'senha123',
-      storeTypeId: '', // Ajuste conforme necessário
-    },
   })
 
   const [zipCode, setZipCode] = useState('')
