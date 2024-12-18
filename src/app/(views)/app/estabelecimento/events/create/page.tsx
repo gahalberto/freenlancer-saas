@@ -1,7 +1,7 @@
-"use client";
+'use client'
 
-import { useEffect, useState } from "react";
-import { CreateEvent } from "@/app/_actions/events/createEvent";
+import { useEffect, useState } from 'react'
+import { CreateEvent } from '@/app/_actions/events/createEvent'
 import {
   CButton,
   CCard,
@@ -15,64 +15,87 @@ import {
   CInputGroup,
   CInputGroupText,
   CRow,
-} from "@coreui/react-pro";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
-import { z } from "zod";
-import { useSession } from "next-auth/react";
-import { useRouter } from "next/navigation";
-import { getStores } from "@/app/_actions/stores/getStores";
-import { Stores } from "@prisma/client";
-import CIcon from "@coreui/icons-react";
-import { cilMap, cilSearch } from "@coreui/icons";
+} from '@coreui/react-pro'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { useForm } from 'react-hook-form'
+import { v4 as uuidv4 } from 'uuid'
+
+import { z } from 'zod'
+import { useSession } from 'next-auth/react'
+import { useRouter } from 'next/navigation'
+import { getStores } from '@/app/_actions/stores/getStores'
+import { Stores } from '@prisma/client'
+import CIcon from '@coreui/icons-react'
+import { cilMap, cilSearch } from '@coreui/icons'
 
 const schema = z.object({
-  title: z.string().min(1, { message: "Digite um título para o evento" }),
-  responsable: z.string().min(1, { message: "Digite o responsável pelo evento" }),
-  responsableTelephone: z.string().min(1, { message: "Digite o número de um responsável pelo evento." }),
+  title: z.string().min(1, { message: 'Digite um título para o evento' }),
+  responsable: z.string().min(1, { message: 'Digite o responsável pelo evento' }),
+  responsableTelephone: z
+    .string()
+    .min(1, { message: 'Digite o número de um responsável pelo evento.' }),
   nrPax: z.string(),
-  address_zicode: z.string().min(1, { message: "Digite o CEP e clique em buscar" }),
-  address_street: z.string().min(1, { message: "Digite a rua, digite o CEP e clique em buscar" }),
-  address_number: z.string().min(1, { message: "Digite o número do endereço" }),
-  address_neighbor: z.string().min(1, { message: "Digite o bairro" }),
-  address_city: z.string().min(1, { message: "Digite a cidade" }),
-  address_state: z.string().min(1, { message: "Digite o Estado" }),
-  store: z.string().min(1, { message: "Selecione uma loja" }),
-  eventType: z.string().min(1, { message: "Digite o tipo do evento, bar mitzvah?" }),
-  serviceType: z.string().min(1, { message: "O que será servido? Qual tipo de serviço?" }),
-  date: z.string().refine((value) => {
-    const date = new Date(value);
-    return !isNaN(date.getTime());
-  }, { message: "Data inválida" }),
-});
+  address_zicode: z.string().min(1, { message: 'Digite o CEP e clique em buscar' }),
+  address_street: z.string().min(1, { message: 'Digite a rua, digite o CEP e clique em buscar' }),
+  address_number: z.string().min(1, { message: 'Digite o número do endereço' }),
+  address_neighbor: z.string().min(1, { message: 'Digite o bairro' }),
+  address_city: z.string().min(1, { message: 'Digite a cidade' }),
+  address_state: z.string().min(1, { message: 'Digite o Estado' }),
+  store: z.string().min(1, { message: 'Selecione uma loja' }),
+  eventType: z.string().min(1, { message: 'Digite o tipo do evento, bar mitzvah?' }),
+  serviceType: z.string().min(1, { message: 'O que será servido? Qual tipo de serviço?' }),
+  date: z.string().refine(
+    (value) => {
+      const date = new Date(value)
+      return !isNaN(date.getTime())
+    },
+    { message: 'Data inválida' },
+  ),
+})
 
-type FormData = z.infer<typeof schema>;
+type FormData = z.infer<typeof schema>
 
 const CreateEventForm = () => {
-  const { data: session, status } = useSession();
-  const [selectedDate, setSelectedDate] = useState<string>("");
-  const [disabled, setDisabled] = useState(false);
-  const [storeList, setStoreList] = useState<Stores[]>([]);
+  const { data: session, status } = useSession()
+  const [selectedDate, setSelectedDate] = useState<string>('')
+  const [disabled, setDisabled] = useState(false)
+  const [storeList, setStoreList] = useState<Stores[]>([])
+  const [pdfFile, setPdfFile] = useState<File | null>(null)
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     const fetchStores = async () => {
       try {
         if (session?.user?.id) {
-          const response = await getStores(session.user.id);
+          const response = await getStores(session.user.id)
           if (response) {
-            setStoreList(response);
+            setStoreList(response)
           }
         }
       } catch (error) {
-        console.error("Erro ao buscar lojas:", error);
+        console.error('Erro ao buscar lojas:', error)
       }
-    };
+    }
 
-    fetchStores();
-  }, [session?.user?.id]);
+    fetchStores()
+  }, [session?.user?.id])
 
-  const router = useRouter();
-
+  const defaultValues = {
+    title: 'Aniversário do João',
+    responsable: 'Maria Silva',
+    responsableTelephone: '11987654321',
+    nrPax: '50',
+    address_zicode: '01001000',
+    address_street: 'Praça da Sé',
+    address_number: '100',
+    address_neighbor: 'Sé',
+    address_city: 'São Paulo',
+    address_state: 'SP',
+    store: '', // Atualize com o ID de uma loja disponível no teste
+    eventType: 'Festa de Aniversário',
+    serviceType: 'Buffet Completo',
+    date: new Date().toISOString().split('T')[0],
+  }
   const {
     register,
     handleSubmit,
@@ -81,15 +104,16 @@ const CreateEventForm = () => {
     getValues,
   } = useForm<FormData>({
     resolver: zodResolver(schema),
-  });
+    defaultValues,
+  })
 
   const onSubmit = async (data: FormData) => {
-    setDisabled(true);
+    setDisabled(true)
 
     if (!session || !session.user) {
-      console.log("Usuário não autenticado");
-      setDisabled(false);
-      return;
+      console.log('Usuário não autenticado')
+      setDisabled(false)
+      return
     }
 
     const eventData = {
@@ -102,7 +126,7 @@ const CreateEventForm = () => {
       address_number: data.address_number,
       address_city: data.address_city,
       address_neighbor: data.address_neighbor,
-      address_state: data.address_city,
+      address_state: data.address_state,
       eventType: data.eventType,
       serviceType: data.serviceType,
       date: new Date(selectedDate),
@@ -114,36 +138,74 @@ const CreateEventForm = () => {
       },
       clientName: data.responsable,
       isApproved: false,
-    };
+    }
 
+    const formData = new FormData()
+    formData.append('title', data.title)
+    formData.append('responsable', data.responsable)
+    formData.append('responsableTelephone', data.responsableTelephone)
+    formData.append('clientName', data.responsable) // Garantir o campo obrigatório
+    formData.append('nrPax', data.nrPax.toString()) // Converter para string
+    formData.append('address_zicode', data.address_zicode)
+    formData.append('address_street', data.address_street)
+    formData.append('address_number', data.address_number)
+    formData.append('address_neighbor', data.address_neighbor)
+    formData.append('address_city', data.address_city)
+    formData.append('address_state', data.address_state)
+    formData.append('store', data.store) // Certifique-se de enviar apenas o ID
+    formData.append('eventType', data.eventType)
+    formData.append('serviceType', data.serviceType)
+    formData.append('date', new Date(data.date).toISOString()) // Enviar a data no formato ISO-8601
+
+    if (pdfFile) {
+      formData.append('menuFile', pdfFile)
+    }
     try {
-      const response = await CreateEvent(eventData);
-      if (response) {
-        router.push(`/estabelecimento/events/${response}`);
+      const response = await fetch('/api/uploadEventMenu', {
+        method: 'POST',
+        body: formData,
+      })
+
+      if (response.ok) {
+        const data = await response.json()
+        console.log('Evento criado com sucesso:', data)
+      } else {
+        console.error('Erro ao criar evento:', await response.text())
       }
     } catch (error) {
-      console.error("Erro ao criar o evento:", error);
-      setDisabled(false); // Reabilitar o formulário em caso de erro
+      console.error('Erro ao criar o evento:', error)
+      setDisabled(false) // Reabilitar o formulário em caso de erro
     }
-  };
+  }
 
   const handlecep = async () => {
-    const newCep = getValues('address_zicode').replace(/\D/g, '');
+    const newCep = getValues('address_zicode').replace(/\D/g, '')
 
     if (newCep.length >= 8) {
-      const response = await fetch(`https://viacep.com.br/ws/${newCep}/json/`);
-      const cepData = await response.json();
+      const response = await fetch(`https://viacep.com.br/ws/${newCep}/json/`)
+      const cepData = await response.json()
       if (cepData.erro) {
-        alert("CEP não encontrado. Verifique o CEP e tente novamente.");
-        return;
+        alert('CEP não encontrado. Verifique o CEP e tente novamente.')
+        return
       }
-      setValue("address_street", cepData.logradouro || "");
-      setValue("address_neighbor", cepData.bairro || "");
-      setValue("address_city", cepData.localidade || "");
-      setValue("address_state", cepData.uf || "");
-
+      setValue('address_street', cepData.logradouro || '')
+      setValue('address_neighbor', cepData.bairro || '')
+      setValue('address_city', cepData.localidade || '')
+      setValue('address_state', cepData.uf || '')
     } else {
-      alert("CEP inválido, digite um CEP válido!")
+      alert('CEP inválido, digite um CEP válido!')
+    }
+  }
+
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0] || null
+    if (file && file.type === 'application/pdf') {
+      const uniqueName = `${uuidv4()}-${file.name}`
+      const renamedFile = new File([file], uniqueName, { type: file.type })
+      setPdfFile(renamedFile)
+      setError(null)
+    } else {
+      setError('Por favor, selecione um arquivo PDF válido.')
     }
   }
 
@@ -156,7 +218,8 @@ const CreateEventForm = () => {
           </CCardHeader>
           <CCardBody>
             <p className="text-body-secondary small">
-              Confira todos os dados do evento. Após o cadastro, o evento será enviado para aprovação.
+              Confira todos os dados do evento. Após o cadastro, o evento será enviado para
+              aprovação.
             </p>
             <form className="row g-3" onSubmit={handleSubmit(onSubmit)}>
               <CCol md={6}>
@@ -164,7 +227,7 @@ const CreateEventForm = () => {
                 <CFormInput
                   type="text"
                   disabled={disabled}
-                  {...register("title")}
+                  {...register('title')}
                   invalid={!!errors.title}
                 />
                 {errors.title && <p>{errors.title.message}</p>}
@@ -175,7 +238,7 @@ const CreateEventForm = () => {
                 <CFormInput
                   type="text"
                   disabled={disabled}
-                  {...register("responsable")}
+                  {...register('responsable')}
                   invalid={!!errors.responsable}
                 />
                 {errors.responsable && <p>{errors.responsable.message}</p>}
@@ -186,7 +249,7 @@ const CreateEventForm = () => {
                 <CFormInput
                   type="text"
                   disabled={disabled}
-                  {...register("responsableTelephone")}
+                  {...register('responsableTelephone')}
                   invalid={!!errors.responsableTelephone}
                 />
                 {errors.responsableTelephone && <p>{errors.responsableTelephone.message}</p>}
@@ -194,13 +257,12 @@ const CreateEventForm = () => {
 
               <CCol md={12}>
                 <CFormLabel>Estabelecimento:</CFormLabel>
-                <CFormSelect
-                  disabled={disabled}
-                  {...register("store")}
-                  invalid={!!errors.store}>
+                <CFormSelect disabled={disabled} {...register('store')} invalid={!!errors.store}>
                   <option>Selecione o estabelecimento</option>
                   {storeList.map((item, index) => (
-                    <option value={item.id} key={index}>{item.title}</option>
+                    <option value={item.id} key={index}>
+                      {item.title}
+                    </option>
                   ))}
                 </CFormSelect>
 
@@ -214,78 +276,75 @@ const CreateEventForm = () => {
                 <CFormInput
                   placeholder="Digite o seu cep!"
                   autoComplete="address"
-                  {...register("address_zicode")}
+                  {...register('address_zicode')}
                 />
-                <CButton type="button" onClick={handlecep} color="primary"><CIcon icon={cilSearch} style={{ marginRight: 6 }} />Buscar</CButton>
+                <CButton type="button" onClick={handlecep} color="primary">
+                  <CIcon icon={cilSearch} style={{ marginRight: 6 }} />
+                  Buscar
+                </CButton>
               </CInputGroup>
-
 
               <CCol md={6}>
                 <CFormLabel>Rua:</CFormLabel>
                 <CFormInput
                   type="text"
                   disabled={disabled}
-                  {...register("address_street")}
+                  {...register('address_street')}
                   invalid={!!errors.address_street}
                 />
                 {errors.address_street && <p>{errors.address_street.message}</p>}
               </CCol>
-
 
               <CCol md={2}>
                 <CFormLabel>Número:</CFormLabel>
                 <CFormInput
                   type="text"
                   disabled={disabled}
-                  {...register("address_number")}
+                  {...register('address_number')}
                   invalid={!!errors.address_number}
                 />
                 {errors.address_number && <p>{errors.address_number.message}</p>}
               </CCol>
-
 
               <CCol md={4}>
                 <CFormLabel>Bairro:</CFormLabel>
                 <CFormInput
                   type="text"
                   disabled={disabled}
-                  {...register("address_neighbor")}
+                  {...register('address_neighbor')}
                   invalid={!!errors.address_neighbor}
                 />
                 {errors.address_neighbor && <p>{errors.address_neighbor.message}</p>}
               </CCol>
-
 
               <CCol md={6}>
                 <CFormLabel>Cidade:</CFormLabel>
                 <CFormInput
                   type="text"
                   disabled={disabled}
-                  {...register("address_city")}
+                  {...register('address_city')}
                   invalid={!!errors.address_city}
                 />
                 {errors.address_city && <p>{errors.address_city.message}</p>}
               </CCol>
-
 
               <CCol md={6}>
                 <CFormLabel>Estado:</CFormLabel>
                 <CFormInput
                   type="text"
                   disabled={disabled}
-                  {...register("address_state")}
+                  {...register('address_state')}
                   invalid={!!errors.address_state}
                 />
                 {errors.address_state && <p>{errors.address_state.message}</p>}
               </CCol>
-
 
               <CCol md={6}>
                 <CFormLabel>Tipo do Evento:</CFormLabel>
                 <CFormInput
                   type="text"
                   disabled={disabled}
-                  {...register("eventType")}
+                  {...register('eventType')}
                   invalid={!!errors.eventType}
                 />
                 {errors.eventType && <p>{errors.eventType.message}</p>}
@@ -296,7 +355,7 @@ const CreateEventForm = () => {
                 <CFormInput
                   type="text"
                   disabled={disabled}
-                  {...register("eventType")}
+                  {...register('eventType')}
                   invalid={!!errors.eventType}
                 />
                 {errors.eventType && <p>{errors.eventType.message}</p>}
@@ -307,7 +366,7 @@ const CreateEventForm = () => {
                 <CFormInput
                   type="text"
                   disabled={disabled}
-                  {...register("serviceType")}
+                  {...register('serviceType')}
                   invalid={!!errors.serviceType}
                 />
                 {errors.serviceType && <p>{errors.serviceType.message}</p>}
@@ -319,8 +378,8 @@ const CreateEventForm = () => {
                   disabled={disabled}
                   onDateChange={(date) => {
                     if (date instanceof Date && !isNaN(date.getTime())) {
-                      setValue("date", date.toISOString().split("T")[0]);
-                      setSelectedDate(date.toISOString().split("T")[0]);
+                      setValue('date', date.toISOString().split('T')[0])
+                      setSelectedDate(date.toISOString().split('T')[0])
                     }
                   }}
                 />
@@ -332,10 +391,31 @@ const CreateEventForm = () => {
                 <CFormInput
                   type="number"
                   disabled={disabled}
-                  {...register("nrPax")}
+                  {...register('nrPax')}
                   invalid={!!errors.nrPax}
                 />
                 {errors.nrPax && <p>{errors.nrPax.message}</p>}
+              </CCol>
+
+              <CCol md={6}>
+                <CFormLabel>
+                  Cardápio do Evento:{' '}
+                  <span style={{ fontSize: '12px', color: 'gray' }}>somente arquivos PDF</span>
+                </CFormLabel>
+                <CFormInput
+                  id="menuFile"
+                  type="file"
+                  accept="application/pdf"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0]
+                    if (file) {
+                      setPdfFile(file)
+                    } else {
+                      setPdfFile(null)
+                    }
+                  }}
+                />
+                {error && <p style={{ color: 'red' }}>{error}</p>}
               </CCol>
 
               <CButton type="submit" color="primary" disabled={disabled}>
@@ -346,7 +426,7 @@ const CreateEventForm = () => {
         </CCard>
       </CCol>
     </CRow>
-  );
-};
+  )
+}
 
-export default CreateEventForm;
+export default CreateEventForm
