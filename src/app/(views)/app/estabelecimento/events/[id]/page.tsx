@@ -35,6 +35,9 @@ interface EventWithOwner extends StoreEvents {
   eventOwner: {
     name: string
   }
+  store: {
+    title: string
+  }
   responsableTelephone: string
 }
 
@@ -94,18 +97,22 @@ const EditEventPage = ({ params }: ParamsType) => {
             <p className="text-body-secondary small">
               Edite os dados do evento. Após a edição, os dados serão atualizados.
             </p>
-            <CRow>
-              <CCol md={6}>
+            <CRow style={{ marginBottom: '20px' }}>
+              <CCol md={12} style={{ marginBottom: '20px' }}>
+                <CFormLabel>Estabelecimento:</CFormLabel>
+                <CFormInput type="text" disabled={disabled} value={event?.store.title || ''} />
+              </CCol>
+              <CCol md={12} style={{ marginBottom: '20px' }}>
                 <CFormLabel>Nome do Evento:</CFormLabel>
                 <CFormInput type="text" disabled={disabled} value={event?.title || ''} />
               </CCol>
 
-              <CCol md={3}>
+              <CCol md={12} style={{ marginBottom: '20px' }}>
                 <CFormLabel>Responsável pelo Evento:</CFormLabel>
                 <CFormInput type="text" disabled={disabled} value={event?.responsable || ''} />
               </CCol>
 
-              <CCol md={3}>
+              <CCol md={12}>
                 <CFormLabel>Telefone do Responsável:</CFormLabel>
                 <CFormInput
                   type="text"
@@ -115,27 +122,20 @@ const EditEventPage = ({ params }: ParamsType) => {
               </CCol>
             </CRow>
 
-            <CRow>
-              <CCol md={12}>
-                <CFormLabel>Endereço do Evento:</CFormLabel>
-                <CFormInput type="text" disabled={disabled} value={event?.address_zicode || ''} />
-              </CCol>
-            </CRow>
-
-            <CRow>
-              <CCol md={6}>
+            <CRow style={{ marginBottom: '20px' }}>
+              <CCol md={6} style={{ marginBottom: '20px' }}>
                 <CFormLabel>Tipo do Evento:</CFormLabel>
                 <CFormInput type="text" disabled={disabled} value={event?.eventType || ''} />
               </CCol>
 
-              <CCol md={6}>
+              <CCol md={6} style={{ marginBottom: '20px' }}>
                 <CFormLabel>Serviço do Evento:</CFormLabel>
                 <CFormInput type="text" disabled={disabled} value={event?.serviceType || ''} />
               </CCol>
             </CRow>
 
-            <CRow>
-              <CCol md={6}>
+            <CRow style={{ marginBottom: '20px' }}>
+              <CCol md={6} style={{ marginBottom: '20px' }}>
                 <CFormLabel>Dia do Evento:</CFormLabel>
                 <CDatePicker
                   disabled={disabled}
@@ -144,7 +144,7 @@ const EditEventPage = ({ params }: ParamsType) => {
                 />
               </CCol>
 
-              <CCol md={6}>
+              <CCol md={6} style={{ marginBottom: '20px' }}>
                 <CFormLabel>Qtd de Pax:</CFormLabel>
                 <CFormInput type="number" disabled={disabled} value={event?.nrPax || ''} />
               </CCol>
@@ -156,10 +156,14 @@ const EditEventPage = ({ params }: ParamsType) => {
 
         <CCard style={{ marginBottom: 20 }}>
           <CCardHeader>
-            <CCardTitle>Mapa</CCardTitle>
+            <CCardTitle>Endereço e Mapa</CCardTitle>
           </CCardHeader>
           <CCardBody>
             <Map zipcode={event?.address_zicode as string} showButtons={false} />
+            <b>
+              Rua {event?.address_street} {event?.address_number}, {event?.address_neighbor} - CEP{' '}
+              {event?.address_zicode}
+            </b>
           </CCardBody>
         </CCard>
 
