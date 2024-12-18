@@ -204,6 +204,7 @@ model Stores {
   comercialPhone   String           @default("")
   phone            String           @default("")
   imageUrl         String?          @default("")
+  menuUrl          String?          @default("")
   Certifications   Certifications[]
   reports          Reports[]
   StoreEvents      StoreEvents[]
@@ -251,6 +252,7 @@ model StoreEvents {
   address_state        String           @default("")
   address_street       String           @default("")
   address_zicode       String           @default("")
+  menuUrl              String?          @default("")
   EventsServices       EventsServices[]
   eventOwner           User             @relation(fields: [ownerId], references: [id], onDelete: Cascade)
   store                Stores           @relation(fields: [storeId], references: [id])

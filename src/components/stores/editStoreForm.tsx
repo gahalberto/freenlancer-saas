@@ -24,6 +24,7 @@ import { cilContact, cilMap, cilPhone, cilSearch } from '@coreui/icons'
 import { editStore } from '@/app/_actions/stores/editStore'
 import UploadStoreLogo from './uploadStoreLogo'
 import store from '@/store'
+import UploadMenu from './uploadMenu'
 
 // Zod schema para validação do formulário
 const storeSchema = z.object({
@@ -41,6 +42,7 @@ const storeSchema = z.object({
   mashguiachId: z.string().optional().nullable(),
   storeTypeId: z.string().min(1, { message: 'Selecione o tipo de estabelecimento' }),
   imageUrl: z.string().optional(),
+  menuUrl: z.string().optional(),
 })
 
 type FormData = z.infer<typeof storeSchema>
@@ -62,6 +64,7 @@ interface EditStoreFormProps {
     phone: string | null
     comercialPhone: string | null
     imageUrl: string | null
+    menuUrl: string | null
   }
 }
 
@@ -81,6 +84,7 @@ const EditStoreForm: React.FC<EditStoreFormProps> = ({ storeData }) => {
       mashguiachId: storeData.mashguiachId ?? undefined, // Converte null para undefined
       storeTypeId: storeData.storeTypeId ?? '',
       imageUrl: storeData.imageUrl ?? '',
+      menuUrl: storeData.menuUrl ?? '',
     },
   })
 
@@ -143,9 +147,14 @@ const EditStoreForm: React.FC<EditStoreFormProps> = ({ storeData }) => {
         phone: formData.phone || '', // Converte undefined ou null para string vazia
         comercialPhone: formData.comercialPhone || '', // Converte undefined ou null para string vazia
         imagemUrl: formData.imageUrl || null, // Converte undefined para null
+        menuUrl: formData.menuUrl || null, // Converte undefined para null
       }
 
-      await editStore({ ...updatedFormData, imageUrl: updatedFormData.imageUrl || null })
+      await editStore({
+        ...updatedFormData,
+        imageUrl: updatedFormData.imageUrl || null,
+        menuUrl: updatedFormData.menuUrl || null,
+      })
       alert('Estabelecimento atualizado com sucesso!')
     } catch (error) {
       console.error('Erro ao atualizar estabelecimento:', error)
@@ -355,6 +364,17 @@ const EditStoreForm: React.FC<EditStoreFormProps> = ({ storeData }) => {
                 />
               </CCol>
             </div>
+
+            <div className="mb-3">
+              <CFormLabel htmlFor="imageUrl">Cardápio (pdf)</CFormLabel>
+              <CCol md={12}>
+                <UploadMenu
+                  storeId={storeData.id}
+                  menuUrl={storeData.menuUrl ? storeData.menuUrl : ''}
+                />
+              </CCol>
+            </div>
+
             <CButton type="submit" color="primary">
               Atualizar
             </CButton>
