@@ -56,6 +56,8 @@ const schema = z.object({
 type FormData = z.infer<typeof schema>
 
 const CreateEventForm = () => {
+  const router = useRouter()
+
   const { data: session, status } = useSession()
   const [selectedDate, setSelectedDate] = useState<string>('')
   const [disabled, setDisabled] = useState(false)
@@ -168,6 +170,7 @@ const CreateEventForm = () => {
 
       if (response.ok) {
         const data = await response.json()
+        router.push(`/app/estabelecimento/events/${data.id}`)
         console.log('Evento criado com sucesso:', data)
       } else {
         console.error('Erro ao criar evento:', await response.text())
@@ -194,18 +197,6 @@ const CreateEventForm = () => {
       setValue('address_state', cepData.uf || '')
     } else {
       alert('CEP inválido, digite um CEP válido!')
-    }
-  }
-
-  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0] || null
-    if (file && file.type === 'application/pdf') {
-      const uniqueName = `${uuidv4()}-${file.name}`
-      const renamedFile = new File([file], uniqueName, { type: file.type })
-      setPdfFile(renamedFile)
-      setError(null)
-    } else {
-      setError('Por favor, selecione um arquivo PDF válido.')
     }
   }
 
