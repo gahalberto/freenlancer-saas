@@ -8,80 +8,72 @@ datasource db {
 }
 
 model Role {
-  id    Int    @id @default(autoincrement()) // ID da role, autoincrementado
-  name  String @unique // Nome da role, único
-  users User[] // Relacionamento com o modelo User
+  id    Int    @id @default(autoincrement())
+  name  String @unique
+  users User[]
 
-  @@map("roles") // Mapeia o nome da tabela para 'roles'
+  @@map("roles")
 }
 
 model Synagogue {
-  id      Int    @id @default(autoincrement()) // ID da sinagoga, autoincrementado
-  name    String // Nome da sinagoga
-  address String // Endereço da sinagoga
-  users   User[] // Relacionamento com o modelo User
+  id      Int    @id @default(autoincrement())
+  name    String
+  address String
+  users   User[]
 
-  @@map("synagogues") // Mapeia o nome da tabela para 'synagogues'
+  @@map("synagogues")
 }
 
 model User {
-  id               String        @id @default(uuid()) // ID do usuário, definido como UUID
-  name             String // Nome do usuário
-  email            String        @unique // Email do usuário, definido como único
-  phone            String? // Telefone do usuário (opcional)
-  password         String // Senha do usuário
-  address_street   String        @default("")
-  address_number   String        @default("")
-  address_neighbor String        @default("")
-  address_zicode   String        @default("")
-  address_state    String        @default("")
-  address_city     String        @default("")
+  id               String                @id @default(uuid())
+  name             String
+  email            String                @unique
+  phone            String?
+  password         String
+  synagogueId      Int?
+  roleId           Int
+  createdAt        DateTime              @default(now())
+  updatedAt        DateTime              @updatedAt
+  status           Boolean               @default(true)
+  jewishName       String?
+  asweredQuestions Boolean?              @default(false)
+  questionarioId   Int                   @default(0)
+  isFixed          Boolean?              @default(false)
+  storeId          String?
+  credits          Int                   @default(0)
+  address_neighbor String                @default("")
+  address_number   String                @default("")
+  address_state    String                @default("")
+  address_street   String                @default("")
+  address_zicode   String                @default("")
+  address_city     String                @default("")
   address_lat      String?
   address_lng      String?
-  synagogueId      Int? // Relacionamento opcional com a tabela Synagogue
-  roleId           Int // Relacionamento com a tabela Role
-  status           Boolean       @default(true)
-  jewishName       String?
-  asweredQuestions Boolean?      @default(false)
-  questionarioId   Int           @default(0)
-  createdAt        DateTime      @default(now()) // Data de criação
-  updatedAt        DateTime      @updatedAt // Data de atualização automática
-  isFixed          Boolean?      @default(false)
-  storeId          String?
-  credits          Int           @default(0) // Saldo de créditos
-  transactions     Transaction[] // Relacionamento com transações de crédito
+  Certifications   Certifications[]
+  EventsServices   EventsServices[]
+  mashguiachJobs   FixedJobs[]
+  StoreEvents      StoreEvents[]
+  transactions     Transaction[]
+  questionarios    MashguiachQuestions[]
+  role             Role                  @relation(fields: [roleId], references: [id])
+  synagogue        Synagogue?            @relation(fields: [synagogueId], references: [id])
 
-  // Relacionamentos
-  synagogue      Synagogue?            @relation(fields: [synagogueId], references: [id])
-  role           Role                  @relation(fields: [roleId], references: [id])
-  questionarios  MashguiachQuestions[] // Relacionamento de um para muitos com MashguiachQuestions
-  StoreEvents    StoreEvents[]
-  EventsServices EventsServices[]
-  mashguiachJobs FixedJobs[] // Relacionamento inverso: um mashguiach pode ter vários trabalhos
-  Certifications Certifications[] // Relacionamento com Hashgachot
-
-  @@map("users") // Mapeia o nome da tabela para 'users'
-}
-
-enum TransactionStatus {
-  Success
-  Failed
-  Pending
+  @@map("users")
 }
 
 model Transaction {
   id        String            @id @default(uuid())
-  userId    String // Campo que armazena a chave estrangeira
-  user      User              @relation(fields: [userId], references: [id]) // Relacionamento com o modelo User
-  amount    Int // Quantidade em reais da transação
-  credits   Int // Créditos correspondentes adicionados
-  createdAt DateTime          @default(now()) // Data da criação da transação
+  userId    String
+  amount    Int
+  credits   Int
+  createdAt DateTime          @default(now())
   status    TransactionStatus
-  sessionId String?           @unique // Marca o campo sessionId como único
+  sessionId String?           @unique
+  user      User              @relation(fields: [userId], references: [id])
 }
 
 model MashguiachQuestions {
-  id                Int     @id @default(autoincrement()) // ID do questionário, autoincrementado
+  id                Int     @id @default(autoincrement())
   userId            String
   jewishName        String
   maritalStatus     Int
@@ -103,10 +95,9 @@ model MashguiachQuestions {
   montherSingleName String?
   giurInFamily      String?
   rabbiOfGiur       String?
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@map("mashguiach_questions") // Mapeia o nome da tabela para 'mashguiach_questions'
+  @@map("mashguiach_questions")
 }
 
 model Course {
@@ -115,50 +106,50 @@ model Course {
   description     String
   instructor      String
   imageUrl        String?
-  lessonCount     Int?
-  modules         Module[]
-  moduleOrders    ModuleOrder[] // Um curso pode ter várias ordens de módulos
-  studentProgress StudentProgress[] // Relação com StudentProgress
   createdAt       DateTime          @default(now())
   updatedAt       DateTime          @updatedAt
+  lessonCount     Int?
+  modules         Module[]
+  moduleOrders    ModuleOrder[]
+  studentProgress StudentProgress[]
 }
 
 model Module {
   id              String            @id @default(uuid())
   title           String
   courseId        String
-  orderN          Int?
-  course          Course            @relation(fields: [courseId], references: [id])
-  lessons         Lesson[]
-  studentProgress StudentProgress[] // Relação com StudentProgress
   createdAt       DateTime          @default(now())
   updatedAt       DateTime          @updatedAt
-  ModuleOrder     ModuleOrder[]
+  orderN          Int?
+  lessons         Lesson[]
   LessonOrder     LessonOrder[]
+  course          Course            @relation(fields: [courseId], references: [id])
+  ModuleOrder     ModuleOrder[]
+  studentProgress StudentProgress[]
 }
 
 model Lesson {
   id              String            @id @default(uuid())
   title           String
   contentUrl      String?
-  textContent     String?
-  courseId        String?
   moduleId        String
-  module          Module            @relation(fields: [moduleId], references: [id])
-  quiz            Quiz?
-  studentProgress StudentProgress[] // Relação com StudentProgress
   createdAt       DateTime          @default(now())
   updatedAt       DateTime          @updatedAt
+  textContent     String?
+  courseId        String?
+  module          Module            @relation(fields: [moduleId], references: [id])
   LessonOrder     LessonOrder?
+  quiz            Quiz?
+  studentProgress StudentProgress[]
 }
 
 model Quiz {
   id        String   @id @default(uuid())
-  lessonId  String   @unique // Relação um-para-um com Lesson
-  lesson    Lesson   @relation(fields: [lessonId], references: [id])
-  questions Json // JSON para armazenar as perguntas e respostas
+  lessonId  String   @unique
+  questions Json
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  lesson    Lesson   @relation(fields: [lessonId], references: [id])
 }
 
 model StudentProgress {
@@ -167,14 +158,13 @@ model StudentProgress {
   courseId  String
   moduleId  String?
   lessonId  String?
-  progress  Int // Percentual de progresso
-  score     Int? // Pontuação em caso de questionário
+  progress  Int
+  score     Int?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-
-  course Course  @relation(fields: [courseId], references: [id])
-  module Module? @relation(fields: [moduleId], references: [id])
-  lesson Lesson? @relation(fields: [lessonId], references: [id])
+  course    Course   @relation(fields: [courseId], references: [id])
+  lesson    Lesson?  @relation(fields: [lessonId], references: [id])
+  module    Module?  @relation(fields: [moduleId], references: [id])
 }
 
 model ModuleOrder {
@@ -182,51 +172,42 @@ model ModuleOrder {
   courseId String
   moduleId String
   order    Int
-
-  course Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
-  module Module @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+  course   Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  module   Module @relation(fields: [moduleId], references: [id], onDelete: Cascade)
 }
 
 model LessonOrder {
   id       String @id @default(uuid())
   moduleId String
-  lessonId String
+  lessonId String @unique
   order    Int
+  lesson   Lesson @relation(fields: [lessonId], references: [id])
+  module   Module @relation(fields: [moduleId], references: [id])
 
-  module Module @relation(fields: [moduleId], references: [id])
-  lesson Lesson @relation(fields: [lessonId], references: [id])
-
-  @@unique([moduleId, order]) // Garante que a ordem seja única por módulo
-  @@unique([lessonId]) // Garante que uma aula tenha apenas uma ordem associada
+  @@unique([moduleId, order])
 }
 
 model Stores {
-  id               String   @id @default(uuid())
+  id               String           @id @default(uuid())
   title            String
+  userId           String?
+  isMashguiach     Boolean?
+  mashguiachId     String?
+  storeTypeId      String
+  isAutomated      Boolean?
   address_zipcode  String
   address_street   String
   address_number   String
   address_neighbor String
   address_city     String
   address_state    String
-  userId           String?
-  isAutomated      Boolean?
-  isMashguiach     Boolean?
-  mashguiachId     String?
-  storeTypeId      String
-  comercialPhone   String   @default("")
-  phone            String   @default("")
-
-  storeType      StoresType       @relation(fields: [storeTypeId], references: [id])
-  reports        Reports[]
-  StoreEvents    StoreEvents[]
-  Certifications Certifications[]
-}
-
-enum HashgachotTypeEnum {
-  CHALAVI
-  BASSARI
-  PARVE
+  comercialPhone   String           @default("")
+  phone            String           @default("")
+  imageUrl         String?          @default("")
+  Certifications   Certifications[]
+  reports          Reports[]
+  StoreEvents      StoreEvents[]
+  storeType        StoresType       @relation(fields: [storeTypeId], references: [id])
 }
 
 model Certifications {
@@ -234,23 +215,20 @@ model Certifications {
   storeId            String
   userId             String
   description        String
-  englishDescription String?
   observation        String?
   kasherLePessach    Boolean            @default(false)
   HashgachotType     HashgachotTypeEnum
   issueDate          DateTime
   validationDate     DateTime
   createdAt          DateTime           @default(now())
-
-  // Relacionamento com o modelo User
-  user  User   @relation(fields: [userId], references: [id])
-  store Stores @relation(fields: [storeId], references: [id])
+  englishDescription String?
+  store              Stores             @relation(fields: [storeId], references: [id])
+  user               User               @relation(fields: [userId], references: [id])
 }
 
 model StoresType {
-  id    String @id @default(uuid())
-  title String
-
+  id     String   @id @default(uuid())
+  title  String
   stores Stores[]
 }
 
@@ -259,47 +237,109 @@ model StoreEvents {
   title                String
   ownerId              String
   responsable          String?
-  responsableTelephone String?
   date                 DateTime
   nrPax                Int
   clientName           String
-  address_street       String           @default("")
-  address_number       String           @default("")
-  address_neighbor     String           @default("")
-  address_zicode       String           @default("")
-  address_state        String           @default("")
-  address_city         String           @default("")
-  storeId              String           @default("")
   eventType            String
   serviceType          String
-  EventsServices       EventsServices[]
   isApproved           Boolean          @default(false)
-
-  // Relacionamento com o modelo Stores
-  store      Stores @relation(fields: [storeId], references: [id])
-  eventOwner User   @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  storeId              String           @default("")
+  responsableTelephone String?
+  address_city         String           @default("")
+  address_neighbor     String           @default("")
+  address_number       String           @default("")
+  address_state        String           @default("")
+  address_street       String           @default("")
+  address_zicode       String           @default("")
+  EventsServices       EventsServices[]
+  eventOwner           User             @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  store                Stores           @relation(fields: [storeId], references: [id])
 }
 
 model EventsServices {
   id                      String            @id @default(uuid())
-  StoreEventsId           String // Store Events ID
-  StoreId                 String            @default("")
-  arriveMashguiachTime    DateTime // Data e Hora de Chegada do Mashguiach
-  endMashguiachTime       DateTime // Data e hora da saída do Mashguiach
-  reallyMashguiachArrive  DateTime? // Data e Hora de Chegada do Mashguiach
-  reallyMashguiachEndTime DateTime? // Data e hora da saída do Mashguiach
+  StoreEventsId           String
+  arriveMashguiachTime    DateTime
+  endMashguiachTime       DateTime
   isApproved              Boolean           @default(false)
   mashguiachId            String?
-  accepted                Boolean           @default(false) // Indica se o Mashguiach aceitou o trabalho
-  responseDate            DateTime?
   mashguiachPrice         Float             @default(0)
+  observationText         String?
+  accepted                Boolean           @default(false)
+  responseDate            DateTime?
+  StoreId                 String            @default("")
+  paymentStatus           TransactionStatus @default(Pending)
+  reallyMashguiachArrive  DateTime?
+  reallyMashguiachEndTime DateTime?
   mashguiachPricePerHour  Float             @default(0)
   transport_price         Float?            @default(0)
-  observationText         String?
-  paymentStatus           TransactionStatus @default(Pending)
+  StoreEvents             StoreEvents       @relation(fields: [StoreEventsId], references: [id])
+  Mashguiach              User?             @relation(fields: [mashguiachId], references: [id])
+}
 
-  StoreEvents StoreEvents @relation(fields: [StoreEventsId], references: [id])
-  Mashguiach  User?       @relation(fields: [mashguiachId], references: [id])
+model FixedJobs {
+  id              String     @id @default(uuid())
+  title           String
+  restaurant      String
+  address         String
+  price           String
+  mashguiachId    String
+  observationText String
+  mashguiach      User       @relation(fields: [mashguiachId], references: [id])
+  workTimes       WorkTime[]
+}
+
+model WorkTime {
+  id         Int        @id @default(autoincrement())
+  day        DaysOfWeek
+  startTime  Int
+  endTime    Int
+  fixedJobId String
+  fixedJob   FixedJobs  @relation(fields: [fixedJobId], references: [id])
+}
+
+model Notification {
+  id          Int      @id @default(autoincrement())
+  message     String
+  createdAt   DateTime @default(now())
+  userId      String?
+  read        Boolean  @default(false)
+  redirectUrl String?
+  readBy      String[] @default([])
+  icon        String?  @default("cilPlus")
+}
+
+model Reports {
+  id          Int     @id @default(autoincrement())
+  title       String
+  description String
+  storeId     String
+  imageUrl    String?
+  Stores      Stores  @relation(fields: [storeId], references: [id])
+}
+
+model CreditsTranscition {
+  id          Int               @id @default(autoincrement())
+  user1       String
+  user2       String?
+  status      TransactionStatus
+  amount      Int
+  description Json
+  createdAt   DateTime          @default(now())
+  serviceId   String?
+  updateAt    DateTime          @updatedAt
+}
+
+enum TransactionStatus {
+  Success
+  Failed
+  Pending
+}
+
+enum HashgachotTypeEnum {
+  CHALAVI
+  BASSARI
+  PARVE
 }
 
 enum DaysOfWeek {
@@ -310,60 +350,4 @@ enum DaysOfWeek {
   FRIDAY
   SATURDAY
   SUNDAY
-}
-
-model FixedJobs {
-  id              String     @id @default(uuid()) // ID único
-  title           String
-  restaurant      String
-  address         String
-  price           String
-  mashguiachId    String
-  observationText String
-  workTimes       WorkTime[] // Um trabalho pode ter vários horários
-
-  mashguiach User @relation(fields: [mashguiachId], references: [id]) // Relacionamento com o modelo User
-}
-
-model WorkTime {
-  id        Int        @id @default(autoincrement())
-  day       DaysOfWeek // Enum para o dia da semana
-  startTime Int // Horário de início (pode ser representado em formato 24h, ex: 1300 para 13:00)
-  endTime   Int // Horário de término (ex: 1700 para 17:00)
-
-  fixedJob   FixedJobs? @relation(fields: [fixedJobId], references: [id])
-  fixedJobId String
-}
-
-model Notification {
-  id          Int      @id @default(autoincrement())
-  message     String
-  icon        String?  @default("cilPlus")
-  redirectUrl String?
-  createdAt   DateTime @default(now())
-  readBy      String[] @default([]) // Inicializa como uma lista vazia
-  userId      String? // Se userId for null, a notificação é global; se não, é personalizada
-  read        Boolean  @default(false) // Utilizado para notificações personalizadas
-}
-
-model Reports {
-  id          Int     @id @default(autoincrement())
-  title       String
-  description String
-  storeId     String
-  imageUrl    String?
-
-  Stores Stores @relation(fields: [storeId], references: [id])
-}
-
-model CreditsTranscition {
-  id          Int               @id @default(autoincrement())
-  user1       String
-  user2       String?
-  amount      Int
-  serviceId   String?
-  createdAt   DateTime          @default(now())
-  updateAt    DateTime          @updatedAt
-  description Json
-  status      TransactionStatus
 }

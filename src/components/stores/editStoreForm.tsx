@@ -12,6 +12,7 @@ import {
   CButton,
   CInputGroup,
   CInputGroupText,
+  CCol,
 } from '@coreui/react-pro'
 import { getAllMashguichim } from '@/app/_actions/getAllMashguichim'
 import { getStoresTypes } from '@/app/_actions/stores/getStoresType'
@@ -21,6 +22,8 @@ import { useForm } from 'react-hook-form'
 import CIcon from '@coreui/icons-react'
 import { cilContact, cilMap, cilPhone, cilSearch } from '@coreui/icons'
 import { editStore } from '@/app/_actions/stores/editStore'
+import UploadStoreLogo from './uploadStoreLogo'
+import store from '@/store'
 
 // Zod schema para validação do formulário
 const storeSchema = z.object({
@@ -37,6 +40,7 @@ const storeSchema = z.object({
   comercialPhone: z.string().nullable().default(''), // Aceita string ou null
   mashguiachId: z.string().optional().nullable(),
   storeTypeId: z.string().min(1, { message: 'Selecione o tipo de estabelecimento' }),
+  imageUrl: z.string().optional(),
 })
 
 type FormData = z.infer<typeof storeSchema>
@@ -57,6 +61,7 @@ interface EditStoreFormProps {
     mashguiachId?: string | null
     phone: string | null
     comercialPhone: string | null
+    imageUrl: string | null
   }
 }
 
@@ -74,6 +79,8 @@ const EditStoreForm: React.FC<EditStoreFormProps> = ({ storeData }) => {
       isAutomated: storeData.isAutomated ?? false, // Converte null para false
       isMashguiach: storeData.isMashguiach ?? false, // Converte null para false
       mashguiachId: storeData.mashguiachId ?? undefined, // Converte null para undefined
+      storeTypeId: storeData.storeTypeId ?? '',
+      imageUrl: storeData.imageUrl ?? '',
     },
   })
 
@@ -135,9 +142,10 @@ const EditStoreForm: React.FC<EditStoreFormProps> = ({ storeData }) => {
         mashguiachId: formData.mashguiachId ?? null, // Converte undefined para null
         phone: formData.phone || '', // Converte undefined ou null para string vazia
         comercialPhone: formData.comercialPhone || '', // Converte undefined ou null para string vazia
+        imagemUrl: formData.imageUrl || null, // Converte undefined para null
       }
 
-      await editStore(updatedFormData)
+      await editStore({ ...updatedFormData, imageUrl: updatedFormData.imageUrl || null })
       alert('Estabelecimento atualizado com sucesso!')
     } catch (error) {
       console.error('Erro ao atualizar estabelecimento:', error)
@@ -338,8 +346,17 @@ const EditStoreForm: React.FC<EditStoreFormProps> = ({ storeData }) => {
               </CFormSelect>
               {errors.storeTypeId && <span>{errors.storeTypeId.message}</span>}
             </div>
+            <div className="mb-3">
+              <CFormLabel htmlFor="imageUrl">Imagem da logo do estabelecimento</CFormLabel>
+              <CCol md={12}>
+                <UploadStoreLogo
+                  storeId={storeData.id}
+                  imageUrl={storeData.imageUrl ? storeData.imageUrl : ''}
+                />
+              </CCol>
+            </div>
             <CButton type="submit" color="primary">
-              Atualizar Estabelecimento
+              Atualizar
             </CButton>
           </CForm>
         </CCardBody>
