@@ -143,11 +143,12 @@ const EditStoreForm: React.FC<EditStoreFormProps> = ({ storeData }) => {
       const updatedFormData = {
         ...formData,
         id: storeData.id,
-        mashguiachId: formData.mashguiachId ?? null, // Converte undefined para null
-        phone: formData.phone || '', // Converte undefined ou null para string vazia
-        comercialPhone: formData.comercialPhone || '', // Converte undefined ou null para string vazia
-        imagemUrl: formData.imageUrl || null, // Converte undefined para null
-        menuUrl: formData.menuUrl || null, // Converte undefined para null
+        mashguiachId: formData.mashguiachId ?? null,
+        phone: formData.phone || '',
+        comercialPhone: formData.comercialPhone || '',
+        imageUrl: formData.imageUrl || null, // Corrigido para `imageUrl`
+        menuUrl: formData.menuUrl || null,
+        storeTypeId: formData.storeTypeId,
       }
 
       await editStore({
