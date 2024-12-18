@@ -82,22 +82,6 @@ const CreateEventForm = () => {
     fetchStores()
   }, [session?.user?.id])
 
-  const defaultValues = {
-    title: 'Aniversário do João',
-    responsable: 'Maria Silva',
-    responsableTelephone: '11987654321',
-    nrPax: '50',
-    address_zicode: '01001000',
-    address_street: 'Praça da Sé',
-    address_number: '100',
-    address_neighbor: 'Sé',
-    address_city: 'São Paulo',
-    address_state: 'SP',
-    store: '', // Atualize com o ID de uma loja disponível no teste
-    eventType: 'Festa de Aniversário',
-    serviceType: 'Buffet Completo',
-    date: new Date().toISOString().split('T')[0],
-  }
   const {
     register,
     handleSubmit,
@@ -106,7 +90,6 @@ const CreateEventForm = () => {
     getValues,
   } = useForm<FormData>({
     resolver: zodResolver(schema),
-    defaultValues,
   })
 
   const onSubmit = async (data: FormData) => {
