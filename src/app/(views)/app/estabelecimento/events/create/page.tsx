@@ -170,7 +170,7 @@ const CreateEventForm = () => {
 
       if (response.ok) {
         const data = await response.json()
-        router.push(`/app/estabelecimento/events/${data.id}`)
+        router.push(`/app/estabelecimento/events/${data.event.id}`)
         console.log('Evento criado com sucesso:', data)
       } else {
         console.error('Erro ao criar evento:', await response.text())
