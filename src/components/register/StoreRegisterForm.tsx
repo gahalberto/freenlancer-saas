@@ -2,17 +2,27 @@
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
-import { cilLockLocked, cilMap, cilPhone, cilSearch, cilUser } from '@coreui/icons'
+import { cilFastfood, cilLockLocked, cilMap, cilPhone, cilSearch, cilUser } from '@coreui/icons'
 import CIcon from '@coreui/icons-react'
-import { CButton, CForm, CFormInput, CInputGroup, CInputGroupText } from '@coreui/react-pro'
-import { registerUser } from '@/app/_actions/register'
+import {
+  CButton,
+  CForm,
+  CFormInput,
+  CFormLabel,
+  CFormSelect,
+  CInputGroup,
+  CInputGroupText,
+} from '@coreui/react-pro'
+import { registerUser, registerUserStore } from '@/app/_actions/register'
 import { useRouter } from 'next/navigation'
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
+import { getStoresTypes } from '@/app/_actions/stores/getStoresType'
 
 // Esquema de validação usando Zod
-const registerSchema = z
+const registerStoreSchema = z
   .object({
     name: z.string().min(1, { message: 'Nome é obrigatório' }),
+    title: z.string().min(1, { message: 'O nome do estabelecimento é obrigatório' }),
     email: z.string().email({ message: 'Email inválido' }),
     address_zipcode: z.string().min(1, { message: 'Digite o CEP e clique em buscar' }),
     address_street: z.string().min(1, { message: 'Digite a rua, digite o CEP e clique em buscar' }),
@@ -21,29 +31,57 @@ const registerSchema = z
     address_city: z.string().min(1, { message: 'Digite a cidade' }),
     address_state: z.string().min(1, { message: 'Digite o Estado' }),
     phone: z.string().min(6, { message: 'Telefone é obrigatório' }),
+    comercialPhone: z.string().min(6, { message: 'Telefone é obrigatório' }),
     password: z.string().min(6, { message: 'Senha deve ter pelo menos 6 caracteres' }),
     confirmPassword: z.string().min(6, { message: 'Confirmação de senha é obrigatória' }),
+    storeTypeId: z.string().min(1, { message: 'Selecione o tipo de estabelecimento' }), // Não permitir vazio
   })
   .refine((data) => data.password === data.confirmPassword, {
     message: 'As senhas não coincidem',
     path: ['confirmPassword'], // Caminho para o campo que está com erro
   })
 
-type RegisterSchema = z.infer<typeof registerSchema>
+type registerStoreSchema = z.infer<typeof registerStoreSchema>
 
-const RegisterForm = () => {
+const StoreRegisterForm = () => {
   const router = useRouter()
   const {
     register,
     handleSubmit,
     setValue,
     formState: { errors },
-  } = useForm<RegisterSchema>({
-    resolver: zodResolver(registerSchema),
+  } = useForm<registerStoreSchema>({
+    resolver: zodResolver(registerStoreSchema),
+    defaultValues: {
+      name: 'Gabriel Alberto',
+      title: 'Meu Estabelecimento',
+      email: 'teste@example.com',
+      address_zipcode: '12345678',
+      address_street: 'Rua Exemplo',
+      address_number: '123',
+      address_neighbor: 'Bairro Exemplo',
+      address_city: 'Cidade Exemplo',
+      address_state: 'SP',
+      phone: '11987654321',
+      comercialPhone: '1133334444',
+      password: 'senha123',
+      confirmPassword: 'senha123',
+      storeTypeId: '', // Ajuste conforme necessário
+    },
   })
 
   const [zipCode, setZipCode] = useState('')
-  const [addError, setAddError] = useState(false)
+  const [storesType, setStoresType] = useState<any[]>([]) // Estado para armazenar os tipos de estabelecimento
+
+  // Função para buscar tipos de loja
+  const fetchStoresType = async () => {
+    try {
+      const storesTypes = await getStoresTypes()
+      setStoresType(storesTypes)
+    } catch (error) {
+      throw error
+    }
+  }
 
   const handleCep = async () => {
     const newCep = zipCode.replace(/\D/g, '')
@@ -65,10 +103,10 @@ const RegisterForm = () => {
     }
   }
 
-  const onSubmit = async (data: RegisterSchema) => {
+  const onSubmit = async (data: registerStoreSchema) => {
     try {
-      await registerUser({ ...data, roleId: '1' }) // Chama a função de registro
-      alert('Usuário registrado com sucesso!') // Feedback para o usuário
+      await registerUserStore({ ...data, roleId: '1' }) // Chama a função de registro
+      alert('O Usuário e a loja foram criados com sucesso!') // Feedback para o usuário
       router.push('/login')
     } catch (error) {
       if (error instanceof Error) {
@@ -80,12 +118,16 @@ const RegisterForm = () => {
     }
   }
 
+  useEffect(() => {
+    fetchStoresType()
+  }, [])
+
   return (
     <>
       <CForm onSubmit={handleSubmit(onSubmit)}>
-        <h3>Registre-se como Mashguiach</h3>
+        <h3>Registre-se como Estabelecimento</h3>
         <p className="text-medium-emphasis">
-          Crie uma conta na plataforma do Dept. de Kashrut da Beit Yaakov.
+          Crie sua conta na plataforma do Dept. de Kashrut da Beit Yaakov.
         </p>
 
         {errors.name && <span className="text-danger">{errors.name.message}</span>}
@@ -93,7 +135,19 @@ const RegisterForm = () => {
           <CInputGroupText>
             <CIcon icon={cilUser} />
           </CInputGroupText>
-          <CFormInput placeholder="Nome completo" autoComplete="username" {...register('name')} />
+          <CFormInput placeholder="Digite seu nome" autoComplete="username" {...register('name')} />
+        </CInputGroup>
+
+        {errors.title && <span className="text-danger">{errors.title.message}</span>}
+        <CInputGroup className="mb-3">
+          <CInputGroupText>
+            <CIcon icon={cilFastfood} />
+          </CInputGroupText>
+          <CFormInput
+            placeholder="Digite nome do estabelecimento"
+            autoComplete="title"
+            {...register('title')}
+          />
         </CInputGroup>
 
         {errors.email && <span className="text-danger">{errors.email.message}</span>}
@@ -108,6 +162,20 @@ const RegisterForm = () => {
             <CIcon icon={cilPhone} />
           </CInputGroupText>
           <CFormInput placeholder="Telefone" autoComplete="phone" {...register('phone')} />
+        </CInputGroup>
+
+        {errors.comercialPhone && (
+          <span className="text-danger">{errors.comercialPhone.message}</span>
+        )}
+        <CInputGroup className="mb-3">
+          <CInputGroupText>
+            <CIcon icon={cilPhone} />
+          </CInputGroupText>
+          <CFormInput
+            placeholder="Telefone Comercial"
+            autoComplete="phone"
+            {...register('comercialPhone')}
+          />
         </CInputGroup>
 
         {errors.address_zipcode && (
@@ -227,6 +295,19 @@ const RegisterForm = () => {
           />
         </CInputGroup>
 
+        <div className="mb-3">
+          <CFormLabel htmlFor="storeTypeId">Tipo de Estabelecimento</CFormLabel>
+          <CFormSelect id="storeTypeId" {...register('storeTypeId')} invalid={!!errors.storeTypeId}>
+            <option value="">Selecione o tipo de estabelecimento</option>
+            {storesType.map((store) => (
+              <option value={store.id} key={store.id}>
+                {store.title}
+              </option>
+            ))}
+          </CFormSelect>
+          {errors.storeTypeId && <span>{errors.storeTypeId.message}</span>}
+        </div>
+
         <div className="d-grid">
           <CButton type="submit" color="primary">
             Criar conta
@@ -237,4 +318,4 @@ const RegisterForm = () => {
   )
 }
 
-export default RegisterForm
+export default StoreRegisterForm

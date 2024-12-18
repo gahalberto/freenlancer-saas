@@ -1,16 +1,11 @@
-"use client"
+'use client'
 
 import React from 'react'
-import {
-  CCard,
-  CCardBody,
-  CCol,
-  CContainer,
-  CRow,
-} from '@coreui/react-pro'
+import { CButton, CCard, CCardBody, CCol, CContainer, CRow } from '@coreui/react-pro'
 import CIcon from '@coreui/icons-react'
-import { cilLockLocked, cilUser } from '@coreui/icons'
+import { cilFastfood, cilHouse, cilLockLocked, cilUser } from '@coreui/icons'
 import RegisterForm from '@/components/register/RegisterForm'
+import Link from 'next/link'
 
 const Register = () => {
   return (
@@ -20,7 +15,21 @@ const Register = () => {
           <CCol md={9} lg={7} xl={6}>
             <CCard className="mx-4">
               <CCardBody className="p-4">
-                <RegisterForm />
+                <h4 className="text-center mb-4">Você quer se cadastrar como</h4>
+                <p className="text-center mb-4">Escolha pelo menos uma opção</p>
+                {/* Flexbox com centralização e gap */}
+                <div className="d-flex justify-content-center gap-3">
+                  <Link href={`register/mashguiach`}>
+                    <CButton color="primary">
+                      <CIcon icon={cilUser} /> Mashguiach
+                    </CButton>
+                  </Link>
+                  <Link href={`register/estabelecimento`}>
+                    <CButton color="primary">
+                      <CIcon icon={cilFastfood} /> Estabelecimento
+                    </CButton>
+                  </Link>
+                </div>
               </CCardBody>
             </CCard>
           </CCol>
