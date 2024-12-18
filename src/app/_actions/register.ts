@@ -129,7 +129,7 @@ export const registerUserStore = async (data: {
       address_lat: lat,
       address_lng: lng,
       password: hashedPassword, // Armazena a senha criptografada
-      roleId: parseInt(data.roleId),
+      roleId: 2,
     },
   })
 
