@@ -5,6 +5,9 @@ $enable-deprecation-messages: false !default;
 @import "@coreui/coreui-pro/scss/functions";
 @import "@coreui/coreui-pro/scss/variables";
 @import "@coreui/coreui-pro/scss/mixins";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
 .example {
   &:not(:first-child) {

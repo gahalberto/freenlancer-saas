@@ -1,222 +1,261 @@
-import { useEffect, useState } from "react";
+'use client'
+
+import { useEffect, useState } from 'react'
+import { ptBR } from 'date-fns/locale'
+import { format } from 'date-fns'
 import {
-    CBadge,
-    CButton,
-    CCol,
-    CDatePicker,
-    CForm,
-    CFormInput,
-    CFormLabel,
-    CFormTextarea,
-    CInputGroup,
-    CInputGroupText,
-    CModal,
-    CModalBody,
-    CModalFooter,
-    CModalHeader,
-    CModalTitle,
-    CTable,
-    CTableBody,
-    CTableDataCell,
-    CTableRow
-} from "@coreui/react-pro";
-import { createEventServices } from "@/app/_actions/events/createEventServices";
-import { useSession } from "next-auth/react";
-import { getCreditsByUser } from "@/app/_actions/getCreditsByUser";
-import { cilDollar } from "@coreui/icons";
-import CIcon from "@coreui/icons-react";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
+  CBadge,
+  CButton,
+  CCol,
+  CForm,
+  CFormTextarea,
+  CInputGroup,
+  CInputGroupText,
+  CModal,
+  CModalBody,
+  CModalFooter,
+  CModalHeader,
+  CModalTitle,
+  CTable,
+  CTableBody,
+  CTableDataCell,
+  CTableRow,
+} from '@coreui/react-pro'
+import { Calendar } from '@/components/ui/calendar'
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
+import { cn } from '@/lib/utils'
+
+import { createEventServices } from '@/app/_actions/events/createEventServices'
+import { useSession } from 'next-auth/react'
+import { getCreditsByUser } from '@/app/_actions/getCreditsByUser'
+import { cilDollar } from '@coreui/icons'
+import CIcon from '@coreui/icons-react'
+import Link from 'next/link'
 
 type PropsType = {
-    visible: boolean;
-    onClose: () => void;
-    StoreEventsId: string; // ID do evento
-    fetchAll: () => void;
-};
+  visible: boolean
+  onClose: () => void
+  StoreEventsId: string
+  fetchAll: () => void
+}
 
 const AddServiceToEventModal = ({ fetchAll, visible, onClose, StoreEventsId }: PropsType) => {
-    const { data: session, status } = useSession();
-    const [credits, setCredits] = useState(0);
+  const { data: session, status } = useSession()
+  const [credits, setCredits] = useState(0)
 
-    const fetchCredits = async () => {
-        const response = await getCreditsByUser();
-        if (response) {
-            setCredits(response.credits);
-        }
+  const fetchCredits = async () => {
+    const response = await getCreditsByUser()
+    if (response) {
+      setCredits(response.credits)
+    }
+  }
+
+  useEffect(() => {
+    fetchCredits()
+  }, [])
+
+  const [arriveMashguiachTime, setArriveMashguiachTime] = useState<Date | undefined>(undefined)
+  const [endMashguiachTime, setEndMashguiachTime] = useState<Date | undefined>(undefined)
+  const [mashguiachPrice, setMashguiachPrice] = useState<number>(0)
+  const [totalPrice, setTotalPrice] = useState<number>(0)
+  const [totalHours, setTotalHours] = useState<number>(0)
+  const [observationText, setObservationText] = useState('')
+
+  const calculateHoursBetweenDates = (startDate: Date, endDate: Date) => {
+    const differenceInMs = endDate.getTime() - startDate.getTime()
+    return differenceInMs / (1000 * 60 * 60)
+  }
+
+  useEffect(() => {
+    if (arriveMashguiachTime && endMashguiachTime && mashguiachPrice > 0) {
+      const hoursWorked = calculateHoursBetweenDates(arriveMashguiachTime, endMashguiachTime)
+      setTotalHours(hoursWorked)
+      setTotalPrice(hoursWorked * mashguiachPrice)
+    }
+  }, [arriveMashguiachTime, endMashguiachTime, mashguiachPrice])
+
+  const handleSubmit = async () => {
+    if (!arriveMashguiachTime || !endMashguiachTime) {
+      alert('Por favor, preencha todas as datas')
+      return
     }
 
+    try {
+      const response = await createEventServices({
+        StoreEventsId,
+        arriveMashguiachTime,
+        endMashguiachTime,
+        isApproved: false,
+        mashguiachPrice: totalPrice,
+        mashguiachPricePerHour: mashguiachPrice,
+        observationText,
+      })
 
-    useEffect(() => {
-        fetchCredits();
-    }, [])
+      if (response) {
+        alert('Formulário enviado com sucesso!')
+        fetchAll()
+        onClose()
+        fetchCredits()
+      } else {
+        alert('Ocorreu um erro ao enviar o formulário.')
+      }
+    } catch (error) {
+      console.error('Erro ao enviar formulário:', error)
+      alert('Ocorreu um erro ao enviar o formulário.')
+    }
+  }
 
-    const router = useRouter();
+  return (
+    <CModal visible={visible} onClose={onClose} className="z-10">
+      <CForm className="row g-3">
+        <CModalHeader>
+          <CModalTitle>Solicitar Mashguiach</CModalTitle>
+        </CModalHeader>
+        <CModalBody>
+          <CCol md={12}>
+            <Popover>
+              <PopoverTrigger asChild>
+                <CButton color="primary" variant="outline">
+                  {arriveMashguiachTime
+                    ? `ENTRADA: ${format(
+                        arriveMashguiachTime,
+                        'dd/MM/yyyy',
+                      )} ${arriveMashguiachTime.getHours()}:${arriveMashguiachTime.getMinutes()}`
+                    : 'Selecionar entrada'}
+                </CButton>
+              </PopoverTrigger>
+              <PopoverContent
+                style={{ zIndex: 2050, alignContent: 'center', alignItems: 'center' }}
+                className="z-[1050]"
+                sideOffset={5}
+                align="center"
+                alignOffset={5}
+              >
+                <div>
+                  <Calendar
+                    locale={ptBR}
+                    mode="single"
+                    selected={arriveMashguiachTime}
+                    onSelect={(date) => setArriveMashguiachTime(date)}
+                    disabled={(date) => date < new Date() || date < new Date('1900-01-01')}
+                  />
+                  <div className="flex items-center gap-2 mt-2">
+                    <label htmlFor="arrive-time">Horário:</label>
+                    <input
+                      id="arrive-time"
+                      type="time"
+                      className="form-control"
+                      onChange={(e) => {
+                        if (arriveMashguiachTime) {
+                          const [hours, minutes] = e.target.value.split(':')
+                          const updatedDate = new Date(arriveMashguiachTime)
+                          updatedDate.setHours(parseInt(hours, 10))
+                          updatedDate.setMinutes(parseInt(minutes, 10))
+                          setArriveMashguiachTime(updatedDate)
+                        }
+                      }}
+                    />
+                  </div>
+                </div>
+              </PopoverContent>
+            </Popover>
+          </CCol>
 
+          <CCol md={12} style={{ marginTop: '18px' }}>
+            <Popover>
+              <PopoverTrigger asChild>
+                <CButton color="primary" variant="outline">
+                  {endMashguiachTime
+                    ? `SAÍDA: ${format(
+                        endMashguiachTime,
+                        'dd/MM/yyyy',
+                      )} ${endMashguiachTime.getHours()}:${endMashguiachTime.getMinutes()}`
+                    : 'Selecionar saída'}
+                </CButton>
+              </PopoverTrigger>
+              <PopoverContent
+                style={{ zIndex: 2050, alignContent: 'center', alignItems: 'center' }}
+                className="z-[1050]"
+                sideOffset={5}
+                align="center"
+                alignOffset={5}
+              >
+                <div>
+                  <Calendar
+                    locale={ptBR}
+                    mode="single"
+                    selected={endMashguiachTime}
+                    onSelect={(date) => setEndMashguiachTime(date)}
+                    disabled={(date) => date < new Date() || date < new Date('1900-01-01')}
+                  />
+                  <div className="flex items-center gap-2 mt-2">
+                    <label htmlFor="end-time">Horário:</label>
+                    <input
+                      id="end-time"
+                      type="time"
+                      className="form-control"
+                      onChange={(e) => {
+                        if (endMashguiachTime) {
+                          const [hours, minutes] = e.target.value.split(':')
+                          const updatedDate = new Date(endMashguiachTime)
+                          updatedDate.setHours(parseInt(hours, 10))
+                          updatedDate.setMinutes(parseInt(minutes, 10))
+                          setEndMashguiachTime(updatedDate)
+                        }
+                      }}
+                    />
+                  </div>
+                </div>
+              </PopoverContent>
+            </Popover>
+          </CCol>
 
-    const [arriveMashguiachTime, setArriveMashguiachTime] = useState<Date | null>(null);
-    const [endMashguiachTime, setEndMashguiachTime] = useState<Date | null>(null);
-    const [mashguiachPrice, setMashguiachPrice] = useState<number>(0); // Preço por hora
-    const [totalPrice, setTotalPrice] = useState<number>(0); // Total calculado
-    const [totalHours, setTotalHours] = useState<number>(0); // Total de horas trabalhadas
-    const [observationText, setObservationText] = useState('');
+          <CCol md={12} style={{ marginTop: '18px' }}>
+            <CInputGroup className="mb-3">
+              <CInputGroupText>R$</CInputGroupText>
+              <input
+                type="number"
+                className="form-control"
+                value={mashguiachPrice}
+                onChange={(e) => setMashguiachPrice(Number(e.target.value))}
+              />
+            </CInputGroup>
+          </CCol>
 
-    // Função para calcular as horas entre as datas
-    const calculateHoursBetweenDates = (startDate: Date, endDate: Date) => {
-        const differenceInMs = endDate.getTime() - startDate.getTime();
-        const differenceInHours = differenceInMs / (1000 * 60 * 60); // Convertendo de milissegundos para horas
-        return differenceInHours;
-    };
+          <CCol md={12}>
+            <CFormTextarea
+              placeholder="Observação"
+              value={observationText}
+              onChange={(e) => setObservationText(e.target.value)}
+            ></CFormTextarea>
+          </CCol>
 
-    // Atualiza o cálculo sempre que uma data ou o preço mudarem
-    useEffect(() => {
-        if (arriveMashguiachTime && endMashguiachTime && mashguiachPrice > 0) {
-            const hoursWorked = calculateHoursBetweenDates(arriveMashguiachTime, endMashguiachTime);
-            setTotalHours(hoursWorked);
-            setTotalPrice(hoursWorked * mashguiachPrice);
-        }
-    }, [arriveMashguiachTime, endMashguiachTime, mashguiachPrice]);
+          <CCol>
+            <CTable>
+              <CTableBody>
+                <CTableRow>
+                  <CTableDataCell>Total de Horas:</CTableDataCell>
+                  <CTableDataCell>{totalHours.toFixed(2)}</CTableDataCell>
+                </CTableRow>
+                <CTableRow>
+                  <CTableDataCell>Total a pagar:</CTableDataCell>
+                  <CTableDataCell>R$ {totalPrice.toFixed(2)}</CTableDataCell>
+                </CTableRow>
+              </CTableBody>
+            </CTable>
+          </CCol>
+        </CModalBody>
+        <CModalFooter>
+          <CButton color="success" onClick={handleSubmit}>
+            Confirmar
+          </CButton>
+          <CButton color="secondary" onClick={onClose}>
+            Cancelar
+          </CButton>
+        </CModalFooter>
+      </CForm>
+    </CModal>
+  )
+}
 
-    const handleSubmit = async () => {
-        if (!arriveMashguiachTime || !endMashguiachTime) {
-            alert("Por favor, preencha todas as datas");
-            return;
-        }
-
-        try {
-            const response = await createEventServices({
-                StoreEventsId,
-                arriveMashguiachTime,
-                endMashguiachTime,
-                isApproved: false, // Valor inicial para isApproved
-                //  mashguiachId,
-                mashguiachPrice: totalPrice, // Enviando o preço total calculado
-                mashguiachPricePerHour: mashguiachPrice,
-                observationText
-            });
-
-            if (response) {
-                alert("Formulário enviado com sucesso!");
-                fetchAll();
-                onClose(); // Fecha o modal após o envio
-                fetchCredits();                
-            } else {
-                alert("Ocorreu um erro ao enviar o formulário.");
-            }
-        } catch (error) {
-            console.error("Erro ao enviar formulário:", error);
-            alert("Ocorreu um erro ao enviar o formulário.");
-        }
-    };
-
-    return (
-        <CModal visible={visible} onClose={onClose}>
-            <CForm className="row g-3">
-                <CModalHeader>
-                    <CModalTitle>Solicitar Mashguiach</CModalTitle>
-                </CModalHeader>
-                <CModalBody>
-                    <CCol md={12}>
-                        <CFormLabel>Data e Horário de <b>entrada</b> do Mashguiach:</CFormLabel>
-                        <CDatePicker
-                            timepicker
-                            locale="pt-BR"
-                            onDateChange={(date: Date | null) => {
-                                if (date) {
-                                    setArriveMashguiachTime(date);
-                                }
-                            }}
-                        />
-                    </CCol>
-
-                    <CCol md={12} style={{ marginTop: '18px' }}>
-                        <CFormLabel>Data e Horário de <b>saída</b> do Mashguiach:</CFormLabel>
-                        <CDatePicker
-                            timepicker
-                            locale="pt-BR"
-                            onDateChange={(date: Date | null) => {
-                                if (date) {
-                                    setEndMashguiachTime(date);
-                                }
-                            }}
-                        />
-                    </CCol>
-
-                    <CCol md={12} style={{ marginTop: '18px' }}>
-                        <CFormLabel>Preço por hora do Mashguiach</CFormLabel>
-                        <CInputGroup className="mb-3">
-                            <CInputGroupText>R$</CInputGroupText>
-                            <CFormInput
-                                type="number"
-                                aria-label="Valor em reais"
-                                value={mashguiachPrice}
-                                onChange={(e) => setMashguiachPrice(Number(e.target.value))} // Atualiza o preço
-                            />
-                        </CInputGroup>
-                    </CCol>
-                    <CCol md={12}>
-                        <CFormLabel>Observação:</CFormLabel>
-                        <CFormTextarea
-                            value={observationText}
-                            onChange={(e) => setObservationText(e.target.value)} // Atualiza o preço
-                        >
-
-                        </CFormTextarea>
-                    </CCol>
-                    <CCol style={{ marginTop: '18px' }}>
-                        <CCol lg={4} sm={5} className="ms-auto">
-                            <CTable>
-                                <CTableBody>
-                                    <CTableRow>
-                                        <CTableDataCell className="text-start">
-                                            <strong>Total de Horas:</strong>
-                                        </CTableDataCell>
-                                        <CTableDataCell className="text-end">{totalHours.toFixed(2)}</CTableDataCell>
-                                    </CTableRow>
-                                    <CTableRow>
-                                        <CTableDataCell className="text-start">
-                                            <strong>Preço da hora do Mashguiach: </strong>
-                                        </CTableDataCell>
-                                        <CTableDataCell className="text-end">R$ {mashguiachPrice.toFixed(2)}</CTableDataCell>
-                                    </CTableRow>
-                                    <CTableRow>
-                                        <CTableDataCell className="text-start">
-                                            <strong>Total a pagar: </strong>
-                                        </CTableDataCell>
-                                        <CTableDataCell className="text-end">R$ {totalPrice.toFixed(2)}</CTableDataCell>
-                                    </CTableRow>
-                                    <CTableRow>
-                                        <CTableDataCell className="text-start">
-                                            <strong>Sua carteira:</strong>
-                                        </CTableDataCell>
-                                        <CTableDataCell className="text-end">
-                                            {totalPrice > credits ? (
-                                                <CBadge color="danger">R$ {credits}</CBadge>
-                                            ) : (
-                                                <CBadge color="primary">R$ {credits}</CBadge>
-                                            )}
-                                        </CTableDataCell>
-                                    </CTableRow>
-                                </CTableBody>
-                            </CTable>
-                        </CCol>
-                    </CCol>
-                </CModalBody>
-                <CModalFooter>
-                    {(totalPrice > credits ? (
-                        <Link href={`/credits`}>
-                            <CButton color="danger" size="sm">
-                                <CIcon icon={cilDollar} /> Você não tem crédito suficiente, adicione créditos
-                            </CButton>
-                        </Link>
-                    ) : (
-                        <CButton color="success" onClick={handleSubmit}>Pagar & Solicitar Mashguiach</CButton>
-                    ))}
-                    <CButton color="secondary" onClick={onClose}>Cancelar</CButton>
-                </CModalFooter>
-            </CForm>
-        </CModal>
-    );
-};
-
-export default AddServiceToEventModal;
+export default AddServiceToEventModal

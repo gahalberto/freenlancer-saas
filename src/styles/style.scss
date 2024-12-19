@@ -1,3 +1,7 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
 // If you want to override variables do it here
 @import "variables";
 
@@ -6,7 +10,6 @@
 @import "@coreui/chartjs/scss/coreui-chartjs";
 
 // Vendors
-@import "vendors/calendar";
 @import "vendors/simplebar";
 
 // Custom styles for this theme
