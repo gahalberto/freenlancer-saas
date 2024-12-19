@@ -21,9 +21,6 @@ import { useEffect, useState } from 'react'
 type EventsWithServices = StoreEvents & {
   EventsServices: EventsServices[]
   store: Stores
-  Mashguiach: {
-    name: string
-  }
 }
 
 const AdminSecondSection = () => {
@@ -142,7 +139,7 @@ const AdminSecondSection = () => {
                             </p>
                             <p>
                               <b>Mashguiach:</b>{' '}
-                              {service.Mashguiach?.name ?? <CBadge color="danger">PENDENTE</CBadge>}
+                              {service.mashguiachId ?? <CBadge color="danger">PENDENTE</CBadge>}
                             </p>
                           </div>
                         ))}
