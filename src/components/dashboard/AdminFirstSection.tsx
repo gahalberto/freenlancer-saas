@@ -42,41 +42,41 @@ const AdminFirstSection = () => {
   return (
     <>
       <CRow>
-        <CCol xs={12} md={6} lg={3}>
+        <CCol xs={4} md={4} lg={4}>
           <CWidgetStatsC
             className="mb-3"
             icon={<CIcon icon={cilUser} height={36} />}
             color="primary"
             inverse
             progress={{ value: qtdMashguiach !== null ? (qtdMashguiach / 100) * 100 : 0 }} // Progresso baseado em qtdMashguiach
-            title="Qtd. de Mashguichim"
+            title="QTD. MASHGUIACHIM"
             value={qtdMashguiach !== null ? qtdMashguiach : '0'}
           />
         </CCol>
 
-        <CCol xs={12} md={6} lg={3}>
+        <CCol xs={4} md={4} lg={4}>
           <CWidgetStatsC
             className="mb-3"
             icon={<CIcon icon={cilBurger} height={36} />}
-            color="danger"
+            color="primary"
             inverse
             progress={{
               value: qtdEstabelecimentos !== null ? (qtdEstabelecimentos / 100) * 100 : 0,
             }} // Progresso baseado em qtdEstabelecimentos
-            title="Qtd. de Estabelecimentos"
+            title="QTD. ESTABELECIMENTOS"
             value={qtdEstabelecimentos !== null ? qtdEstabelecimentos : '0'}
           />
         </CCol>
 
-        <CCol xs={12} md={6} lg={3}>
+        <CCol xs={4} md={4} lg={4}>
           <Link href={`/app/admin/events`}>
             <CWidgetStatsC
               className="mb-3"
               icon={<CIcon icon={cilWarning} height={36} />}
-              color="secondary"
+              color={`${eventToAprove ? `danger` : 'primary'}`}
               inverse
               progress={{ value: eventToAprove !== null ? (eventToAprove / 100) * 100 : 0 }} // Progresso baseado em qtdEstabelecimentos
-              title="Eventos p/ liberar"
+              title="EVENTOS PENDENTES"
               value={eventToAprove !== null ? eventToAprove : '0'}
             />
           </Link>
