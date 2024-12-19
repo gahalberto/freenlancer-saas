@@ -18,7 +18,6 @@ import {
 } from '@coreui/react-pro'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
-import { v4 as uuidv4 } from 'uuid'
 
 import { z } from 'zod'
 import { useSession } from 'next-auth/react'
@@ -185,17 +184,17 @@ const CreateEventForm = () => {
 
   return (
     <CRow>
-      <CCol xs={12}>
-        <CCard className="mb-4">
-          <CCardHeader>
-            <strong>Criação de Evento</strong>
-          </CCardHeader>
-          <CCardBody>
-            <p className="text-body-secondary small">
-              Confira todos os dados do evento. Após o cadastro, o evento será enviado para
-              aprovação.
-            </p>
-            <form className="row g-3" onSubmit={handleSubmit(onSubmit)}>
+      <form className="row g-3" onSubmit={handleSubmit(onSubmit)}>
+        <CCol xs={12}>
+          <CCard className="mb-4">
+            <CCardHeader>
+              <strong>Dados do evento</strong>
+            </CCardHeader>
+            <CCardBody>
+              <p className="text-body-secondary small">
+                Confira todos os dados do evento. Após o cadastro, o evento será enviado para
+                aprovação.
+              </p>
               <CCol md={6}>
                 <CFormLabel>Nome do Evento:</CFormLabel>
                 <CFormInput
@@ -241,76 +240,6 @@ const CreateEventForm = () => {
                 </CFormSelect>
 
                 {errors.store && <p>{errors.store.message}</p>}
-              </CCol>
-              <CFormLabel>CEP do local do evento:</CFormLabel>
-              <CInputGroup>
-                <CInputGroupText>
-                  <CIcon icon={cilMap} />
-                </CInputGroupText>
-                <CFormInput
-                  placeholder="Digite o seu cep!"
-                  autoComplete="address"
-                  {...register('address_zicode')}
-                />
-                <CButton type="button" onClick={handlecep} color="primary">
-                  <CIcon icon={cilSearch} style={{ marginRight: 6 }} />
-                  Buscar
-                </CButton>
-              </CInputGroup>
-
-              <CCol md={6}>
-                <CFormLabel>Rua:</CFormLabel>
-                <CFormInput
-                  type="text"
-                  disabled={disabled}
-                  {...register('address_street')}
-                  invalid={!!errors.address_street}
-                />
-                {errors.address_street && <p>{errors.address_street.message}</p>}
-              </CCol>
-
-              <CCol md={2}>
-                <CFormLabel>Número:</CFormLabel>
-                <CFormInput
-                  type="text"
-                  disabled={disabled}
-                  {...register('address_number')}
-                  invalid={!!errors.address_number}
-                />
-                {errors.address_number && <p>{errors.address_number.message}</p>}
-              </CCol>
-
-              <CCol md={4}>
-                <CFormLabel>Bairro:</CFormLabel>
-                <CFormInput
-                  type="text"
-                  disabled={disabled}
-                  {...register('address_neighbor')}
-                  invalid={!!errors.address_neighbor}
-                />
-                {errors.address_neighbor && <p>{errors.address_neighbor.message}</p>}
-              </CCol>
-
-              <CCol md={6}>
-                <CFormLabel>Cidade:</CFormLabel>
-                <CFormInput
-                  type="text"
-                  disabled={disabled}
-                  {...register('address_city')}
-                  invalid={!!errors.address_city}
-                />
-                {errors.address_city && <p>{errors.address_city.message}</p>}
-              </CCol>
-
-              <CCol md={6}>
-                <CFormLabel>Estado:</CFormLabel>
-                <CFormInput
-                  type="text"
-                  disabled={disabled}
-                  {...register('address_state')}
-                  invalid={!!errors.address_state}
-                />
-                {errors.address_state && <p>{errors.address_state.message}</p>}
               </CCol>
 
               <CCol md={6}>
@@ -395,10 +324,88 @@ const CreateEventForm = () => {
               <CButton type="submit" color="primary" disabled={disabled}>
                 Criar Evento
               </CButton>
-            </form>
+            </CCardBody>
+          </CCard>
+        </CCol>
+
+        <CCard className="mb-4">
+          <CCardHeader>
+            <strong>Endereço do evento</strong>
+          </CCardHeader>
+          <CCardBody>
+            <CCol md={6}>
+              <CFormLabel>CEP do local do evento:</CFormLabel>
+              <CInputGroup>
+                <CInputGroupText>
+                  <CIcon icon={cilMap} />
+                </CInputGroupText>
+                <CFormInput
+                  placeholder="Digite o seu cep!"
+                  autoComplete="address"
+                  {...register('address_zicode')}
+                />
+                <CButton type="button" onClick={handlecep} color="primary">
+                  <CIcon icon={cilSearch} style={{ marginRight: 6 }} />
+                  Buscar
+                </CButton>
+              </CInputGroup>
+
+              <CFormLabel>Rua:</CFormLabel>
+              <CFormInput
+                type="text"
+                disabled={disabled}
+                {...register('address_street')}
+                invalid={!!errors.address_street}
+              />
+              {errors.address_street && <p>{errors.address_street.message}</p>}
+            </CCol>
+
+            <CCol md={2}>
+              <CFormLabel>Número:</CFormLabel>
+              <CFormInput
+                type="text"
+                disabled={disabled}
+                {...register('address_number')}
+                invalid={!!errors.address_number}
+              />
+              {errors.address_number && <p>{errors.address_number.message}</p>}
+            </CCol>
+
+            <CCol md={4}>
+              <CFormLabel>Bairro:</CFormLabel>
+              <CFormInput
+                type="text"
+                disabled={disabled}
+                {...register('address_neighbor')}
+                invalid={!!errors.address_neighbor}
+              />
+              {errors.address_neighbor && <p>{errors.address_neighbor.message}</p>}
+            </CCol>
+
+            <CCol md={6}>
+              <CFormLabel>Cidade:</CFormLabel>
+              <CFormInput
+                type="text"
+                disabled={disabled}
+                {...register('address_city')}
+                invalid={!!errors.address_city}
+              />
+              {errors.address_city && <p>{errors.address_city.message}</p>}
+            </CCol>
+
+            <CCol md={6}>
+              <CFormLabel>Estado:</CFormLabel>
+              <CFormInput
+                type="text"
+                disabled={disabled}
+                {...register('address_state')}
+                invalid={!!errors.address_state}
+              />
+              {errors.address_state && <p>{errors.address_state.message}</p>}
+            </CCol>
           </CCardBody>
         </CCard>
-      </CCol>
+      </form>
     </CRow>
   )
 }

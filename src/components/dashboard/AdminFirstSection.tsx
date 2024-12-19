@@ -43,29 +43,32 @@ const AdminFirstSection = () => {
     <>
       <CRow>
         <CCol xs={4} md={4} lg={4}>
-          <CWidgetStatsC
-            className="mb-3"
-            icon={<CIcon icon={cilUser} height={36} />}
-            color="primary"
-            inverse
-            progress={{ value: qtdMashguiach !== null ? (qtdMashguiach / 100) * 100 : 0 }} // Progresso baseado em qtdMashguiach
-            title="QTD. MASHGUIACHIM"
-            value={qtdMashguiach !== null ? qtdMashguiach : '0'}
-          />
+          <Link href={`/app/admin/users`}>
+            <CWidgetStatsC
+              className="mb-3"
+              icon={<CIcon icon={cilUser} height={36} />}
+              color="primary"
+              inverse
+              progress={{ value: qtdMashguiach !== null ? (qtdMashguiach / 100) * 100 : 0 }} // Progresso baseado em qtdMashguiach
+              title="QTD. MASHGUIACHIM"
+              value={qtdMashguiach !== null ? qtdMashguiach : '0'}
+            />
+          </Link>
         </CCol>
-
         <CCol xs={4} md={4} lg={4}>
-          <CWidgetStatsC
-            className="mb-3"
-            icon={<CIcon icon={cilBurger} height={36} />}
-            color="primary"
-            inverse
-            progress={{
-              value: qtdEstabelecimentos !== null ? (qtdEstabelecimentos / 100) * 100 : 0,
-            }} // Progresso baseado em qtdEstabelecimentos
-            title="QTD. ESTABELECIMENTOS"
-            value={qtdEstabelecimentos !== null ? qtdEstabelecimentos : '0'}
-          />
+          <Link href={`/app/admin/estabelecimentos`}>
+            <CWidgetStatsC
+              className="mb-3"
+              icon={<CIcon icon={cilBurger} height={36} />}
+              color="primary"
+              inverse
+              progress={{
+                value: qtdEstabelecimentos !== null ? (qtdEstabelecimentos / 100) * 100 : 0,
+              }} // Progresso baseado em qtdEstabelecimentos
+              title="QTD. ESTABELECIMENTOS"
+              value={qtdEstabelecimentos !== null ? qtdEstabelecimentos : '0'}
+            />
+          </Link>
         </CCol>
 
         <CCol xs={4} md={4} lg={4}>

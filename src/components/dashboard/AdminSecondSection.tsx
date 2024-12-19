@@ -16,6 +16,7 @@ import {
   CCol,
 } from '@coreui/react-pro'
 import { EventsServices, StoreEvents, Stores } from '@prisma/client'
+import Link from 'next/link'
 import { useEffect, useState } from 'react'
 
 type EventsWithServices = StoreEvents & {
@@ -123,7 +124,10 @@ const AdminSecondSection = () => {
                     <p>
                       <b>Telefone:</b> {event.responsableTelephone}
                     </p>
-                    <h3>Serviços do Mashguiach:</h3>
+                    <Link href={`/app/estabelecimento/events/${event.id}`}>
+                      <CButton color="primary">Abrir detalhes</CButton>
+                    </Link>
+                    <h3 className="mt-4">Serviços do Mashguiach:</h3>
 
                     {event.EventsServices.length > 0 ? (
                       <div key={event.id} className="border p-4 rounded-lg mb-4">
