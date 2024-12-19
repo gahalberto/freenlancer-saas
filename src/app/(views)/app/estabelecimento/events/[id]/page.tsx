@@ -20,10 +20,17 @@ import {
   CFormLabel,
   CPlaceholder,
   CRow,
+  CTable,
+  CTableBody,
+  CTableDataCell,
+  CTableHead,
+  CTableHeaderCell,
+  CTableRow,
 } from '@coreui/react-pro'
-import { StoreEvents } from '@prisma/client'
+import { EventsAdresses, StoreEvents } from '@prisma/client'
 import { useSession } from 'next-auth/react'
 import { useEffect, useState } from 'react'
+import AddAdressModal from './AddAddressForm'
 
 interface ParamsType {
   params: {
@@ -38,6 +45,7 @@ interface EventWithOwner extends StoreEvents {
   store: {
     title: string
   }
+  EventsAdresses: EventsAdresses[]
   responsableTelephone: string
 }
 
@@ -45,45 +53,47 @@ const EditEventPage = ({ params }: ParamsType) => {
   const { data: session, status } = useSession()
   const [disabled, setDisabled] = useState(true)
   const [event, setEvent] = useState<EventWithOwner | null>(null)
-  const [selectedDate, setSelectedDate] = useState<Date | null>(null) // Estado para a data selecionada
+  const [selectedDate, setSelectedDate] = useState<Date | null>(null)
 
   const fetchEvent = async () => {
     const response = await getEventInfo(params.id)
     if (response) {
       setEvent(response as any)
-      setSelectedDate(new Date(response.date)) // Definir a data inicial a partir dos dados do evento
+      setSelectedDate(new Date(response.date))
     }
   }
 
   const handleAproveEvent = async (eventId: string, isApproved: boolean) => {
-    // Chama a função de aprovação e alterna o estado de aprovação
     const updatedEvent = await aproveEvent(eventId, !isApproved)
     if (updatedEvent) {
-      // Atualiza o estado do evento localmente após a aprovação/trancamento
       setEvent((prevEvent) =>
         prevEvent ? { ...prevEvent, isApproved: !prevEvent.isApproved } : prevEvent,
       )
     }
   }
 
+  const refreshAddresses = () => {
+    fetchEvent()
+  }
+
   useEffect(() => {
     fetchEvent()
   }, [params.id])
 
+  console.log(event)
   return (
     <CRow>
       <CCol xs={12}>
         {!event?.isApproved && (
-          <CPlaceholder as={CCardTitle} animation="glow" xs={12} style={{ marginBottom: '20px' }}>
+          <CCardTitle>
             <CBadge color="danger">ATENÇÃO: Esse evento está em análise pelos rabinos!</CBadge>
-          </CPlaceholder>
+          </CCardTitle>
         )}
         <CCard className="mb-4">
           <CCardHeader className="d-flex justify-content-between align-items-center">
             <div>
               Evento criado por: <strong>{event?.eventOwner?.name} </strong>
             </div>
-
             {session?.user.roleId === 3 && (
               <CButton
                 onClick={() => handleAproveEvent(event?.id as string, event?.isApproved as boolean)}
@@ -94,24 +104,20 @@ const EditEventPage = ({ params }: ParamsType) => {
             )}
           </CCardHeader>
           <CCardBody>
-            <p className="text-body-secondary small">
-              Edite os dados do evento. Após a edição, os dados serão atualizados.
-            </p>
-            <CRow style={{ marginBottom: '20px' }}>
-              <CCol md={12} style={{ marginBottom: '20px' }}>
+            {/* Detalhes do Evento */}
+            <CRow className="mb-3">
+              <CCol md={12}>
                 <CFormLabel>Estabelecimento:</CFormLabel>
                 <CFormInput type="text" disabled={disabled} value={event?.store.title || ''} />
               </CCol>
-              <CCol md={12} style={{ marginBottom: '20px' }}>
+              <CCol md={12}>
                 <CFormLabel>Nome do Evento:</CFormLabel>
                 <CFormInput type="text" disabled={disabled} value={event?.title || ''} />
               </CCol>
-
-              <CCol md={12} style={{ marginBottom: '20px' }}>
+              <CCol md={12}>
                 <CFormLabel>Responsável pelo Evento:</CFormLabel>
                 <CFormInput type="text" disabled={disabled} value={event?.responsable || ''} />
               </CCol>
-
               <CCol md={12}>
                 <CFormLabel>Telefone do Responsável:</CFormLabel>
                 <CFormInput
@@ -121,58 +127,75 @@ const EditEventPage = ({ params }: ParamsType) => {
                 />
               </CCol>
             </CRow>
-
-            <CRow style={{ marginBottom: '20px' }}>
-              <CCol md={6} style={{ marginBottom: '20px' }}>
+            <CRow>
+              <CCol md={6}>
                 <CFormLabel>Tipo do Evento:</CFormLabel>
                 <CFormInput type="text" disabled={disabled} value={event?.eventType || ''} />
               </CCol>
-
-              <CCol md={6} style={{ marginBottom: '20px' }}>
+              <CCol md={6}>
                 <CFormLabel>Serviço do Evento:</CFormLabel>
                 <CFormInput type="text" disabled={disabled} value={event?.serviceType || ''} />
               </CCol>
             </CRow>
-
-            <CRow style={{ marginBottom: '20px' }}>
-              <CCol md={6} style={{ marginBottom: '20px' }}>
-                <CFormLabel>Dia do Evento:</CFormLabel>
-                <CDatePicker
-                  disabled={disabled}
-                  onDateChange={(date) => setSelectedDate(date)} // Atualiza a data selecionada
-                  date={selectedDate || undefined} // Define a data inicial
-                />
-              </CCol>
-
-              <CCol md={6} style={{ marginBottom: '20px' }}>
-                <CFormLabel>Qtd de Pax:</CFormLabel>
-                <CFormInput type="number" disabled={disabled} value={event?.nrPax || ''} />
-              </CCol>
-            </CRow>
           </CCardBody>
         </CCard>
 
-        {/* CARD DO MAPA DO GOOGLE */}
-
-        <CCard style={{ marginBottom: 20 }}>
+        {/* Tabela de Endereços */}
+        <CCard>
           <CCardHeader>
-            <CCardTitle>Endereço e Mapa</CCardTitle>
+            Endereços <AddAdressModal storeEventId={params.id} onAddressAdded={refreshAddresses} />
           </CCardHeader>
           <CCardBody>
-            <Map zipcode={event?.address_zicode as string} showButtons={false} />
-            <b>
-              Rua {event?.address_street} {event?.address_number}, {event?.address_neighbor} - CEP{' '}
-              {event?.address_zicode}
-            </b>
+            <CTable>
+              <CTableHead>
+                <CTableRow>
+                  <CTableHeaderCell>#</CTableHeaderCell>
+                  <CTableHeaderCell>Tipo</CTableHeaderCell>
+                  <CTableHeaderCell>Rua</CTableHeaderCell>
+                  <CTableHeaderCell>Bairro</CTableHeaderCell>
+                  <CTableHeaderCell>Cidade</CTableHeaderCell>
+                  <CTableHeaderCell>CEP</CTableHeaderCell>
+                  <CTableHeaderCell>Ações</CTableHeaderCell>
+                </CTableRow>
+              </CTableHead>
+              <CTableBody>
+                {event?.EventsAdresses?.map((address, index) => (
+                  <CTableRow key={index}>
+                    <CTableHeaderCell>{index + 1}</CTableHeaderCell>
+                    <CTableDataCell>{address.workType}</CTableDataCell>
+                    <CTableDataCell>{address.address_street}</CTableDataCell>
+                    <CTableDataCell>{address.address_neighbor}</CTableDataCell>
+                    <CTableDataCell>{address.address_city}</CTableDataCell>
+                    <CTableDataCell>{address.address_zipcode}</CTableDataCell>
+                    <CTableDataCell>
+                      <CButton color="danger" size="sm">
+                        Remover
+                      </CButton>
+                    </CTableDataCell>
+                  </CTableRow>
+                ))}
+              </CTableBody>
+            </CTable>
           </CCardBody>
         </CCard>
+
+        {/* Mapa do Google */}
+        {/* <CCard>
+          <CCardHeader>Mapa</CCardHeader>
+          <CCardBody>
+            <Map zipcode={event?.address_zicode} showButtons={false} />
+            <div>
+              Rua {event?.address_street}, {event?.address_number} - {event?.address_city}
+            </div>
+          </CCardBody>
+        </CCard> */}
 
         {/* Renderiza o EventsTableByEvent apenas se o event.id estiver definido */}
         {event?.isApproved ? (
           <EventsTableByEvent eventStoreId={event.id} />
         ) : (
           <>
-            <CCard style={{ width: '100%' }}>
+            <CCard style={{ width: '100%', marginTop: '20px' }}>
               <CCardHeader>
                 <CCardTitle>Solicitação de Mashguiach</CCardTitle>
               </CCardHeader>

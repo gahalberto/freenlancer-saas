@@ -8,6 +8,7 @@ export const getEventInfo = async (id: string) => {
     include: {
       eventOwner: true,
       store: true,
+      EventsAdresses: true,
     },
   })
 }

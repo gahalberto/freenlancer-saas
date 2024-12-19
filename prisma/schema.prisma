@@ -256,6 +256,25 @@ model StoreEvents {
   EventsServices       EventsServices[]
   eventOwner           User             @relation(fields: [ownerId], references: [id], onDelete: Cascade)
   store                Stores           @relation(fields: [storeId], references: [id])
+  EventsAdresses       EventsAdresses[]
+}
+
+model EventsAdresses {
+  id               String      @id @default(uuid())
+  storeEventId     String
+  workType         WORKTYPE
+  address_zipcode  String
+  address_street   String
+  address_number   String
+  address_neighbor String
+  address_city     String
+  address_state    String
+  eventAddress     StoreEvents @relation(fields: [storeEventId], references: [id])
+}
+
+enum WORKTYPE {
+  PRODUCAO
+  EVENTO
 }
 
 model EventsServices {
@@ -277,6 +296,7 @@ model EventsServices {
   transport_price         Float?            @default(0)
   StoreEvents             StoreEvents       @relation(fields: [StoreEventsId], references: [id])
   Mashguiach              User?             @relation(fields: [mashguiachId], references: [id])
+  workType                WORKTYPE?
 }
 
 model FixedJobs {
