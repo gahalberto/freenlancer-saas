@@ -1,12 +1,12 @@
-'use client'
-
 import { useEffect, useState } from 'react'
-import { ptBR } from 'date-fns/locale'
-import { format } from 'date-fns'
 import {
+  CBadge,
   CButton,
   CCol,
+  CDatePicker,
   CForm,
+  CFormInput,
+  CFormLabel,
   CFormSelect,
   CFormTextarea,
   CInputGroup,
@@ -16,17 +16,20 @@ import {
   CModalFooter,
   CModalHeader,
   CModalTitle,
+  CMultiSelect,
+  CPopover,
   CTable,
   CTableBody,
   CTableDataCell,
   CTableRow,
 } from '@coreui/react-pro'
-import { Calendar } from '@/components/ui/calendar'
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
-
 import { createEventServices } from '@/app/_actions/events/createEventServices'
 import { useSession } from 'next-auth/react'
 import { getCreditsByUser } from '@/app/_actions/getCreditsByUser'
+import Link from 'next/link'
+import { useRouter } from 'next/navigation'
+import { getAllMashguichim } from '@/app/_actions/getAllMashguichim'
+import { User } from '@prisma/client'
 
 type PropsType = {
   visible: boolean
@@ -36,8 +39,14 @@ type PropsType = {
 }
 
 const AddServiceToEventModal = ({ fetchAll, visible, onClose, StoreEventsId }: PropsType) => {
-  const { data: session, status } = useSession()
+  const { data: session } = useSession()
   const [credits, setCredits] = useState(0)
+  const [mashguiachOptions, setMashguiachOptions] = useState<{ value: string; label: string }[]>([])
+  const [selectedMashguiach, setSelectedMashguiach] = useState<{
+    value: string
+    label: string
+  } | null>(null) // Estado para a seleção do Mashguiach
+  const [productionOrEvent, setProductionOrEvent] = useState<string>('') // Estado para o enum
 
   const fetchCredits = async () => {
     const response = await getCreditsByUser()
@@ -46,29 +55,55 @@ const AddServiceToEventModal = ({ fetchAll, visible, onClose, StoreEventsId }: P
     }
   }
 
+  const fetchMashguichim = async () => {
+    const response = await getAllMashguichim()
+    if (response) {
+      const formattedOptions = response.map((mashguiach) => ({
+        value: mashguiach.id,
+        label: mashguiach.name,
+      }))
+      setMashguiachOptions(formattedOptions)
+    }
+  }
   useEffect(() => {
     fetchCredits()
+    fetchMashguichim()
   }, [])
 
-  const [arriveMashguiachTime, setArriveMashguiachTime] = useState<Date | undefined>(undefined)
-  const [endMashguiachTime, setEndMashguiachTime] = useState<Date | undefined>(undefined)
-  const [mashguiachPrice, setMashguiachPrice] = useState<number>(0)
+  const router = useRouter()
+
+  const [arriveMashguiachTime, setArriveMashguiachTime] = useState<Date | null>(null)
+  const [endMashguiachTime, setEndMashguiachTime] = useState<Date | null>(null)
   const [totalPrice, setTotalPrice] = useState<number>(0)
   const [totalHours, setTotalHours] = useState<number>(0)
   const [observationText, setObservationText] = useState('')
+  const [transportPrice, setTransportPrice] = useState(50)
 
-  const calculateHoursBetweenDates = (startDate: Date, endDate: Date) => {
-    const differenceInMs = endDate.getTime() - startDate.getTime()
-    return differenceInMs / (1000 * 60 * 60)
+  const calculatePrice = (startDate: Date, endDate: Date) => {
+    const differenceInHours = Math.max(
+      0,
+      (endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60),
+    )
+    const effectiveHours = Math.ceil(differenceInHours) // Arredondar para cima
+    let price = 0
+
+    for (let i = 0; i < effectiveHours; i++) {
+      const hour = new Date(startDate.getTime() + i * 60 * 60 * 1000).getHours()
+      // Valor por hora ajustado para considerar a partir de 22:00
+      price += hour >= 22 || hour < 6 ? 75 : 50
+    }
+
+    const minimumPrice = 250 // Valor mínimo de 5 horas
+    return { price: Math.max(minimumPrice, price), hours: effectiveHours }
   }
 
   useEffect(() => {
-    if (arriveMashguiachTime && endMashguiachTime && mashguiachPrice > 0) {
-      const hoursWorked = calculateHoursBetweenDates(arriveMashguiachTime, endMashguiachTime)
-      setTotalHours(hoursWorked)
-      setTotalPrice(hoursWorked * mashguiachPrice)
+    if (arriveMashguiachTime && endMashguiachTime) {
+      const { price, hours } = calculatePrice(arriveMashguiachTime, endMashguiachTime)
+      setTotalPrice(price + transportPrice)
+      setTotalHours(hours)
     }
-  }, [arriveMashguiachTime, endMashguiachTime, mashguiachPrice])
+  }, [arriveMashguiachTime, endMashguiachTime, transportPrice])
 
   const handleSubmit = async () => {
     if (!arriveMashguiachTime || !endMashguiachTime) {
@@ -83,8 +118,9 @@ const AddServiceToEventModal = ({ fetchAll, visible, onClose, StoreEventsId }: P
         endMashguiachTime,
         isApproved: false,
         mashguiachPrice: totalPrice,
-        mashguiachPricePerHour: mashguiachPrice,
+        mashguiachPricePerHour: 50,
         observationText,
+        productionOrEvent,
       })
 
       if (response) {
@@ -102,170 +138,126 @@ const AddServiceToEventModal = ({ fetchAll, visible, onClose, StoreEventsId }: P
   }
 
   return (
-    <CModal visible={visible} onClose={onClose} className="z-10">
+    <CModal visible={visible} onClose={onClose}>
       <CForm className="row g-3">
         <CModalHeader>
           <CModalTitle>Solicitar Mashguiach</CModalTitle>
         </CModalHeader>
         <CModalBody>
-          <CCol md={12} style={{ marginTop: '18px' }}>
+          <CCol lg={12}>
             <CInputGroup className="mb-3">
-              <CInputGroupText className="input-group-text-fixed">
-                ENTRADA DO MASHGUIACH
-              </CInputGroupText>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <CButton color="primary" variant="outline">
-                    {arriveMashguiachTime
-                      ? `ENTRADA: ${format(
-                          arriveMashguiachTime,
-                          'dd/MM/yyyy',
-                        )} ${arriveMashguiachTime.getHours()}:${arriveMashguiachTime.getMinutes()}`
-                      : 'Selecionar data/horário'}
-                  </CButton>
-                </PopoverTrigger>
-                <PopoverContent
-                  style={{ zIndex: 2050, alignContent: 'center', alignItems: 'center' }}
-                  className="z-[1050]"
-                  sideOffset={5}
-                  align="center"
-                  alignOffset={5}
-                >
-                  <div>
-                    <Calendar
-                      locale={ptBR}
-                      mode="single"
-                      selected={arriveMashguiachTime}
-                      onSelect={(date) => setArriveMashguiachTime(date)}
-                      disabled={(date) => date < new Date() || date < new Date('1900-01-01')}
-                    />
-                    <div className="flex items-center gap-2 mt-2">
-                      <label htmlFor="arrive-time">Horário:</label>
-                      <input
-                        id="arrive-time"
-                        type="time"
-                        className="form-control"
-                        onChange={(e) => {
-                          if (arriveMashguiachTime) {
-                            const [hours, minutes] = e.target.value.split(':')
-                            const updatedDate = new Date(arriveMashguiachTime)
-                            updatedDate.setHours(parseInt(hours, 10))
-                            updatedDate.setMinutes(parseInt(minutes, 10))
-                            setArriveMashguiachTime(updatedDate)
-                          }
-                        }}
-                      />
-                    </div>
-                  </div>
-                </PopoverContent>
-              </Popover>
-            </CInputGroup>
-          </CCol>
-
-          <CCol md={12} style={{ marginTop: '18px' }}>
-            <CInputGroup className="mb-3">
-              <CInputGroupText className="input-group-text-fixed">
-                ENTRADA DO MASHGUIACH
-              </CInputGroupText>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <CButton color="primary" variant="outline">
-                    {endMashguiachTime
-                      ? `SAÍDA: ${format(
-                          endMashguiachTime,
-                          'dd/MM/yyyy',
-                        )} ${endMashguiachTime.getHours()}:${endMashguiachTime.getMinutes()}`
-                      : 'Selecionar data/horário'}
-                  </CButton>
-                </PopoverTrigger>
-                <PopoverContent
-                  style={{ zIndex: 2050, alignContent: 'center', alignItems: 'center' }}
-                  className="z-[1050]"
-                  sideOffset={5}
-                  align="center"
-                  alignOffset={5}
-                >
-                  <div>
-                    <Calendar
-                      locale={ptBR}
-                      mode="single"
-                      selected={endMashguiachTime}
-                      onSelect={(date) => setEndMashguiachTime(date)}
-                      disabled={(date) => date < new Date() || date < new Date('1900-01-01')}
-                    />
-                    <div className="flex items-center gap-2 mt-2">
-                      <label htmlFor="end-time">Horário:</label>
-                      <input
-                        id="end-time"
-                        type="time"
-                        className="form-control"
-                        onChange={(e) => {
-                          if (endMashguiachTime) {
-                            const [hours, minutes] = e.target.value.split(':')
-                            const updatedDate = new Date(endMashguiachTime)
-                            updatedDate.setHours(parseInt(hours, 10))
-                            updatedDate.setMinutes(parseInt(minutes, 10))
-                            setEndMashguiachTime(updatedDate)
-                          }
-                        }}
-                      />
-                    </div>
-                  </div>
-                </PopoverContent>
-              </Popover>
-            </CInputGroup>
-          </CCol>
-
-          <CCol md={12} style={{ marginTop: '18px' }}>
-            <CInputGroup className="mb-3">
-              <CInputGroupText className="input-group-text-fixed">
-                <b>VALOR DA HORA R$</b>
-              </CInputGroupText>
-              <input
-                type="number"
-                className="form-control"
-                value={mashguiachPrice}
-                onChange={(e) => setMashguiachPrice(Number(e.target.value))}
+              <CDatePicker
+                required
+                timepicker
+                text="* Selecione a data e o horário entrada"
+                placeholder="Selecione o horário de entrada"
+                className="w-100"
+                locale="pt-BR"
+                onDateChange={(date: Date | null) => setArriveMashguiachTime(date || null)}
               />
             </CInputGroup>
           </CCol>
 
           <CCol md={12}>
+            <CInputGroup className="mb-3 w-100">
+              <CDatePicker
+                required
+                timepicker
+                text="* Selecione o horário previsto de saída"
+                placeholder="Selecione o horário de saída"
+                className="w-100"
+                locale="pt-BR"
+                onDateChange={(date: Date | null) => setEndMashguiachTime(date || null)}
+              />{' '}
+            </CInputGroup>
+          </CCol>
+          <CCol md={12}>
             <CInputGroup className="mb-3">
-              <CInputGroupText>PRODUÇÃO OU EVENTO</CInputGroupText>
-              <CFormSelect aria-label="PRODUÇÃO OU EVENTO">
+              <CFormSelect
+                text="* Escolhe se é uma produção ou evento, para que o Mashguiach chegue no lugar certo. Você cadastrou o endereço previamente, senão feche esse formulário e cadastre o endereço."
+                aria-label="PRODUÇÃO OU EVENTO"
+                value={productionOrEvent}
+                onChange={(e) => setProductionOrEvent(e.target.value)} // Atualiza o estado com o valor selecionado
+              >
                 <option>PRODUÇÃO OU EVENTO</option>
                 <option value="PRODUCAO">PRODUÇÃO</option>
                 <option value="EVENTO">EVENTO</option>
               </CFormSelect>
             </CInputGroup>
           </CCol>
+          {/* <CCol md={12}>
+            <CInputGroupText>MASHGUIACH PRÉ-SELECIONADO?</CInputGroupText>
+
+            <CInputGroup className="mb-3 w-100">
+              <CMultiSelect
+                options={mashguiachOptions}
+                text="Se não deseja selecionar um Mashguiach específico deixe em branco e todos mashguichim vão ver a sua oferta."
+                multiple={false}
+                placeholder="Deseja selecionar um Mashguiach?"
+                className="w-100"
+                onChange={(selected) => console.log('Selecionado:', selected)}
+              />
+            </CInputGroup>
+          </CCol> */}
+
           <CCol md={12}>
+            <CFormLabel>Observação:</CFormLabel>
             <CFormTextarea
-              placeholder="Observação"
+              placeholder="Escreva aqui alguma observação que deseja fazer aos rabinos e ao mashguiach"
               value={observationText}
               onChange={(e) => setObservationText(e.target.value)}
-            ></CFormTextarea>
+            />
           </CCol>
 
-          <CCol>
+          <CCol style={{ marginTop: '20px' }}>
             <CTable>
               <CTableBody>
                 <CTableRow>
-                  <CTableDataCell>Total de Horas:</CTableDataCell>
+                  <CTableDataCell>
+                    <strong>Valor da hora:</strong>
+                  </CTableDataCell>
+                  <CTableDataCell>R$ 50.00</CTableDataCell>
+                </CTableRow>
+
+                <CTableRow>
+                  <CTableDataCell>
+                    <strong>Total de Horas:</strong>
+                  </CTableDataCell>
                   <CTableDataCell>{totalHours.toFixed(2)}</CTableDataCell>
                 </CTableRow>
+
                 <CTableRow>
-                  <CTableDataCell>Total a pagar:</CTableDataCell>
+                  <CTableDataCell>
+                    <strong>Transporte:</strong>
+                  </CTableDataCell>
+                  <CTableDataCell>R$ {transportPrice.toFixed(2)}</CTableDataCell>
+                </CTableRow>
+
+                <CTableRow>
+                  <CTableDataCell>
+                    <strong>Total a pagar:</strong>
+                  </CTableDataCell>
                   <CTableDataCell>R$ {totalPrice.toFixed(2)}</CTableDataCell>
                 </CTableRow>
               </CTableBody>
             </CTable>
           </CCol>
+          <CPopover
+            content="
+            1. O valor mínimo a ser pago por um Mashguiach é de R$250,00.
+            2. Após as 5 primeiras horas, o valor é de R$50,00 por hora.
+            3. De 00:00 até as 06:00 o valor é de R$75,00 a hora
+            "
+            placement="top"
+          >
+            <CButton size="sm" color="secondary">
+              Clique para saber sobre cálculos
+            </CButton>
+          </CPopover>
         </CModalBody>
         <CModalFooter>
-          <CButton color="success" onClick={handleSubmit}>
-            Confirmar
+          <CButton color="primary" onClick={handleSubmit}>
+            Pagar & Solicitar Mashguiach
           </CButton>
           <CButton color="secondary" onClick={onClose}>
             Cancelar

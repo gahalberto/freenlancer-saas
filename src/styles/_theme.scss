@@ -39,6 +39,10 @@ body {
   margin-left: 3px;
 }
 
+.custom-datepicker .datepicker-dropdown {
+  z-index: 1050 !important; /* Escolha um valor alto o suficiente para garantir que o datepicker apareça acima do offcanvas */
+}
+
 .sidebar-header {
   .nav-underline-border {
     --cui-nav-underline-border-link-padding-x: 1rem;

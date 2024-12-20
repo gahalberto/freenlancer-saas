@@ -18,6 +18,10 @@ $enable-deprecation-messages: false !default;
     background-color: var(--#{$prefix}tertiary-bg);
   }
 
+  .custom-datepicker .datepicker-dropdown {
+    z-index: 1050 !important; /* Escolha um valor alto o suficiente para garantir que o datepicker apareça acima do offcanvas */
+  }
+
   & + p {
     margin-top: 1.5rem;
   }

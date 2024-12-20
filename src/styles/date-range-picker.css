@@ -1,0 +1,6 @@
+.custom-element {
+    display: none;
+    z-index: 1100 !important; /* Defina um valor maior que o z-index do modal */
+    position: relative; /* ou absolute, dependendo do layout */
+  }
+  

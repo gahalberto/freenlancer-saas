@@ -105,20 +105,20 @@ const EditEventPage = ({ params }: ParamsType) => {
           </CCardHeader>
           <CCardBody>
             {/* Detalhes do Evento */}
-            <CRow className="mb-3">
-              <CCol md={12}>
+            <CRow className="g-3">
+              <CCol xs={12}>
                 <CFormLabel>Estabelecimento:</CFormLabel>
                 <CFormInput type="text" disabled={disabled} value={event?.store.title || ''} />
               </CCol>
-              <CCol md={12}>
+              <CCol xs={12}>
                 <CFormLabel>Nome do Evento:</CFormLabel>
                 <CFormInput type="text" disabled={disabled} value={event?.title || ''} />
               </CCol>
-              <CCol md={12}>
+              <CCol xs={12}>
                 <CFormLabel>Responsável pelo Evento:</CFormLabel>
                 <CFormInput type="text" disabled={disabled} value={event?.responsable || ''} />
               </CCol>
-              <CCol md={12}>
+              <CCol xs={12}>
                 <CFormLabel>Telefone do Responsável:</CFormLabel>
                 <CFormInput
                   type="text"
@@ -127,16 +127,16 @@ const EditEventPage = ({ params }: ParamsType) => {
                 />
               </CCol>
             </CRow>
-            <CRow>
-              <CCol md={6}>
+            <CRow className="g-3">
+              <CCol xs={12} sm={6}>
                 <CFormLabel>Tipo do Evento:</CFormLabel>
                 <CFormInput type="text" disabled={disabled} value={event?.eventType || ''} />
               </CCol>
-              <CCol md={6}>
+              <CCol xs={12} sm={6}>
                 <CFormLabel>Serviço do Evento:</CFormLabel>
                 <CFormInput type="text" disabled={disabled} value={event?.serviceType || ''} />
               </CCol>
-            </CRow>
+            </CRow>{' '}
           </CCardBody>
         </CCard>
 
@@ -146,36 +146,38 @@ const EditEventPage = ({ params }: ParamsType) => {
             Endereços <AddAdressModal storeEventId={params.id} onAddressAdded={refreshAddresses} />
           </CCardHeader>
           <CCardBody>
-            <CTable>
-              <CTableHead>
-                <CTableRow>
-                  <CTableHeaderCell>#</CTableHeaderCell>
-                  <CTableHeaderCell>Tipo</CTableHeaderCell>
-                  <CTableHeaderCell>Rua</CTableHeaderCell>
-                  <CTableHeaderCell>Bairro</CTableHeaderCell>
-                  <CTableHeaderCell>Cidade</CTableHeaderCell>
-                  <CTableHeaderCell>CEP</CTableHeaderCell>
-                  <CTableHeaderCell>Ações</CTableHeaderCell>
-                </CTableRow>
-              </CTableHead>
-              <CTableBody>
-                {event?.EventsAdresses?.map((address, index) => (
-                  <CTableRow key={index}>
-                    <CTableHeaderCell>{index + 1}</CTableHeaderCell>
-                    <CTableDataCell>{address.workType}</CTableDataCell>
-                    <CTableDataCell>{address.address_street}</CTableDataCell>
-                    <CTableDataCell>{address.address_neighbor}</CTableDataCell>
-                    <CTableDataCell>{address.address_city}</CTableDataCell>
-                    <CTableDataCell>{address.address_zipcode}</CTableDataCell>
-                    <CTableDataCell>
-                      <CButton color="danger" size="sm">
-                        Remover
-                      </CButton>
-                    </CTableDataCell>
+            <div className="table-responsive">
+              <CTable hover responsive="sm">
+                <CTableHead>
+                  <CTableRow>
+                    <CTableHeaderCell>#</CTableHeaderCell>
+                    <CTableHeaderCell>Tipo</CTableHeaderCell>
+                    <CTableHeaderCell>Rua</CTableHeaderCell>
+                    <CTableHeaderCell>Bairro</CTableHeaderCell>
+                    <CTableHeaderCell>Cidade</CTableHeaderCell>
+                    <CTableHeaderCell>CEP</CTableHeaderCell>
+                    <CTableHeaderCell>Ações</CTableHeaderCell>
                   </CTableRow>
-                ))}
-              </CTableBody>
-            </CTable>
+                </CTableHead>
+                <CTableBody>
+                  {event?.EventsAdresses?.map((address, index) => (
+                    <CTableRow key={index}>
+                      <CTableHeaderCell>{index + 1}</CTableHeaderCell>
+                      <CTableDataCell>{address.workType}</CTableDataCell>
+                      <CTableDataCell>{address.address_street}</CTableDataCell>
+                      <CTableDataCell>{address.address_neighbor}</CTableDataCell>
+                      <CTableDataCell>{address.address_city}</CTableDataCell>
+                      <CTableDataCell>{address.address_zipcode}</CTableDataCell>
+                      <CTableDataCell>
+                        <CButton color="danger" size="sm">
+                          Remover
+                        </CButton>
+                      </CTableDataCell>
+                    </CTableRow>
+                  ))}
+                </CTableBody>
+              </CTable>
+            </div>
           </CCardBody>
         </CCard>
 

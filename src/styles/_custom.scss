@@ -1,1 +1,9 @@
 // Here you can add other styles
+.custom-datepicker-popper {
+    z-index: 1060 !important; /* Garante que o calendário fique acima do modal */
+  }
+  
+
+  .custom-datepicker .datepicker-dropdown {
+    z-index: 1050 !important; /* Escolha um valor alto o suficiente para garantir que o datepicker apareça acima do offcanvas */
+  }

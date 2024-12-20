@@ -18,3 +18,10 @@
 // If you want to add custom CSS you can put it here
 @import "custom";
 
+.custom-datepicker {
+    z-index: 1050; /* Escolha um valor alto o suficiente para garantir que o datepicker apareça acima do offcanvas */
+  }
+
+  .custom-datepicker .datepicker-dropdown {
+    z-index: 1050 !important; /* Escolha um valor alto o suficiente para garantir que o datepicker apareça acima do offcanvas */
+  }

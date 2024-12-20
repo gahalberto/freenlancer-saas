@@ -1,16 +1,14 @@
-"use client"
-import { CAlert } from "@coreui/react-pro"
-import Link from "next/link"
+'use client'
+import { CAlert } from '@coreui/react-pro'
+import Link from 'next/link'
 
-interface AlertProps {
-    msg: string
+const DangerAlert = () => {
+  return (
+    <CAlert color="danger">
+      <b>OS TRABALHOS NÃO SERÃO LIBERADOS ATÉ QUE VOCÊ RESPONDA</b> O QUESTIONÁRIO DO MASHGUIACH!{' '}
+      <Link href={'/app/questionario'}>CLIQUE AQUI PARA RESPONDER! </Link>
+    </CAlert>
+  )
 }
 
-const DangerAlert = ({msg}: AlertProps) => {
-
-    return(
-        <CAlert color="warning">{msg} <Link href={'/questionario'}>Responda aqui </Link></CAlert>
-    )
-}
-
-export default DangerAlert;
+export default DangerAlert

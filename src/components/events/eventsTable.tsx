@@ -52,7 +52,7 @@ export const EventsTableByEvent = ({ eventStoreId }: PropsType) => {
 
   return (
     <>
-      <CCard textColor="primary" className={`mb-4 border-primary`}>
+      <CCard textColor="primary" className={`mb-4 border-primary`} style={{ marginTop: '30px' }}>
         <CCardHeader className="d-flex justify-content-between align-items-center">
           <strong>Serviços de Mashguiach</strong>
           <CButton color="primary" size="sm" onClick={handleModalClick}>
@@ -60,13 +60,14 @@ export const EventsTableByEvent = ({ eventStoreId }: PropsType) => {
           </CButton>
         </CCardHeader>
         <CCardBody>
-          <CTable>
+          <CTable hover responsive="sm">
             <CTableHead>
               <CTableRow>
                 <CTableHeaderCell scope="col">Mashguiach</CTableHeaderCell>
                 <CTableHeaderCell scope="col">Início</CTableHeaderCell>
                 <CTableHeaderCell scope="col">Fim</CTableHeaderCell>
                 <CTableHeaderCell scope="col">Preço</CTableHeaderCell>
+                <CTableHeaderCell scope="col">Tipo</CTableHeaderCell>
                 <CTableHeaderCell scope="col">Observação</CTableHeaderCell>
                 <CTableHeaderCell scope="col">#</CTableHeaderCell>
               </CTableRow>
@@ -104,8 +105,13 @@ export const EventsTableByEvent = ({ eventStoreId }: PropsType) => {
                     <small>R$ {service.mashguiachPrice}</small>
                   </CTableDataCell>
                   <CTableDataCell>
+                    <small>{service.workType ?? ''}</small>
+                  </CTableDataCell>
+
+                  <CTableDataCell>
                     <small>{service.observationText}</small>
                   </CTableDataCell>
+
                   <CTableDataCell>
                     <CButton
                       size="sm"

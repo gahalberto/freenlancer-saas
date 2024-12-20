@@ -8,7 +8,6 @@ import {
   cilClock,
   cilList,
   cilNotes,
-  cilPhone,
   cilPlus,
   cilStar,
   cilWarning,
@@ -16,6 +15,7 @@ import {
 import DangerAlert from '@/components/alerts/DangerAlert'
 import MashguiachButtonGroup from '@/components/dashboard/MashguiachButtonGroupt'
 import {
+  CAlert,
   CButton,
   CCard,
   CCardBody,
@@ -23,6 +23,8 @@ import {
   CCardTitle,
   CCol,
   CDatePicker,
+  CForm,
+  CFormInput,
   CFormLabel,
   CModal,
   CModalBody,
@@ -32,7 +34,6 @@ import {
   CToastBody,
   CToastClose,
   CToaster,
-  CToastHeader,
 } from '@coreui/react-pro'
 import CIcon from '@coreui/icons-react'
 import { getServicesByDate } from '@/app/_actions/services/getServicesdByDate'
@@ -40,8 +41,8 @@ import { useEffect, useRef, useState } from 'react'
 import { EventsServices, StoreEvents } from '@prisma/client'
 import { confirmExit } from '@/app/_actions/events/confirmExitTime'
 import { confirmEntrance } from '@/app/_actions/events/confirmHours'
-import Link from 'next/link'
 import EventInfoModal from '@/components/dashboard/EventsInfoModal'
+import { updateUserPix, userHasPix } from '@/app/_actions/users/hasPix'
 
 // Extender o tipo EventsServices para incluir StoreEvents
 interface EventsServicesWithStoreEvents extends EventsServices {
@@ -61,6 +62,9 @@ export default function MashguiachDashboard() {
   const [visibleInfoModal, setVisibleInfoModal] = useState(false)
   const [toast, addToast] = useState(0)
   const toaster = useRef()
+  const [hasPix, setHasPixKey] = useState('')
+  const [pixKey, setPixKey] = useState('')
+  const [visiblePix, setVisiblePix] = useState(false)
 
   const exampleToast = (
     <CToast
@@ -76,27 +80,42 @@ export default function MashguiachDashboard() {
     </CToast>
   )
 
-  // Hook para buscar eventos quando o componente é montado
-  useEffect(() => {
-    const fetchEvents = async () => {
-      const today = new Date() // Pega a data atual
-      const response = await getServicesByDate(today) // Passa a data atual para a função
-      if (response.length > 0) {
-        setServiceData(response)
-      }
-      console.log(response) // Exibe a resposta ou trata os dados
-      if (response.length === 0) {
-        console.log('Não há dados para mostrar')
-      }
+  const fetchHasPix = async () => {
+    const userId = session?.user?.id
+
+    if (!userId) {
+      console.error('User ID is undefined')
+      return
     }
 
-    fetchEvents() // Chama a função apenas quando o componente é montado
-  }, [arriveMashguiachTime, selectedEvent])
+    const response = await userHasPix(userId)
+    if (response) {
+      setHasPixKey(response.pixKey || '')
+      setVisiblePix(true)
+    }
+  }
 
+  const fetchEvents = async () => {
+    const today = new Date() // Pega a data atual
+    const response = await getServicesByDate(today) // Passa a data atual para a função
+    if (response.length > 0) {
+      setServiceData(response)
+    }
+  }
+
+  // Hook para buscar eventos quando o componente é montado
+  useEffect(() => {
+    if (session?.user?.id) {
+      fetchHasPix()
+      fetchEvents()
+    }
+  }, [session?.user?.id])
   // Exibe uma mensagem de carregamento até que o status da sessão seja "authenticated"
   if (status === 'loading') {
     return <p>Carregando...</p>
   }
+
+  console.log('Session data:', session)
 
   // Verifica se o usuário não está autenticado
   if (status === 'unauthenticated') {
@@ -132,14 +151,42 @@ export default function MashguiachDashboard() {
     setSelectedEvent(event)
   }
 
+  console.log(hasPix)
+
+  const onPixSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    await updateUserPix(session?.user?.id as string, pixKey)
+  }
+
+  console.log(hasPix)
   return (
     <>
-      {!hasAnsweredQuestions && (
-        <DangerAlert
-          msg={`Olá ${userName}, vimos que você ainda não respondeu o questionário do Mashguiach!`}
-        />
+      {!hasAnsweredQuestions && <DangerAlert />}
+      {hasPix.length === 0 && visiblePix && (
+        <CCard style={{ marginBottom: '20px' }}>
+          <CCardHeader>
+            <CCardTitle>
+              <CIcon icon={cilWarning} style={{ marginRight: 10 }} />
+              <b>Adicione sua chave Pix</b>
+            </CCardTitle>
+          </CCardHeader>
+          <CCardBody>
+            <CForm onSubmit={onPixSubmit}>
+              <p>Vimos que você não cadastrou a sua chave PIX, envie-nos abaixo.</p>
+              <CFormLabel>Chave Pix:</CFormLabel>
+              <CFormInput
+                type="text"
+                placeholder="Digite sua chave Pix"
+                value={pixKey}
+                onChange={(e) => setPixKey(e.target.value)}
+              />
+              <CButton type="submit" color="primary" className="mt-2">
+                Salvar
+              </CButton>
+            </CForm>
+          </CCardBody>
+        </CCard>
       )}
-
       {/* Agrupando os cards em um único CRow */}
       {visibleInfoModal && (
         <EventInfoModal

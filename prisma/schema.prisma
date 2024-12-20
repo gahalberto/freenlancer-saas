@@ -49,6 +49,7 @@ model User {
   address_city     String                @default("")
   address_lat      String?
   address_lng      String?
+  pixKey           String?               @default("")
   Certifications   Certifications[]
   EventsServices   EventsServices[]
   mashguiachJobs   FixedJobs[]
