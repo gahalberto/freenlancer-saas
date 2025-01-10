@@ -67,6 +67,13 @@ const _nav = [
     roleId: 3,
   },
   {
+    component: CNavItem,
+    name: 'Calendário Admin',
+    roleId: 3,
+    href: '/app/admin/calendario',
+    icon: <CIcon icon={cilCalendar} customClassName="nav-icon" />,
+  },
+  {
     component: CNavGroup,
     roleId: 3,
     name: 'Usuários',
