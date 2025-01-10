@@ -31,6 +31,7 @@ import { EventsAdresses, StoreEvents } from '@prisma/client'
 import { useSession } from 'next-auth/react'
 import { useEffect, useState } from 'react'
 import AddAdressModal from './AddAddressForm'
+import { deleteAddresToEvenet } from '@/app/_actions/events/deleteAddresToEvent'
 
 interface ParamsType {
   params: {
@@ -79,6 +80,11 @@ const EditEventPage = ({ params }: ParamsType) => {
   useEffect(() => {
     fetchEvent()
   }, [params.id])
+
+  const handleDeleteAddress = (id: string) => {
+    deleteAddresToEvenet(id)
+    fetchEvent()
+  }
 
   console.log(event)
   return (
@@ -140,6 +146,19 @@ const EditEventPage = ({ params }: ParamsType) => {
           </CCardBody>
         </CCard>
 
+        <CCard className="mb-4">
+          <CCardHeader>MENU PDF</CCardHeader>
+          <CCardBody>
+            {event?.menuUrl && (
+              <iframe
+                src={event?.menuUrl}
+                style={{ width: '100%', height: '600px', border: 'none' }}
+                title="Menu PDF"
+              ></iframe>
+            )}
+          </CCardBody>
+        </CCard>
+
         {/* Tabela de Endereços */}
         <CCard>
           <CCardHeader>
@@ -169,7 +188,11 @@ const EditEventPage = ({ params }: ParamsType) => {
                       <CTableDataCell>{address.address_city}</CTableDataCell>
                       <CTableDataCell>{address.address_zipcode}</CTableDataCell>
                       <CTableDataCell>
-                        <CButton color="danger" size="sm">
+                        <CButton
+                          color="danger"
+                          size="sm"
+                          onClick={() => handleDeleteAddress(address.id)}
+                        >
                           Remover
                         </CButton>
                       </CTableDataCell>
