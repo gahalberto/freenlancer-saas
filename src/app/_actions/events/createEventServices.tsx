@@ -33,6 +33,8 @@ export const createEventServices = async (data: CreateEventServicesInput) => {
     },
   })
 
+  //  const tokens = await db.notificationToken.findMany();
+
   if (createService) {
     await db.user.update({
       where: {

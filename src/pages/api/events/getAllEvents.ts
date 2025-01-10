@@ -28,6 +28,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             mashguiachId: null,
           },
         },
+        store: true,
+        EventsAdresses: true,
       },
       orderBy: {
         date: 'asc',
@@ -35,7 +37,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     })
 
     // Responde com os eventos encontrados
-    res.status(200).json(events)
+    const filteres = events.filter((item) => item.EventsServices.length > 0)
+    res.status(200).json(filteres)
   } catch (error) {
     console.error('Erro ao buscar eventos no banco de dados:', error)
     res.status(500).json({ error: 'Erro ao buscar eventos' })
