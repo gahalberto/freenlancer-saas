@@ -31,7 +31,6 @@ export const registerUser = async (data: {
     throw new Error(
       'Este e-mail já está em uso, volte a página de login e clique em esqueci minha senha, caso você esqueceu sua senha!',
     )
-    return false
   }
 
   const response = await fetch(

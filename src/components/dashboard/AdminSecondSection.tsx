@@ -64,7 +64,7 @@ const AdminSecondSection = () => {
   }
 
   return (
-    <div className="container">
+    <div className="">
       <CRow className="g-4">
         {events.map((event) => (
           <CCol key={event.id} xs={12} sm={6} md={4} lg={6}>
@@ -124,7 +124,7 @@ const AdminSecondSection = () => {
                     <p>
                       <b>Telefone:</b> {event.responsableTelephone}
                     </p>
-                    <Link href={`/app/estabelecimento/events/${event.id}`}>
+                    <Link href={`/app/admin/events/${event.id}`}>
                       <CButton color="primary">Abrir detalhes</CButton>
                     </Link>
                     <h3 className="mt-4">Serviços do Mashguiach:</h3>

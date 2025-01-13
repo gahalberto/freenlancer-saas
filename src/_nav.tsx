@@ -13,6 +13,7 @@ import {
   cilSearch,
   cilFlagAlt,
   cilExpandDown,
+  cilDiamond,
 } from '@coreui/icons'
 import CIcon from '@coreui/icons-react'
 import { CNavGroup, CNavItem, CNavTitle } from '@coreui/react-pro'
@@ -66,12 +67,20 @@ const _nav = [
     name: 'Admin',
     roleId: 3,
   },
+
   {
     component: CNavItem,
     name: 'Calendário Admin',
     roleId: 3,
     href: '/app/admin/calendario',
     icon: <CIcon icon={cilCalendar} customClassName="nav-icon" />,
+  },
+  {
+    component: CNavItem,
+    name: 'Eventos',
+    roleId: 3,
+    href: '/app/admin/events',
+    icon: <CIcon icon={cilDiamond} customClassName="nav-icon" />,
   },
   {
     component: CNavGroup,

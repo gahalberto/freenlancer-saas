@@ -50,7 +50,7 @@ const AdminEvents = () => {
   return (
     <CCard>
       <CCardHeader className="d-flex justify-content-between align-items-center">
-        <CCardTitle>Lista de Eventos</CCardTitle>
+        <CCardTitle>Todos os Eventos </CCardTitle>
       </CCardHeader>
       <CCardBody>
         <CTable>
@@ -62,7 +62,7 @@ const AdminEvents = () => {
                   <b> {store.store.title} </b> - {store.title}{' '}
                 </CTableDataCell>
                 <CTableDataCell>
-                  <Link href={`/app/estabelecimento/events/${store.id}`}>Ver/Liberar</Link>
+                  <Link href={`/app/admin/events/${store.id}`}>Ver/Liberar</Link>
                 </CTableDataCell>
               </CTableRow>
             ))}

@@ -1,4 +1,4 @@
-"use client"
+'use client'
 import { useState, useEffect, useRef } from 'react'
 import { DateSelectArg, EventApi, EventClickArg } from '@fullcalendar/core'
 import FullCalendar from '@fullcalendar/react'
@@ -6,7 +6,18 @@ import dayGridPlugin from '@fullcalendar/daygrid'
 import listPlugin from '@fullcalendar/list'
 import interactionPlugin from '@fullcalendar/interaction'
 import ptBr from '@fullcalendar/core/locales/pt-br'
-import { CButton, CCard, CCardBody, CCardHeader, CCol, CDatePicker, CFormLabel, CModal, CModalBody, CModalHeader } from '@coreui/react-pro'
+import {
+  CButton,
+  CCard,
+  CCardBody,
+  CCardHeader,
+  CCol,
+  CDatePicker,
+  CFormLabel,
+  CModal,
+  CModalBody,
+  CModalHeader,
+} from '@coreui/react-pro'
 import { getServicesByUser } from '@/app/_actions/services/getServicesByUser'
 import { useSession } from 'next-auth/react'
 import { EventInput } from '@fullcalendar/core'
@@ -50,8 +61,12 @@ const Calendar = () => {
           id: event.id,
           title: event.StoreEvents?.title || 'Sem Título',
           address: event.StoreEvents?.address || 'Sem endereço',
-          start: event.arriveMashguiachTime ? new Date(event.arriveMashguiachTime).toISOString() : undefined,
-          end: event.endMashguiachTime ? new Date(event.endMashguiachTime).toISOString() : undefined,
+          start: event.arriveMashguiachTime
+            ? new Date(event.arriveMashguiachTime).toISOString()
+            : undefined,
+          end: event.endMashguiachTime
+            ? new Date(event.endMashguiachTime).toISOString()
+            : undefined,
           allDay: false,
         }))
 
@@ -65,19 +80,19 @@ const Calendar = () => {
   }, [])
 
   const handleEventClick = (clickInfo: EventClickArg) => {
-    setSelectedEvent(clickInfo.event)
+    setSelectedEvent(clickInfo.event as any)
     setVisible(true)
   }
 
   const handleConfirmEntrance = async (id: string) => {
     if (!arriveMashguiachTime) {
-      alert("Por favor, selecione o horário de entrada.")
+      alert('Por favor, selecione o horário de entrada.')
       return
     }
 
     try {
       await confirmEntrance(id, arriveMashguiachTime)
-      alert("Horário de entrada confirmado!")
+      alert('Horário de entrada confirmado!')
       setVisible(false)
     } catch (error) {
       console.error('Erro ao confirmar horário de entrada:', error)
@@ -87,13 +102,13 @@ const Calendar = () => {
 
   const handleExitTime = async (id: string) => {
     if (!endMashguiachTime) {
-      alert("Por favor, selecione o horário de saída.")
+      alert('Por favor, selecione o horário de saída.')
       return
     }
 
     try {
       await confirmExit(id, endMashguiachTime)
-      alert("Horário de saída confirmado!")
+      alert('Horário de saída confirmado!')
       setVisible(false)
     } catch (error) {
       console.error('Erro ao confirmar horário de saída:', error)
@@ -135,35 +150,62 @@ const Calendar = () => {
         <CModalBody>
           {selectedEvent ? (
             <>
-              <p><b>Título:</b> {selectedEvent.title}</p>
-              <p><b>Endereço:</b> {selectedEvent.extendedProps?.address || 'Sem endereço'}</p>
-              <p><b>Início:</b> {selectedEvent.start ? new Date(selectedEvent.start).toLocaleString('pt-BR') : 'Sem data'}</p>
-              <p><b>Fim:</b> {selectedEvent.end ? new Date(selectedEvent.end).toLocaleString('pt-BR') : 'Sem data'}</p>
+              <p>
+                <b>Título:</b> {selectedEvent.title}
+              </p>
+              <p>
+                <b>Endereço:</b> {selectedEvent.extendedProps?.address || 'Sem endereço'}
+              </p>
+              <p>
+                <b>Início:</b>{' '}
+                {selectedEvent.start
+                  ? new Date(selectedEvent.start).toLocaleString('pt-BR')
+                  : 'Sem data'}
+              </p>
+              <p>
+                <b>Fim:</b>{' '}
+                {selectedEvent.end
+                  ? new Date(selectedEvent.end).toLocaleString('pt-BR')
+                  : 'Sem data'}
+              </p>
 
               <CCol md={12} className="text-center mt-3">
-                <CFormLabel>Confirmar Horário de <b>Entrada</b>:</CFormLabel>
+                <CFormLabel>
+                  Confirmar Horário de <b>Entrada</b>:
+                </CFormLabel>
                 <CDatePicker
                   timepicker
                   locale="pt-BR"
                   onDateChange={(date: Date | null) => setArriveMashguiachTime(date)}
                 />
-                <CButton color="info" size="sm" className="mt-2" onClick={() => handleConfirmEntrance(selectedEvent.id)}>
+                <CButton
+                  color="info"
+                  size="sm"
+                  className="mt-2"
+                  onClick={() => handleConfirmEntrance(selectedEvent.id)}
+                >
                   <CIcon icon={cilClock} /> Confirmar horário de entrada
                 </CButton>
               </CCol>
 
               <CCol md={12} className="text-center mt-3">
-                <CFormLabel>Confirmar Horário de <b>Saída</b>:</CFormLabel>
+                <CFormLabel>
+                  Confirmar Horário de <b>Saída</b>:
+                </CFormLabel>
                 <CDatePicker
                   timepicker
                   locale="pt-BR"
                   onDateChange={(date: Date | null) => setEndMashguiachTime(date)}
                 />
-                <CButton color="info" size="sm" className="mt-2" onClick={() => handleExitTime(selectedEvent.id)}>
+                <CButton
+                  color="info"
+                  size="sm"
+                  className="mt-2"
+                  onClick={() => handleExitTime(selectedEvent.id)}
+                >
                   <CIcon icon={cilClock} /> Confirmar horário de <b>Saída</b>
                 </CButton>
               </CCol>
-
             </>
           ) : (
             <p>Nenhum evento selecionado.</p>

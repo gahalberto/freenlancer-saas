@@ -11,7 +11,6 @@ import {
   CCard,
   CCardBody,
   CCardHeader,
-  CCardImage,
   CCardText,
   CCardTitle,
   CCol,
@@ -28,16 +27,21 @@ import {
   CTableHead,
   CTableHeaderCell,
   CTableRow,
+  CToast,
+  CToastBody,
+  CToastHeader,
 } from '@coreui/react-pro'
 import { EventsAdresses, StoreEvents, Stores } from '@prisma/client'
 import { useSession } from 'next-auth/react'
-import { useEffect, useState } from 'react'
-import AddAdressModal from './AddAddressForm'
+import { useEffect, useRef, useState } from 'react'
 import { deleteAddresToEvenet } from '@/app/_actions/events/deleteAddresToEvent'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
+import AddAddressModal from '../../../estabelecimento/events/[id]/AddAddressForm'
+import { updateEvents } from '@/app/_actions/events/updateEvents'
 import { getStores } from '@/app/_actions/stores/getStores'
+import { getAllStores } from '@/app/_actions/stores/getAllStores'
 
 interface ParamsType {
   params: {
@@ -89,6 +93,7 @@ const EditEventPage = ({ params }: ParamsType) => {
   const [event, setEvent] = useState<EventWithOwner | null>(null)
   const [selectedDate, setSelectedDate] = useState<Date | null>(null)
   const [storeList, setStoreList] = useState<Stores[]>([])
+  const [toasts, setToasts] = useState([]) // Estado para controlar toasts
 
   const {
     register,
@@ -115,6 +120,7 @@ const EditEventPage = ({ params }: ParamsType) => {
       date: '',
     },
   })
+
   const fetchEvent = async () => {
     const response = await getEventInfo(params.id)
     if (response) {
@@ -127,6 +133,17 @@ const EditEventPage = ({ params }: ParamsType) => {
       } else {
         setDisabled(true)
       }
+    }
+  }
+
+  const fetchStores = async () => {
+    try {
+      const response = await getAllStores()
+      if (response) {
+        setStoreList(response)
+      }
+    } catch (error) {
+      console.error('Erro ao buscar lojas:', error)
     }
   }
 
@@ -166,7 +183,7 @@ const EditEventPage = ({ params }: ParamsType) => {
         })
       }
     }
-
+    fetchStores()
     fetchEvent()
   }, [params.id, reset])
 
@@ -176,24 +193,18 @@ const EditEventPage = ({ params }: ParamsType) => {
   }
 
   const onSubmit = async (data: FormData) => {
-    if (!session || !session.user) {
-      console.log('Usuário não autenticado')
-      setDisabled(false)
-      return
-    }
-
+    // Converte a data de string para Date
     const formattedData = {
       ...data,
-      id: params.id,
+      date: new Date(data.date), // Converte a data
+      nrPax: parseInt(data.nrPax), // Garante que o campo `nrPax` seja numérico
+      store: {
+        connect: { id: data.store }, // Conecta a relação `store` pelo ID
+      },
     }
 
-    const response = await fetch('api/events/editEvent', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ data: formattedData }),
-    })
+    updateEvents({ data: formattedData, eventId: params.id })
+    fetchEvent()
   }
 
   return (
@@ -201,7 +212,7 @@ const EditEventPage = ({ params }: ParamsType) => {
       <CCol xs={12}>
         {!event?.isApproved && (
           <CCardTitle className="text-center mb-4">
-            <CBadge color="danger">ATENÇÃO: Esse evento está em análise pelos rabinos!</CBadge>
+            <CBadge color="danger">ATENÇÃO: Analise o evento e libere!</CBadge>
           </CCardTitle>
         )}
         <CCard className="mb-4">
@@ -224,97 +235,91 @@ const EditEventPage = ({ params }: ParamsType) => {
               aprovação.
             </p>
             <CForm className="row g-3" onSubmit={handleSubmit(onSubmit)}>
-              <fieldset disabled={disabled}>
-                <CRow className="g-3">
-                  {/* Nome do Evento e Responsável */}
-                  <CCol md={6}>
-                    <CFormLabel>Nome do Evento:</CFormLabel>
-                    <CFormInput type="text" {...register('title')} invalid={!!errors.title} />
-                    {errors.title && <p className="text-danger small">{errors.title.message}</p>}
-                  </CCol>
-                  <CCol md={6}>
-                    <CFormLabel>Responsável pelo Evento:</CFormLabel>
-                    <CFormInput
-                      type="text"
-                      {...register('responsable')}
-                      invalid={!!errors.responsable}
-                    />
-                    {errors.responsable && (
-                      <p className="text-danger small">{errors.responsable.message}</p>
-                    )}
-                  </CCol>
+              <CRow className="g-3">
+                {/* Nome do Evento e Responsável */}
+                <CCol md={6}>
+                  <CFormLabel>Nome do Evento:</CFormLabel>
+                  <CFormInput type="text" {...register('title')} invalid={!!errors.title} />
+                  {errors.title && <p className="text-danger small">{errors.title.message}</p>}
+                </CCol>
+                <CCol md={6}>
+                  <CFormLabel>Responsável pelo Evento:</CFormLabel>
+                  <CFormInput
+                    type="text"
+                    {...register('responsable')}
+                    invalid={!!errors.responsable}
+                  />
+                  {errors.responsable && (
+                    <p className="text-danger small">{errors.responsable.message}</p>
+                  )}
+                </CCol>
 
-                  {/* Telefone e Estabelecimento */}
-                  <CCol md={6}>
-                    <CFormLabel>Telefone do Responsável:</CFormLabel>
-                    <CFormInput
-                      type="text"
-                      {...register('responsableTelephone')}
-                      invalid={!!errors.responsableTelephone}
-                    />
-                    {errors.responsableTelephone && (
-                      <p className="text-danger small">{errors.responsableTelephone.message}</p>
-                    )}
-                  </CCol>
-                  <CCol md={6}>
-                    <CFormLabel>Estabelecimento:</CFormLabel>
-                    <CFormSelect {...register('store')} invalid={!!errors.store}>
-                      <option>Selecione o estabelecimento</option>
-                      {storeList.map((item, index) => (
-                        <option value={item.id} key={index}>
-                          {item.title}
-                        </option>
-                      ))}
-                    </CFormSelect>
-                    {errors.store && <p className="text-danger small">{errors.store.message}</p>}
-                  </CCol>
+                {/* Telefone e Estabelecimento */}
+                <CCol md={6}>
+                  <CFormLabel>Telefone do Responsável:</CFormLabel>
+                  <CFormInput
+                    type="text"
+                    {...register('responsableTelephone')}
+                    invalid={!!errors.responsableTelephone}
+                  />
+                  {errors.responsableTelephone && (
+                    <p className="text-danger small">{errors.responsableTelephone.message}</p>
+                  )}
+                </CCol>
+                <CCol md={6}>
+                  <CFormLabel>Estabelecimento:</CFormLabel>
+                  <CFormSelect {...register('store')} invalid={!!errors.store}>
+                    <option>Selecione o estabelecimento</option>
+                    {storeList.map((item, index) => (
+                      <option value={item.id} key={index}>
+                        {item.title}
+                      </option>
+                    ))}
+                  </CFormSelect>
+                  {errors.store && <p className="text-danger small">{errors.store.message}</p>}
+                </CCol>
 
-                  {/* Tipo do Evento e Serviço */}
-                  <CCol md={6}>
-                    <CFormLabel>Tipo do Evento:</CFormLabel>
-                    <CFormInput
-                      type="text"
-                      {...register('eventType')}
-                      invalid={!!errors.eventType}
-                    />
-                    {errors.eventType && (
-                      <p className="text-danger small">{errors.eventType.message}</p>
-                    )}
-                  </CCol>
-                  <CCol md={6}>
-                    <CFormLabel>Serviço do Evento:</CFormLabel>
-                    <CFormInput
-                      type="text"
-                      {...register('serviceType')}
-                      invalid={!!errors.serviceType}
-                    />
-                    {errors.serviceType && (
-                      <p className="text-danger small">{errors.serviceType.message}</p>
-                    )}
-                  </CCol>
+                {/* Tipo do Evento e Serviço */}
+                <CCol md={6}>
+                  <CFormLabel>Tipo do Evento:</CFormLabel>
+                  <CFormInput type="text" {...register('eventType')} invalid={!!errors.eventType} />
+                  {errors.eventType && (
+                    <p className="text-danger small">{errors.eventType.message}</p>
+                  )}
+                </CCol>
+                <CCol md={6}>
+                  <CFormLabel>Serviço do Evento:</CFormLabel>
+                  <CFormInput
+                    type="text"
+                    {...register('serviceType')}
+                    invalid={!!errors.serviceType}
+                  />
+                  {errors.serviceType && (
+                    <p className="text-danger small">{errors.serviceType.message}</p>
+                  )}
+                </CCol>
 
-                  {/* Data do Evento e Número de Pax */}
-                  <CCol md={6}>
-                    <CFormLabel>Dia do Evento:</CFormLabel>
-                    <CDatePicker
-                      onDateChange={(date) => {
-                        if (date instanceof Date && !isNaN(date.getTime())) {
-                          setValue('date', date.toISOString().split('T')[0])
-                        }
-                      }}
-                    />
-                    {errors.date && <p className="text-danger small">{errors.date.message}</p>}
-                  </CCol>
-                  <CCol md={6}>
-                    <CFormLabel>Qtd de Pax:</CFormLabel>
-                    <CFormInput type="number" {...register('nrPax')} invalid={!!errors.nrPax} />
-                    {errors.nrPax && <p className="text-danger small">{errors.nrPax.message}</p>}
-                  </CCol>
-                </CRow>
-                <CButton type="submit" color="primary" className="mt-3" disabled={disabled}>
-                  Criar Evento
-                </CButton>
-              </fieldset>
+                {/* Data do Evento e Número de Pax */}
+                <CCol md={6}>
+                  <CFormLabel>Dia do Evento:</CFormLabel>
+                  <CDatePicker
+                    onDateChange={(date) => {
+                      if (date instanceof Date && !isNaN(date.getTime())) {
+                        setValue('date', date.toISOString().split('T')[0])
+                      }
+                    }}
+                  />
+                  {errors.date && <p className="text-danger small">{errors.date.message}</p>}
+                </CCol>
+                <CCol md={6}>
+                  <CFormLabel>Qtd de Pax:</CFormLabel>
+                  <CFormInput type="number" {...register('nrPax')} invalid={!!errors.nrPax} />
+                  {errors.nrPax && <p className="text-danger small">{errors.nrPax.message}</p>}
+                </CCol>
+              </CRow>
+              <CButton type="submit" color="primary" className="mt-3">
+                Atualizar
+              </CButton>
             </CForm>
           </CCardBody>
         </CCard>
@@ -334,7 +339,7 @@ const EditEventPage = ({ params }: ParamsType) => {
         {/* Tabela de Endereços */}
         <CCard>
           <CCardHeader>
-            Endereços <AddAdressModal storeEventId={params.id} onAddressAdded={refreshAddresses} />
+            Endereços <AddAddressModal storeEventId={params.id} onAddressAdded={refreshAddresses} />
           </CCardHeader>
           <CCardBody>
             <div className="table-responsive">

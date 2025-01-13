@@ -197,12 +197,7 @@ const CreateEventForm = () => {
               </p>
               <CCol md={6}>
                 <CFormLabel>Nome do Evento:</CFormLabel>
-                <CFormInput
-                  type="text"
-                  disabled={disabled}
-                  {...register('title')}
-                  invalid={!!errors.title}
-                />
+                <CFormInput type="text" {...register('title')} invalid={!!errors.title} />
                 {errors.title && <p>{errors.title.message}</p>}
               </CCol>
 
