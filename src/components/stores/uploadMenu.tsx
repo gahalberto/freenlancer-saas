@@ -13,6 +13,7 @@ import { useState } from 'react'
 import CIcon from '@coreui/icons-react'
 import { cilCloudUpload } from '@coreui/icons'
 import { v4 as uuidv4 } from 'uuid'
+import { useRouter } from 'next/navigation'
 
 interface ModalCreateModulesProps {
   storeId: string
@@ -24,12 +25,15 @@ export const UploadMenu = ({ storeId, menuUrl }: ModalCreateModulesProps) => {
   const [pdfFile, setPdfFile] = useState<File | null>(null)
   const [error, setError] = useState<string | null>(null)
 
+  const { refresh } = useRouter()
+
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0] || null
     if (file && file.type === 'application/pdf') {
       const uniqueName = `${uuidv4()}-${file.name}`
       const renamedFile = new File([file], uniqueName, { type: file.type })
       setPdfFile(renamedFile)
+      refresh()
       setError(null)
     } else {
       setError('Por favor, selecione um arquivo PDF válido.')

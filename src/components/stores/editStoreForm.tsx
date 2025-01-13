@@ -1,6 +1,4 @@
-'use client'
-
-import { useEffect, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import {
   CCard,
   CCardBody,
@@ -12,21 +10,20 @@ import {
   CButton,
   CInputGroup,
   CInputGroupText,
+  CRow,
   CCol,
 } from '@coreui/react-pro'
-import { getAllMashguichim } from '@/app/_actions/getAllMashguichim'
-import { getStoresTypes } from '@/app/_actions/stores/getStoresType'
+import { useForm } from 'react-hook-form'
 import { z } from 'zod'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { useForm } from 'react-hook-form'
 import CIcon from '@coreui/icons-react'
 import { cilContact, cilMap, cilPhone, cilSearch } from '@coreui/icons'
-import { editStore } from '@/app/_actions/stores/editStore'
 import UploadStoreLogo from './uploadStoreLogo'
-import store from '@/store'
 import UploadMenu from './uploadMenu'
+import { getAllMashguichim } from '@/app/_actions/getAllMashguichim'
+import { getStoresTypes } from '@/app/_actions/stores/getStoresType'
+import { editStore } from '@/app/_actions/stores/editStore'
 
-// Zod schema para validação do formulário
 const storeSchema = z.object({
   title: z.string().min(1, { message: 'Digite um título para o seu estabelecimento' }),
   address_zipcode: z.string().min(1, { message: 'Digite o CEP e clique em buscar' }),
@@ -37,8 +34,8 @@ const storeSchema = z.object({
   address_state: z.string().min(1, { message: 'Digite o Estado' }),
   isAutomated: z.boolean(),
   isMashguiach: z.boolean(),
-  phone: z.string().nullable().default(''), // Aceita string ou null
-  comercialPhone: z.string().nullable().default(''), // Aceita string ou null
+  phone: z.string().nullable().default(''),
+  comercialPhone: z.string().nullable().default(''),
   mashguiachId: z.string().optional().nullable(),
   storeTypeId: z.string().min(1, { message: 'Selecione o tipo de estabelecimento' }),
   imageUrl: z.string().optional(),
@@ -79,9 +76,9 @@ const EditStoreForm: React.FC<EditStoreFormProps> = ({ storeData }) => {
     resolver: zodResolver(storeSchema),
     defaultValues: {
       ...storeData,
-      isAutomated: storeData.isAutomated ?? false, // Converte null para false
-      isMashguiach: storeData.isMashguiach ?? false, // Converte null para false
-      mashguiachId: storeData.mashguiachId ?? undefined, // Converte null para undefined
+      isAutomated: storeData.isAutomated ?? false,
+      isMashguiach: storeData.isMashguiach ?? false,
+      mashguiachId: storeData.mashguiachId ?? undefined,
       storeTypeId: storeData.storeTypeId ?? '',
       imageUrl: storeData.imageUrl ?? '',
       menuUrl: storeData.menuUrl ?? '',
@@ -92,33 +89,20 @@ const EditStoreForm: React.FC<EditStoreFormProps> = ({ storeData }) => {
   const [storesType, setStoresType] = useState<any[]>([])
   const [zipCode, setZipCode] = useState(storeData.address_zipcode || '')
 
-  const fetchStoresType = async () => {
-    try {
-      const storesTypes = await getStoresTypes()
-      setStoresType(storesTypes)
-    } catch (error) {
-      console.error('Erro ao buscar tipos de lojas:', error)
+  useEffect(() => {
+    const fetchData = async () => {
+      setMashguiachim(await getAllMashguichim())
+      setStoresType(await getStoresTypes())
     }
-  }
-
-  const fetchMashguiachim = async () => {
-    try {
-      const mashguichim = await getAllMashguichim()
-      setMashguiachim(mashguichim)
-    } catch (error) {
-      console.error('Erro ao buscar mashguiachim:', error)
-    }
-  }
+    fetchData()
+  }, [])
 
   const handleCep = async () => {
-    const newCep = zipCode.replace(/\D/g, '')
-
     if (zipCode.length >= 8) {
-      const response = await fetch(`https://viacep.com.br/ws/${newCep}/json/`)
+      const response = await fetch(`https://viacep.com.br/ws/${zipCode.replace(/\D/g, '')}/json/`)
       const cepData = await response.json()
       if (cepData.erro) {
         alert('CEP não encontrado. Verifique o CEP e tente novamente.')
-        setZipCode('')
         return
       }
       setValue('address_street', cepData.logradouro || '')
@@ -130,13 +114,6 @@ const EditStoreForm: React.FC<EditStoreFormProps> = ({ storeData }) => {
     }
   }
 
-  useEffect(() => {
-    fetchMashguiachim()
-    fetchStoresType()
-  }, [])
-
-  const isMashguiach = watch('isMashguiach')
-
   const onSubmit = async (formData: FormData) => {
     try {
       // Adapte os valores opcionais para garantir compatibilidade
@@ -144,18 +121,14 @@ const EditStoreForm: React.FC<EditStoreFormProps> = ({ storeData }) => {
         ...formData,
         id: storeData.id,
         mashguiachId: formData.mashguiachId ?? null,
-        phone: formData.phone || '',
-        comercialPhone: formData.comercialPhone || '',
-        imageUrl: formData.imageUrl || null, // Corrigido para `imageUrl`
+        phone: formData.phone || '', // Converte null para string vazia
+        comercialPhone: formData.comercialPhone || '', // Converte null para string vazia
+        imageUrl: formData.imageUrl || null,
         menuUrl: formData.menuUrl || null,
         storeTypeId: formData.storeTypeId,
       }
 
-      await editStore({
-        ...updatedFormData,
-        imageUrl: updatedFormData.imageUrl || null,
-        menuUrl: updatedFormData.menuUrl || null,
-      })
+      await editStore(updatedFormData)
       alert('Estabelecimento atualizado com sucesso!')
     } catch (error) {
       console.error('Erro ao atualizar estabelecimento:', error)
@@ -171,215 +144,139 @@ const EditStoreForm: React.FC<EditStoreFormProps> = ({ storeData }) => {
         </CCardHeader>
         <CCardBody>
           <CForm onSubmit={handleSubmit(onSubmit)}>
-            <div className="mb-3">
-              <CFormLabel htmlFor="title">
-                <b>Nome/Título do Estabelecimento</b>
-              </CFormLabel>
-              <CFormInput type="text" id="title" {...register('title')} invalid={!!errors.title} />
-              {errors.title && <span>{errors.title.message}</span>}
-            </div>
-            {errors.address_zipcode && (
-              <span className="text-danger">{errors.address_zipcode.message}</span>
-            )}
-            <CInputGroup className="mb-3">
-              <CInputGroupText>
-                <CIcon icon={cilMap} />
-              </CInputGroupText>
-              <CFormInput
-                placeholder="Digite o seu cep!"
-                autoComplete="address"
-                {...register('address_zipcode')}
-                value={zipCode}
-                onChange={(e) => setZipCode(e.target.value)}
-              />
-              <CButton type="button" onClick={handleCep} color="primary">
-                <CIcon icon={cilSearch} style={{ marginRight: 6 }} />
-                Buscar
-              </CButton>
-            </CInputGroup>
+            <CRow className="mb-3">
+              <CCol md={12}>
+                <CFormLabel htmlFor="title">Nome/Título do Estabelecimento</CFormLabel>
+                <CFormInput id="title" {...register('title')} invalid={!!errors.title} />
+                {errors.title && <span className="text-danger">{errors.title.message}</span>}
+              </CCol>
+            </CRow>
 
-            {errors.address_street && (
-              <span className="text-danger">{errors.address_street.message}</span>
-            )}
-            <CInputGroup className="mb-3">
-              <CInputGroupText>
-                <CIcon icon={cilMap} />
-              </CInputGroupText>
-              <CFormInput
-                placeholder="Rua"
-                autoComplete="address_street"
-                {...register('address_street')}
-              />
-            </CInputGroup>
+            <CRow className="mb-3">
+              <CCol md={6}>
+                <CFormLabel htmlFor="address_zipcode">CEP</CFormLabel>
+                <CInputGroup>
+                  <CFormInput
+                    id="address_zipcode"
+                    {...register('address_zipcode')}
+                    value={zipCode}
+                    onChange={(e) => setZipCode(e.target.value)}
+                  />
+                  <CButton type="button" onClick={handleCep} color="primary">
+                    Buscar
+                  </CButton>
+                </CInputGroup>
+                {errors.address_zipcode && (
+                  <span className="text-danger">{errors.address_zipcode.message}</span>
+                )}
+              </CCol>
+            </CRow>
 
-            {errors.address_number && (
-              <span className="text-danger">{errors.address_number.message}</span>
-            )}
-            <CInputGroup className="mb-3">
-              <CInputGroupText>
-                <CIcon icon={cilMap} />
-              </CInputGroupText>
-              <CFormInput
-                placeholder="Digite o número"
-                autoComplete="address"
-                {...register('address_number')}
-              />
-            </CInputGroup>
+            <CRow className="mb-3">
+              <CCol md={4}>
+                <CFormLabel htmlFor="address_street">Rua</CFormLabel>
+                <CFormInput id="address_street" {...register('address_street')} />
+              </CCol>
+              <CCol md={4}>
+                <CFormLabel htmlFor="address_number">Número</CFormLabel>
+                <CFormInput id="address_number" {...register('address_number')} />
+              </CCol>
+              <CCol md={4}>
+                <CFormLabel htmlFor="address_neighbor">Bairro</CFormLabel>
+                <CFormInput id="address_neighbor" {...register('address_neighbor')} />
+              </CCol>
+            </CRow>
 
-            {errors.address_neighbor && (
-              <span className="text-danger">{errors.address_neighbor.message}</span>
-            )}
-            <CInputGroup className="mb-3">
-              <CInputGroupText>
-                <CIcon icon={cilMap} />
-              </CInputGroupText>
-              <CFormInput
-                placeholder="Digite o Bairro"
-                autoComplete="address"
-                {...register('address_neighbor')}
-              />
-            </CInputGroup>
+            <CRow className="mb-3">
+              <CCol md={6}>
+                <CFormLabel htmlFor="address_city">Cidade</CFormLabel>
+                <CFormInput id="address_city" {...register('address_city')} />
+              </CCol>
+              <CCol md={6}>
+                <CFormLabel htmlFor="address_state">Estado</CFormLabel>
+                <CFormInput id="address_state" {...register('address_state')} />
+              </CCol>
+            </CRow>
 
-            {errors.address_city && (
-              <span className="text-danger">{errors.address_city.message}</span>
-            )}
-            <CInputGroup className="mb-3">
-              <CInputGroupText>
-                <CIcon icon={cilMap} />
-              </CInputGroupText>
-              <CFormInput
-                placeholder="Digite o Cidade"
-                autoComplete="address"
-                {...register('address_city')}
-              />
-            </CInputGroup>
+            <CRow className="mb-3">
+              <CCol md={6}>
+                <CFormLabel htmlFor="phone">Telefone</CFormLabel>
+                <CFormInput id="phone" {...register('phone')} />
+              </CCol>
+              <CCol md={6}>
+                <CFormLabel htmlFor="comercialPhone">Telefone Comercial</CFormLabel>
+                <CFormInput id="comercialPhone" {...register('comercialPhone')} />
+              </CCol>
+            </CRow>
 
-            {errors.address_state && (
-              <span className="text-danger">{errors.address_state.message}</span>
-            )}
-            <CInputGroup className="mb-3">
-              <CInputGroupText>
-                <CIcon icon={cilMap} />
-              </CInputGroupText>
-              <CFormInput
-                placeholder="Digite o Estado"
-                autoComplete="address"
-                {...register('address_state')}
-              />
-            </CInputGroup>
-
-            {errors.phone && <span className="text-danger">{errors.phone.message}</span>}
-            <CInputGroup className="mb-3">
-              <CInputGroupText>
-                <CIcon icon={cilPhone} />
-              </CInputGroupText>
-              <CFormInput
-                placeholder="Digite um número de telefone"
-                autoComplete="phone"
-                {...register('phone')}
-              />
-            </CInputGroup>
-
-            {errors.comercialPhone && (
-              <span className="text-danger">{errors.comercialPhone.message}</span>
-            )}
-            <CInputGroup className="mb-3">
-              <CInputGroupText>
-                <CIcon icon={cilContact} />
-              </CInputGroupText>
-              <CFormInput
-                placeholder="Digite um número de telefone"
-                autoComplete="comercialPhone"
-                {...register('comercialPhone')}
-              />
-            </CInputGroup>
-
-            {/* Checkbox para "O Estabelecimento é automatizado?" */}
-            <div className="mb-3 form-check">
-              <input
-                className="form-check-input"
-                type="checkbox"
-                id="isAutomated"
-                {...register('isAutomated')}
-              />
-              <label className="form-check-label" htmlFor="isAutomated">
-                O Estabelecimento é automatizado?
-              </label>
-            </div>
-
-            {/* Checkbox para "O Mashguiach é fixo?" */}
-            <div className="mb-3 form-check">
-              <input
-                className="form-check-input"
-                type="checkbox"
-                id="isMashguiach"
-                {...register('isMashguiach')}
-              />
-              <label className="form-check-label" htmlFor="isMashguiach">
-                O Mashguiach é fixo?
-              </label>
-            </div>
-
-            {/* Campo condicional para selecionar o Mashguiach */}
-            {isMashguiach && (
-              <div className="mb-3">
-                <CFormLabel htmlFor="mashguiachId">Mashguiach</CFormLabel>
+            <CRow className="mb-3">
+              <CCol md={6}>
+                <CFormLabel htmlFor="storeTypeId">Tipo de Estabelecimento</CFormLabel>
                 <CFormSelect
-                  id="mashguiachId"
-                  {...register('mashguiachId')}
-                  invalid={!!errors.mashguiachId}
+                  id="storeTypeId"
+                  {...register('storeTypeId')}
+                  value={watch('storeTypeId')} // Garante que o valor seja atualizado corretamente
+                  onChange={(e) => setValue('storeTypeId', e.target.value)} // Atualiza o valor manualmente
+                  invalid={!!errors.storeTypeId}
                 >
-                  <option value="">Selecione um Mashguiach</option>
-                  {mashguiachim.map((mashguiach) => (
-                    <option key={mashguiach.id} value={mashguiach.id}>
-                      {mashguiach.name}
+                  <option value="">Selecione o tipo de estabelecimento</option>
+                  {storesType.map((store) => (
+                    <option key={store.id} value={store.id}>
+                      {store.title}
                     </option>
                   ))}
                 </CFormSelect>
-                {errors.mashguiachId && <span>{errors.mashguiachId.message}</span>}
-              </div>
-            )}
-
-            <div className="mb-3">
-              <CFormLabel htmlFor="storeTypeId">Tipo de Estabelecimento</CFormLabel>
-              <CFormSelect
-                id="storeTypeId"
-                {...register('storeTypeId')}
-                invalid={!!errors.storeTypeId}
-              >
-                <option value="">Selecione o tipo de estabelecimento</option>
-                {storesType.map((store) => (
-                  <option value={store.id} key={store.id}>
-                    {store.title}
-                  </option>
-                ))}
-              </CFormSelect>
-              {errors.storeTypeId && <span>{errors.storeTypeId.message}</span>}
-            </div>
-            <div className="mb-3">
-              <CFormLabel htmlFor="imageUrl">Imagem da logo do estabelecimento</CFormLabel>
-              <CCol md={12}>
-                <UploadStoreLogo
-                  storeId={storeData.id}
-                  imageUrl={storeData.imageUrl ? storeData.imageUrl : ''}
-                />
+                {errors.storeTypeId && (
+                  <span className="text-danger">{errors.storeTypeId.message}</span>
+                )}
               </CCol>
-            </div>
-
-            <div className="mb-3">
-              <CFormLabel htmlFor="imageUrl">Cardápio (pdf)</CFormLabel>
-              <CCol md={12}>
-                <UploadMenu
-                  storeId={storeData.id}
-                  menuUrl={storeData.menuUrl ? storeData.menuUrl : ''}
-                />
+              <CCol md={6}>
+                <CFormLabel htmlFor="mashguiachId">Mashguiach</CFormLabel>
+                <CFormSelect
+                  id="mashguiachId"
+                  value={watch('mashguiachId') || ''} // Garante que null ou undefined sejam transformados em string vazia
+                  {...register('mashguiachId')}
+                  onChange={(e) => setValue('mashguiachId', e.target.value)} // Atualiza o valor manualmente
+                  invalid={!!errors.mashguiachId}
+                >
+                  <option value="">Selecione</option>
+                  {mashguiachim.map((mash) => (
+                    <option key={mash.id} value={mash.id}>
+                      {mash.name}
+                    </option>
+                  ))}
+                </CFormSelect>
+                {errors.mashguiachId && (
+                  <span className="text-danger">{errors.mashguiachId.message}</span>
+                )}
               </CCol>
-            </div>
+            </CRow>
+
+            <CRow>
+              <CCol md={6} className="mb-3">
+                <UploadStoreLogo storeId={storeData.id} imageUrl={storeData.imageUrl || ''} />
+              </CCol>
+              <CCol md={6} className="mb-3">
+                <UploadMenu storeId={storeData.id} menuUrl={storeData.menuUrl || ''} />
+              </CCol>
+            </CRow>
 
             <CButton type="submit" color="primary">
               Atualizar
             </CButton>
           </CForm>
+        </CCardBody>
+      </CCard>
+      <CCard className="mb-4">
+        <CCardHeader>MENU PDF</CCardHeader>
+        <CCardBody>
+          {storeData?.menuUrl && (
+            <iframe
+              src={storeData?.menuUrl}
+              style={{ width: '100%', height: '600px', border: 'none' }}
+              title="Menu PDF"
+            ></iframe>
+          )}
         </CCardBody>
       </CCard>
     </>

@@ -45,7 +45,7 @@ const StoresList = () => {
   return (
     <CCard>
       <CCardHeader className="d-flex justify-content-between align-items-center">
-        <CCardTitle>Estabelecimentos</CCardTitle>
+        <CCardTitle>Estabelecimentos cadastrado para essa conta</CCardTitle>
         <ButtonCompo link={'/app/stores/create'} title="Adicionar" />
       </CCardHeader>
       <CCardBody>
@@ -56,7 +56,7 @@ const StoresList = () => {
                 <CTableHeaderCell scope="row">{index + 1}</CTableHeaderCell>
                 <CTableDataCell>{store.title}</CTableDataCell>
                 <CTableDataCell>
-                  <Link href={`/app/stores/edit/${store.id}`}>Editar</Link>
+                  <Link href={`/app/stores/edit/${store.id}`}>Ver detalhes/Editar</Link>
                 </CTableDataCell>
               </CTableRow>
             ))}

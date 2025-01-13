@@ -4,8 +4,12 @@ import { NextApiRequest, NextApiResponse } from 'next'
 import { authOptions } from '../auth/[...nextauth]'
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  console.log('RECEBENDO DADOS')
   const session = await getServerSession(req, res, authOptions)
-  if (!session) {
+  const authorizationHeader = req.headers.authorization
+  const token = authorizationHeader ? authorizationHeader.split(' ')[1] : null
+
+  if (!token) {
     return res.status(401).json({ error: 'Usuário não autenticado' })
   }
 
@@ -15,6 +19,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   try {
     const { id, mashguiachId } = req.body
+    console.log('ID do evento:', id)
+    console.log('ID do mashguiach:', mashguiachId)
 
     if (!id) {
       return res.status(400).json({ error: 'ID do evento é necessário' }) // Certifica-se de que o ID do evento foi passado
@@ -28,9 +34,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       data: {
         mashguiachId,
         responseDate: new Date(), // Usando o construtor new Date() para a data atual
-        accepted: true
+        accepted: true,
       },
-    });
+    })
 
     console.log('Evento atualizado:', updatedEvent)
 
