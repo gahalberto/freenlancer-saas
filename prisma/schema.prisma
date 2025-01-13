@@ -240,6 +240,9 @@ model StoreEvents {
   ownerId              String
   responsable          String?
   date                 DateTime
+  deletedAt  DateTime?    // Campo opcional
+  createdAt  DateTime     @default(now())
+  updatedAt  DateTime?     @updatedAt
   nrPax                Int
   clientName           String
   eventType            String
@@ -373,4 +376,11 @@ enum DaysOfWeek {
   FRIDAY
   SATURDAY
   SUNDAY
+}
+
+model NotificationToken {
+  id        Int      @id @default(autoincrement())
+  token     String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
