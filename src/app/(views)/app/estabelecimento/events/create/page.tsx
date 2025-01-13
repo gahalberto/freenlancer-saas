@@ -195,128 +195,126 @@ const CreateEventForm = () => {
                 Confira todos os dados do evento. Após o cadastro, o evento será enviado para
                 aprovação.
               </p>
-              <CCol md={6}>
-                <CFormLabel>Nome do Evento:</CFormLabel>
-                <CFormInput type="text" {...register('title')} invalid={!!errors.title} />
-                {errors.title && <p>{errors.title.message}</p>}
-              </CCol>
+              <CRow className="mb-3">
+                <CCol md={6}>
+                  <CFormLabel>Nome do Evento:</CFormLabel>
+                  <CFormInput type="text" {...register('title')} invalid={!!errors.title} />
+                  {errors.title && <p>{errors.title.message}</p>}
+                </CCol>
 
-              <CCol md={6}>
-                <CFormLabel>Responsável pelo Evento:</CFormLabel>
-                <CFormInput
-                  type="text"
-                  disabled={disabled}
-                  {...register('responsable')}
-                  invalid={!!errors.responsable}
-                />
-                {errors.responsable && <p>{errors.responsable.message}</p>}
-              </CCol>
+                <CCol md={6}>
+                  <CFormLabel>Responsável pelo Evento:</CFormLabel>
+                  <CFormInput
+                    type="text"
+                    disabled={disabled}
+                    {...register('responsable')}
+                    invalid={!!errors.responsable}
+                  />
+                  {errors.responsable && <p>{errors.responsable.message}</p>}
+                </CCol>
+              </CRow>
 
-              <CCol md={6}>
-                <CFormLabel>Telefone do responsável:</CFormLabel>
-                <CFormInput
-                  type="text"
-                  disabled={disabled}
-                  {...register('responsableTelephone')}
-                  invalid={!!errors.responsableTelephone}
-                />
-                {errors.responsableTelephone && <p>{errors.responsableTelephone.message}</p>}
-              </CCol>
+              <CRow className="mb-3">
+                <CCol md={6}>
+                  <CFormLabel>Telefone do responsável:</CFormLabel>
+                  <CFormInput
+                    type="text"
+                    disabled={disabled}
+                    {...register('responsableTelephone')}
+                    invalid={!!errors.responsableTelephone}
+                  />
+                  {errors.responsableTelephone && <p>{errors.responsableTelephone.message}</p>}
+                </CCol>
 
-              <CCol md={12}>
-                <CFormLabel>Estabelecimento:</CFormLabel>
-                <CFormSelect disabled={disabled} {...register('store')} invalid={!!errors.store}>
-                  <option>Selecione o estabelecimento</option>
-                  {storeList.map((item, index) => (
-                    <option value={item.id} key={index}>
-                      {item.title}
-                    </option>
-                  ))}
-                </CFormSelect>
+                <CCol md={6}>
+                  <CFormLabel>Estabelecimento:</CFormLabel>
+                  <CFormSelect disabled={disabled} {...register('store')} invalid={!!errors.store}>
+                    <option>Selecione o estabelecimento</option>
+                    {storeList.map((item, index) => (
+                      <option value={item.id} key={index}>
+                        {item.title}
+                      </option>
+                    ))}
+                  </CFormSelect>
+                  {errors.store && <p>{errors.store.message}</p>}
+                </CCol>
+              </CRow>
 
-                {errors.store && <p>{errors.store.message}</p>}
-              </CCol>
+              <CRow className="mb-3">
+                <CCol md={6}>
+                  <CFormLabel>Tipo do Evento:</CFormLabel>
+                  <CFormInput
+                    type="text"
+                    disabled={disabled}
+                    {...register('eventType')}
+                    invalid={!!errors.eventType}
+                  />
+                  {errors.eventType && <p>{errors.eventType.message}</p>}
+                </CCol>
 
-              <CCol md={6}>
-                <CFormLabel>Tipo do Evento:</CFormLabel>
-                <CFormInput
-                  type="text"
-                  disabled={disabled}
-                  {...register('eventType')}
-                  invalid={!!errors.eventType}
-                />
-                {errors.eventType && <p>{errors.eventType.message}</p>}
-              </CCol>
+                <CCol md={6}>
+                  <CFormLabel>Serviço do Evento:</CFormLabel>
+                  <CFormInput
+                    type="text"
+                    disabled={disabled}
+                    {...register('serviceType')}
+                    invalid={!!errors.serviceType}
+                  />
+                  {errors.serviceType && <p>{errors.serviceType.message}</p>}
+                </CCol>
+              </CRow>
 
-              <CCol md={6}>
-                <CFormLabel>Tipo do Evento:</CFormLabel>
-                <CFormInput
-                  type="text"
-                  disabled={disabled}
-                  {...register('eventType')}
-                  invalid={!!errors.eventType}
-                />
-                {errors.eventType && <p>{errors.eventType.message}</p>}
-              </CCol>
+              <CRow className="mb-3">
+                <CCol md={6}>
+                  <CFormLabel>Dia do Evento:</CFormLabel>
+                  <CDatePicker
+                    disabled={disabled}
+                    onDateChange={(date) => {
+                      if (date instanceof Date && !isNaN(date.getTime())) {
+                        setValue('date', date.toISOString().split('T')[0])
+                        setSelectedDate(date.toISOString().split('T')[0])
+                      }
+                    }}
+                  />
+                  {errors.date && <p>{errors.date.message}</p>}
+                </CCol>
 
-              <CCol md={6}>
-                <CFormLabel>Serviço do Evento:</CFormLabel>
-                <CFormInput
-                  type="text"
-                  disabled={disabled}
-                  {...register('serviceType')}
-                  invalid={!!errors.serviceType}
-                />
-                {errors.serviceType && <p>{errors.serviceType.message}</p>}
-              </CCol>
+                <CCol md={6}>
+                  <CFormLabel>Qtd de Pax:</CFormLabel>
+                  <CFormInput
+                    type="number"
+                    disabled={disabled}
+                    {...register('nrPax')}
+                    invalid={!!errors.nrPax}
+                  />
+                  {errors.nrPax && <p>{errors.nrPax.message}</p>}
+                </CCol>
+              </CRow>
 
-              <CCol md={6}>
-                <CFormLabel>Dia do Evento:</CFormLabel>
-                <CDatePicker
-                  disabled={disabled}
-                  onDateChange={(date) => {
-                    if (date instanceof Date && !isNaN(date.getTime())) {
-                      setValue('date', date.toISOString().split('T')[0])
-                      setSelectedDate(date.toISOString().split('T')[0])
-                    }
-                  }}
-                />
-                {errors.date && <p>{errors.date.message}</p>}
-              </CCol>
+              <CRow className="mb-3">
+                <CCol md={12}>
+                  <CFormLabel>
+                    Cardápio do Evento:{' '}
+                    <span style={{ fontSize: '12px', color: 'gray' }}>somente arquivos PDF</span>
+                  </CFormLabel>
+                  <CFormInput
+                    id="menuFile"
+                    type="file"
+                    accept="application/pdf"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0]
+                      if (file) {
+                        setPdfFile(file)
+                      } else {
+                        setPdfFile(null)
+                      }
+                    }}
+                  />
+                  {error && <p style={{ color: 'red' }}>{error}</p>}
+                </CCol>
+              </CRow>
 
-              <CCol md={6}>
-                <CFormLabel>Qtd de Pax:</CFormLabel>
-                <CFormInput
-                  type="number"
-                  disabled={disabled}
-                  {...register('nrPax')}
-                  invalid={!!errors.nrPax}
-                />
-                {errors.nrPax && <p>{errors.nrPax.message}</p>}
-              </CCol>
-
-              <CCol md={6}>
-                <CFormLabel>
-                  Cardápio do Evento:{' '}
-                  <span style={{ fontSize: '12px', color: 'gray' }}>somente arquivos PDF</span>
-                </CFormLabel>
-                <CFormInput
-                  id="menuFile"
-                  type="file"
-                  accept="application/pdf"
-                  onChange={(e) => {
-                    const file = e.target.files?.[0]
-                    if (file) {
-                      setPdfFile(file)
-                    } else {
-                      setPdfFile(null)
-                    }
-                  }}
-                />
-                {error && <p style={{ color: 'red' }}>{error}</p>}
-              </CCol>
-
-              <CButton type="submit" color="primary" disabled={disabled}>
+              <CButton type="submit" color="primary" disabled={disabled} className="mt-3">
                 Criar Evento
               </CButton>
             </CCardBody>
@@ -328,76 +326,84 @@ const CreateEventForm = () => {
             <strong>Endereço do evento</strong>
           </CCardHeader>
           <CCardBody>
-            <CCol md={6}>
-              <CFormLabel>CEP do local do evento:</CFormLabel>
-              <CInputGroup>
-                <CInputGroupText>
-                  <CIcon icon={cilMap} />
-                </CInputGroupText>
+            <CRow className="mb-3">
+              <CCol md={6}>
+                <CFormLabel>CEP do local do evento:</CFormLabel>
+                <CInputGroup>
+                  <CInputGroupText>
+                    <CIcon icon={cilMap} />
+                  </CInputGroupText>
+                  <CFormInput
+                    placeholder="Digite o seu cep!"
+                    autoComplete="address"
+                    {...register('address_zicode')}
+                  />
+                  <CButton type="button" onClick={handlecep} color="primary">
+                    <CIcon icon={cilSearch} style={{ marginRight: 6 }} />
+                    Buscar
+                  </CButton>
+                </CInputGroup>
+              </CCol>
+            </CRow>
+
+            <CRow className="mb-3">
+              <CCol md={6}>
+                <CFormLabel>Rua:</CFormLabel>
                 <CFormInput
-                  placeholder="Digite o seu cep!"
-                  autoComplete="address"
-                  {...register('address_zicode')}
+                  type="text"
+                  disabled={disabled}
+                  {...register('address_street')}
+                  invalid={!!errors.address_street}
                 />
-                <CButton type="button" onClick={handlecep} color="primary">
-                  <CIcon icon={cilSearch} style={{ marginRight: 6 }} />
-                  Buscar
-                </CButton>
-              </CInputGroup>
+                {errors.address_street && <p>{errors.address_street.message}</p>}
+              </CCol>
 
-              <CFormLabel>Rua:</CFormLabel>
-              <CFormInput
-                type="text"
-                disabled={disabled}
-                {...register('address_street')}
-                invalid={!!errors.address_street}
-              />
-              {errors.address_street && <p>{errors.address_street.message}</p>}
-            </CCol>
+              <CCol md={2}>
+                <CFormLabel>Número:</CFormLabel>
+                <CFormInput
+                  type="text"
+                  disabled={disabled}
+                  {...register('address_number')}
+                  invalid={!!errors.address_number}
+                />
+                {errors.address_number && <p>{errors.address_number.message}</p>}
+              </CCol>
 
-            <CCol md={2}>
-              <CFormLabel>Número:</CFormLabel>
-              <CFormInput
-                type="text"
-                disabled={disabled}
-                {...register('address_number')}
-                invalid={!!errors.address_number}
-              />
-              {errors.address_number && <p>{errors.address_number.message}</p>}
-            </CCol>
+              <CCol md={4}>
+                <CFormLabel>Bairro:</CFormLabel>
+                <CFormInput
+                  type="text"
+                  disabled={disabled}
+                  {...register('address_neighbor')}
+                  invalid={!!errors.address_neighbor}
+                />
+                {errors.address_neighbor && <p>{errors.address_neighbor.message}</p>}
+              </CCol>
+            </CRow>
 
-            <CCol md={4}>
-              <CFormLabel>Bairro:</CFormLabel>
-              <CFormInput
-                type="text"
-                disabled={disabled}
-                {...register('address_neighbor')}
-                invalid={!!errors.address_neighbor}
-              />
-              {errors.address_neighbor && <p>{errors.address_neighbor.message}</p>}
-            </CCol>
+            <CRow className="mb-3">
+              <CCol md={6}>
+                <CFormLabel>Cidade:</CFormLabel>
+                <CFormInput
+                  type="text"
+                  disabled={disabled}
+                  {...register('address_city')}
+                  invalid={!!errors.address_city}
+                />
+                {errors.address_city && <p>{errors.address_city.message}</p>}
+              </CCol>
 
-            <CCol md={6}>
-              <CFormLabel>Cidade:</CFormLabel>
-              <CFormInput
-                type="text"
-                disabled={disabled}
-                {...register('address_city')}
-                invalid={!!errors.address_city}
-              />
-              {errors.address_city && <p>{errors.address_city.message}</p>}
-            </CCol>
-
-            <CCol md={6}>
-              <CFormLabel>Estado:</CFormLabel>
-              <CFormInput
-                type="text"
-                disabled={disabled}
-                {...register('address_state')}
-                invalid={!!errors.address_state}
-              />
-              {errors.address_state && <p>{errors.address_state.message}</p>}
-            </CCol>
+              <CCol md={6}>
+                <CFormLabel>Estado:</CFormLabel>
+                <CFormInput
+                  type="text"
+                  disabled={disabled}
+                  {...register('address_state')}
+                  invalid={!!errors.address_state}
+                />
+                {errors.address_state && <p>{errors.address_state.message}</p>}
+              </CCol>
+            </CRow>
           </CCardBody>
         </CCard>
       </form>

@@ -311,9 +311,9 @@ const EditEventPage = ({ params }: ParamsType) => {
                     {errors.nrPax && <p className="text-danger small">{errors.nrPax.message}</p>}
                   </CCol>
                 </CRow>
-                <CButton type="submit" color="primary" className="mt-3" disabled={disabled}>
-                  Criar Evento
-                </CButton>
+                {/* <CButton type="submit" color="primary" className="mt-3" disabled={disabled}>
+                  Atualizar
+                </CButton> */}
               </fieldset>
             </CForm>
           </CCardBody>
