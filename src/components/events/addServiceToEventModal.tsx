@@ -16,8 +16,7 @@ import {
   CModalFooter,
   CModalHeader,
   CModalTitle,
-  CMultiSelect,
-  CPopover,
+  CRow,
   CTable,
   CTableBody,
   CTableDataCell,
@@ -26,10 +25,10 @@ import {
 import { createEventServices } from '@/app/_actions/events/createEventServices'
 import { useSession } from 'next-auth/react'
 import { getCreditsByUser } from '@/app/_actions/getCreditsByUser'
-import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { getAllMashguichim } from '@/app/_actions/getAllMashguichim'
-import { User } from '@prisma/client'
+import CIcon from '@coreui/icons-react'
+import { cilMap, cilSearch } from '@coreui/icons'
 
 type PropsType = {
   visible: boolean
@@ -45,8 +44,16 @@ const AddServiceToEventModal = ({ fetchAll, visible, onClose, StoreEventsId }: P
   const [selectedMashguiach, setSelectedMashguiach] = useState<{
     value: string
     label: string
-  } | null>(null) // Estado para a seleção do Mashguiach
-  const [productionOrEvent, setProductionOrEvent] = useState<string>('') // Estado para o enum
+  } | null>(null)
+  const [productionOrEvent, setProductionOrEvent] = useState<string>('')
+
+  // Estados para endereço
+  const [addressZipcode, setAddressZipcode] = useState('')
+  const [addressStreet, setAddressStreet] = useState('')
+  const [addressNumber, setAddressNumber] = useState('')
+  const [addressNeighbor, setAddressNeighbor] = useState('')
+  const [addressCity, setAddressCity] = useState('')
+  const [addressState, setAddressState] = useState('')
 
   const fetchCredits = async () => {
     const response = await getCreditsByUser()
@@ -65,6 +72,7 @@ const AddServiceToEventModal = ({ fetchAll, visible, onClose, StoreEventsId }: P
       setMashguiachOptions(formattedOptions)
     }
   }
+
   useEffect(() => {
     fetchCredits()
     fetchMashguichim()
@@ -84,16 +92,15 @@ const AddServiceToEventModal = ({ fetchAll, visible, onClose, StoreEventsId }: P
       0,
       (endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60),
     )
-    const effectiveHours = Math.ceil(differenceInHours) // Arredondar para cima
+    const effectiveHours = Math.ceil(differenceInHours)
     let price = 0
 
     for (let i = 0; i < effectiveHours; i++) {
       const hour = new Date(startDate.getTime() + i * 60 * 60 * 1000).getHours()
-      // Valor por hora ajustado para considerar a partir de 22:00
       price += hour >= 22 || hour < 6 ? 75 : 50
     }
 
-    const minimumPrice = 250 // Valor mínimo de 5 horas
+    const minimumPrice = 250
     return { price: Math.max(minimumPrice, price), hours: effectiveHours }
   }
 
@@ -104,6 +111,22 @@ const AddServiceToEventModal = ({ fetchAll, visible, onClose, StoreEventsId }: P
       setTotalHours(hours)
     }
   }, [arriveMashguiachTime, endMashguiachTime, transportPrice])
+
+  const handleCepSearch = async () => {
+    try {
+      // Simula a busca de endereço pelo CEP
+      const response = await fetch(`https://viacep.com.br/ws/${addressZipcode}/json/`)
+      const data = await response.json()
+      if (data.erro) throw new Error('CEP inválido')
+
+      setAddressStreet(data.logradouro)
+      setAddressNeighbor(data.bairro)
+      setAddressCity(data.localidade)
+      setAddressState(data.uf)
+    } catch (error) {
+      alert('Erro ao buscar endereço: ')
+    }
+  }
 
   const handleSubmit = async () => {
     if (!arriveMashguiachTime || !endMashguiachTime) {
@@ -121,6 +144,12 @@ const AddServiceToEventModal = ({ fetchAll, visible, onClose, StoreEventsId }: P
         mashguiachPricePerHour: 50,
         observationText,
         productionOrEvent,
+        address_zipcode: addressZipcode,
+        address_street: addressStreet,
+        address_number: addressNumber,
+        address_neighbor: addressNeighbor,
+        address_city: addressCity,
+        address_state: addressState,
       })
 
       if (response) {
@@ -138,76 +167,115 @@ const AddServiceToEventModal = ({ fetchAll, visible, onClose, StoreEventsId }: P
   }
 
   return (
-    <CModal visible={visible} onClose={onClose}>
+    <CModal visible={visible} onClose={onClose} size="xl">
       <CForm className="row g-3">
         <CModalHeader>
           <CModalTitle>Solicitar Mashguiach</CModalTitle>
         </CModalHeader>
         <CModalBody>
-          <CCol lg={12}>
-            <CInputGroup className="mb-3">
-              <CDatePicker
-                required
-                timepicker
-                text="* Selecione a data e o horário entrada"
-                placeholder="Selecione o horário de entrada"
-                className="w-100"
-                locale="pt-BR"
-                onDateChange={(date: Date | null) => setArriveMashguiachTime(date || null)}
-              />
-            </CInputGroup>
-          </CCol>
+          <CRow>
+            <CCol lg={6}>
+              <CInputGroup className="mb-3">
+                <CDatePicker
+                  required
+                  timepicker
+                  placeholder="Selecione o horário de entrada"
+                  className="w-100"
+                  locale="pt-BR"
+                  onDateChange={(date: Date | null) => setArriveMashguiachTime(date || null)}
+                />
+              </CInputGroup>
+            </CCol>
 
-          <CCol md={12}>
-            <CInputGroup className="mb-3 w-100">
-              <CDatePicker
-                required
-                timepicker
-                text="* Selecione o horário previsto de saída"
-                placeholder="Selecione o horário de saída"
-                className="w-100"
-                locale="pt-BR"
-                onDateChange={(date: Date | null) => setEndMashguiachTime(date || null)}
-              />{' '}
-            </CInputGroup>
-          </CCol>
-          <CCol md={12}>
-            <CInputGroup className="mb-3">
+            <CCol md={6}>
+              <CInputGroup className="mb-3 w-100">
+                <CDatePicker
+                  required
+                  timepicker
+                  placeholder="Selecione o horário de saída"
+                  className="w-100"
+                  locale="pt-BR"
+                  onDateChange={(date: Date | null) => setEndMashguiachTime(date || null)}
+                />
+              </CInputGroup>
+            </CCol>
+          </CRow>
+
+          <CRow>
+            <CCol md={4}>
+              <CFormLabel>Evento ou produção?:</CFormLabel>
               <CFormSelect
-                text="* Escolhe se é uma produção ou evento, para que o Mashguiach chegue no lugar certo. Você cadastrou o endereço previamente, senão feche esse formulário e cadastre o endereço."
-                aria-label="PRODUÇÃO OU EVENTO"
                 value={productionOrEvent}
-                onChange={(e) => setProductionOrEvent(e.target.value)} // Atualiza o estado com o valor selecionado
+                onChange={(e) => setProductionOrEvent(e.target.value)}
               >
                 <option>PRODUÇÃO OU EVENTO</option>
                 <option value="PRODUCAO">PRODUÇÃO</option>
                 <option value="EVENTO">EVENTO</option>
               </CFormSelect>
-            </CInputGroup>
-          </CCol>
-          {/* <CCol md={12}>
-            <CInputGroupText>MASHGUIACH PRÉ-SELECIONADO?</CInputGroupText>
-
-            <CInputGroup className="mb-3 w-100">
-              <CMultiSelect
-                options={mashguiachOptions}
-                text="Se não deseja selecionar um Mashguiach específico deixe em branco e todos mashguichim vão ver a sua oferta."
-                multiple={false}
-                placeholder="Deseja selecionar um Mashguiach?"
-                className="w-100"
-                onChange={(selected) => console.log('Selecionado:', selected)}
+            </CCol>
+            <CCol md={8}>
+              <CFormLabel>Observação:</CFormLabel>
+              <CFormTextarea
+                placeholder="Escreva aqui alguma observação"
+                value={observationText}
+                onChange={(e) => setObservationText(e.target.value)}
               />
-            </CInputGroup>
-          </CCol> */}
+            </CCol>
+          </CRow>
 
-          <CCol md={12}>
-            <CFormLabel>Observação:</CFormLabel>
-            <CFormTextarea
-              placeholder="Escreva aqui alguma observação que deseja fazer aos rabinos e ao mashguiach"
-              value={observationText}
-              onChange={(e) => setObservationText(e.target.value)}
-            />
-          </CCol>
+          <CRow className="gy-3 mt-1">
+            <CCol md={3}>
+              <CFormLabel>CEP :</CFormLabel>
+              <CInputGroup>
+                <CInputGroupText>
+                  <CIcon icon={cilMap} />
+                </CInputGroupText>
+                <CFormInput
+                  placeholder="Digite o CEP"
+                  value={addressZipcode}
+                  onChange={(e) => setAddressZipcode(e.target.value)}
+                />
+                <CButton type="button" color="primary" onClick={handleCepSearch}>
+                  <CIcon icon={cilSearch} style={{ marginRight: 6 }} />
+                  Buscar
+                </CButton>
+              </CInputGroup>
+            </CCol>
+
+            <CCol md={3}>
+              <CFormLabel>Rua:</CFormLabel>
+              <CFormInput
+                value={addressStreet}
+                onChange={(e) => setAddressStreet(e.target.value)}
+              />
+            </CCol>
+
+            <CCol md={1}>
+              <CFormLabel>Número:</CFormLabel>
+              <CFormInput
+                value={addressNumber}
+                onChange={(e) => setAddressNumber(e.target.value)}
+              />
+            </CCol>
+
+            <CCol md={2}>
+              <CFormLabel>Bairro:</CFormLabel>
+              <CFormInput
+                value={addressNeighbor}
+                onChange={(e) => setAddressNeighbor(e.target.value)}
+              />
+            </CCol>
+
+            <CCol md={2}>
+              <CFormLabel>Cidade:</CFormLabel>
+              <CFormInput value={addressCity} onChange={(e) => setAddressCity(e.target.value)} />
+            </CCol>
+
+            <CCol md={1}>
+              <CFormLabel>Estado:</CFormLabel>
+              <CFormInput value={addressState} onChange={(e) => setAddressState(e.target.value)} />
+            </CCol>
+          </CRow>
 
           <CCol style={{ marginTop: '20px' }}>
             <CTable>
@@ -242,18 +310,6 @@ const AddServiceToEventModal = ({ fetchAll, visible, onClose, StoreEventsId }: P
               </CTableBody>
             </CTable>
           </CCol>
-          <CPopover
-            content="
-            1. O valor mínimo a ser pago por um Mashguiach é de R$250,00.
-            2. Após as 5 primeiras horas, o valor é de R$50,00 por hora.
-            3. De 00:00 até as 06:00 o valor é de R$75,00 a hora
-            "
-            placement="top"
-          >
-            <CButton size="sm" color="secondary">
-              Clique para saber sobre cálculos
-            </CButton>
-          </CPopover>
         </CModalBody>
         <CModalFooter>
           <CButton color="primary" onClick={handleSubmit}>

@@ -298,6 +298,12 @@ model EventsServices {
   reallyMashguiachEndTime DateTime?
   mashguiachPricePerHour  Float             @default(0)
   transport_price         Float?            @default(0)
+  address_zipcode  String?
+  address_street   String?
+  address_number   String?
+  address_neighbor String?
+  address_city     String?
+  address_state    String?
   StoreEvents             StoreEvents       @relation(fields: [StoreEventsId], references: [id])
   Mashguiach              User?             @relation(fields: [mashguiachId], references: [id])
   workType                WORKTYPE?

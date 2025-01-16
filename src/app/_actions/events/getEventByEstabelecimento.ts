@@ -7,5 +7,8 @@ export const getEventByEstabelecimento = async (userId: string) => {
     where: {
       ownerId: userId,
     },
+    include: {
+      EventsServices: true,
+    },
   })
 }

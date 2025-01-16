@@ -54,7 +54,7 @@ export const EventsTableByEvent = ({ eventStoreId }: PropsType) => {
     <>
       <CCard textColor="primary" className={`mb-4 border-primary`} style={{ marginTop: '30px' }}>
         <CCardHeader className="d-flex justify-content-between align-items-center">
-          <strong>Serviços de Mashguiach</strong>
+          <strong>Serviços de Mashguiach - Solicite um Mashguiach para cada dia</strong>
           <CButton color="primary" size="sm" onClick={handleModalClick}>
             Solicitar Serviço
           </CButton>

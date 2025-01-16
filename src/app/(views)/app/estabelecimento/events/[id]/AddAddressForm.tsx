@@ -191,7 +191,7 @@ const AddAddressModal = ({ storeEventId, onAddressAdded }: Props) => {
               </CCol>
 
               <CCol md={12}>
-                <CFormLabel>Tipo de Serviço:</CFormLabel>
+                <CFormLabel>Selecione se é produção e/ou evento:</CFormLabel>
                 <CFormSelect
                   {...register('workType')}
                   className={errors.workType ? 'is-invalid' : ''}

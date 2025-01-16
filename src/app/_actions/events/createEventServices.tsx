@@ -13,6 +13,12 @@ type CreateEventServicesInput = {
   mashguiachPricePerHour: number
   observationText: string
   productionOrEvent: string
+  address_zipcode: string
+  address_street: string
+  address_number: string
+  address_neighbor: string
+  address_city: string
+  address_state: string
 }
 
 export const createEventServices = async (data: CreateEventServicesInput) => {
@@ -30,6 +36,12 @@ export const createEventServices = async (data: CreateEventServicesInput) => {
       mashguiachPricePerHour: data.mashguiachPricePerHour,
       observationText: data.observationText,
       workType: data.productionOrEvent === 'PRODUCAO' ? 'PRODUCAO' : 'EVENTO',
+      address_zipcode: data.address_zipcode,
+      address_street: data.address_street,
+      address_number: data.address_number,
+      address_neighbor: data.address_neighbor,
+      address_city: data.address_city,
+      address_state: data.address_state,
     },
   })
 
@@ -64,7 +76,6 @@ export const createEventServices = async (data: CreateEventServicesInput) => {
       },
     })
 
-    console.log('Serviço criado com sucesso, criando notificação...')
     await createNotification({
       message: 'Novo trabalho disponível, confira',
       redirectUrl: '/events/${createService.id}',

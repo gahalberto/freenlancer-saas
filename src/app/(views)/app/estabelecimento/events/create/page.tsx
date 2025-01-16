@@ -144,6 +144,7 @@ const CreateEventForm = () => {
     if (pdfFile) {
       formData.append('menuFile', pdfFile)
     }
+
     try {
       const response = await fetch('/api/uploadEventMenu', {
         method: 'POST',
@@ -151,15 +152,16 @@ const CreateEventForm = () => {
       })
 
       if (response.ok) {
-        const data = await response.json()
-        router.push(`/app/estabelecimento/events/${data.event.id}`)
-        console.log('Evento criado com sucesso:', data)
+        alert('Tudo certo!')
       } else {
-        console.error('Erro ao criar evento:', await response.text())
+        const errorData = await response.json()
+        alert(errorData.error || 'Erro desconhecido.')
       }
     } catch (error) {
       console.error('Erro ao criar o evento:', error)
-      setDisabled(false) // Reabilitar o formulário em caso de erro
+      alert('Erro ao criar o evento. Tente novamente mais tarde.')
+    } finally {
+      setDisabled(false)
     }
   }
 

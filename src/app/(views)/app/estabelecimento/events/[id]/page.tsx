@@ -15,6 +15,7 @@ import {
   CCardText,
   CCardTitle,
   CCol,
+  CCollapse,
   CDatePicker,
   CForm,
   CFormInput,
@@ -89,12 +90,14 @@ const EditEventPage = ({ params }: ParamsType) => {
   const [event, setEvent] = useState<EventWithOwner | null>(null)
   const [selectedDate, setSelectedDate] = useState<Date | null>(null)
   const [storeList, setStoreList] = useState<Stores[]>([])
+  const [menuVisible, setMenuVisible] = useState(false)
 
   const {
     register,
     handleSubmit,
     formState: { errors },
     setValue,
+    getValues,
     reset,
   } = useForm<FormData>({
     resolver: zodResolver(schema),
@@ -139,10 +142,6 @@ const EditEventPage = ({ params }: ParamsType) => {
     }
   }
 
-  const refreshAddresses = () => {
-    fetchEvent()
-  }
-
   useEffect(() => {
     const fetchEvent = async () => {
       const response = await getEventInfo(params.id)
@@ -170,30 +169,12 @@ const EditEventPage = ({ params }: ParamsType) => {
     fetchEvent()
   }, [params.id, reset])
 
-  const handleDeleteAddress = (id: string) => {
-    deleteAddresToEvenet(id)
-    fetchEvent()
-  }
-
   const onSubmit = async (data: FormData) => {
     if (!session || !session.user) {
       console.log('Usuário não autenticado')
       setDisabled(false)
       return
     }
-
-    const formattedData = {
-      ...data,
-      id: params.id,
-    }
-
-    const response = await fetch('api/events/editEvent', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ data: formattedData }),
-    })
   }
 
   return (
@@ -294,85 +275,57 @@ const EditEventPage = ({ params }: ParamsType) => {
                   </CCol>
 
                   {/* Data do Evento e Número de Pax */}
+
                   <CCol md={6}>
                     <CFormLabel>Dia do Evento:</CFormLabel>
                     <CDatePicker
+                      locale="pt-BR" // Defina a localidade, se aplicável
                       onDateChange={(date) => {
+                        console.log('Data selecionada:', date)
                         if (date instanceof Date && !isNaN(date.getTime())) {
-                          setValue('date', date.toISOString().split('T')[0])
+                          setValue('date', date.toISOString().split('T')[0]) // Atualiza o estado do formulário
+                        } else {
+                          setValue('date', '') // Reseta o valor se a data for inválida
                         }
                       }}
+                      placeholder={
+                        getValues('date')
+                          ? new Date(getValues('date')).toLocaleDateString('pt-BR')
+                          : 'Selecione a data'
+                      }
                     />
                     {errors.date && <p className="text-danger small">{errors.date.message}</p>}
                   </CCol>
+
                   <CCol md={6}>
                     <CFormLabel>Qtd de Pax:</CFormLabel>
                     <CFormInput type="number" {...register('nrPax')} invalid={!!errors.nrPax} />
                     {errors.nrPax && <p className="text-danger small">{errors.nrPax.message}</p>}
                   </CCol>
                 </CRow>
+
                 {/* <CButton type="submit" color="primary" className="mt-3" disabled={disabled}>
                   Atualizar
                 </CButton> */}
               </fieldset>
             </CForm>
-          </CCardBody>
-        </CCard>
-        <CCard className="mb-4">
-          <CCardHeader>MENU PDF</CCardHeader>
-          <CCardBody>
-            {event?.menuUrl && (
-              <iframe
-                src={event?.menuUrl}
-                style={{ width: '100%', height: '600px', border: 'none' }}
-                title="Menu PDF"
-              ></iframe>
-            )}
-          </CCardBody>
-        </CCard>
 
-        {/* Tabela de Endereços */}
-        <CCard>
-          <CCardHeader>
-            Endereços <AddAdressModal storeEventId={params.id} onAddressAdded={refreshAddresses} />
-          </CCardHeader>
-          <CCardBody>
-            <div className="table-responsive">
-              <CTable hover responsive="sm">
-                <CTableHead>
-                  <CTableRow>
-                    <CTableHeaderCell>#</CTableHeaderCell>
-                    <CTableHeaderCell>Tipo</CTableHeaderCell>
-                    <CTableHeaderCell>Rua</CTableHeaderCell>
-                    <CTableHeaderCell>Bairro</CTableHeaderCell>
-                    <CTableHeaderCell>Cidade</CTableHeaderCell>
-                    <CTableHeaderCell>CEP</CTableHeaderCell>
-                    <CTableHeaderCell>Ações</CTableHeaderCell>
-                  </CTableRow>
-                </CTableHead>
-                <CTableBody>
-                  {event?.EventsAdresses?.map((address, index) => (
-                    <CTableRow key={index}>
-                      <CTableHeaderCell>{index + 1}</CTableHeaderCell>
-                      <CTableDataCell>{address.workType}</CTableDataCell>
-                      <CTableDataCell>{address.address_street}</CTableDataCell>
-                      <CTableDataCell>{address.address_neighbor}</CTableDataCell>
-                      <CTableDataCell>{address.address_city}</CTableDataCell>
-                      <CTableDataCell>{address.address_zipcode}</CTableDataCell>
-                      <CTableDataCell>
-                        <CButton
-                          color="danger"
-                          size="sm"
-                          onClick={() => handleDeleteAddress(address.id)}
-                        >
-                          Remover
-                        </CButton>
-                      </CTableDataCell>
-                    </CTableRow>
-                  ))}
-                </CTableBody>
-              </CTable>
-            </div>
+            <CRow className="mt-4 mb-4">
+              <CButton color="primary" onClick={() => setMenuVisible(!menuVisible)}>
+                {menuVisible === true ? `Ocultar menu` : `Mostrar Menu`}
+              </CButton>
+              <CCollapse visible={menuVisible}>
+                <CCard className="mt-3">
+                  {event?.menuUrl && (
+                    <iframe
+                      src={event?.menuUrl}
+                      style={{ width: '100%', height: '600px', border: 'none' }}
+                      title="Menu PDF"
+                    ></iframe>
+                  )}
+                </CCard>
+              </CCollapse>
+            </CRow>
           </CCardBody>
         </CCard>
 
@@ -388,39 +341,7 @@ const EditEventPage = ({ params }: ParamsType) => {
         </CCard> */}
 
         {/* Renderiza o EventsTableByEvent apenas se o event.id estiver definido */}
-        {event?.isApproved ? (
-          <EventsTableByEvent eventStoreId={event.id} />
-        ) : (
-          <>
-            <CCard style={{ width: '100%', marginTop: '20px' }}>
-              <CCardHeader>
-                <CCardTitle>Solicitação de Mashguiach</CCardTitle>
-              </CCardHeader>
-              <CCardBody>
-                <CPlaceholder as={CCardTitle} animation="glow" xs={12}>
-                  <CBadge color="danger">EVENTO EM ANÁLISE!</CBadge>
-                  <p> Você receberá um e-mail quando o evento for aprovado pelos rabinos.</p>
-                  <CPlaceholder xs={6} />
-                </CPlaceholder>
-                <CPlaceholder as={CCardText} animation="glow">
-                  <CPlaceholder xs={7} />
-                  <CPlaceholder xs={4} />
-                  <CPlaceholder xs={4} />
-                  <CPlaceholder xs={6} />
-                  <CPlaceholder xs={8} />
-                </CPlaceholder>
-                <CPlaceholder
-                  as={CButton}
-                  color="primary"
-                  disabled
-                  href="#"
-                  tabIndex={-1}
-                  xs={6}
-                ></CPlaceholder>
-              </CCardBody>
-            </CCard>
-          </>
-        )}
+        {event && <EventsTableByEvent eventStoreId={event.id} />}
       </CCol>
     </CRow>
   )
