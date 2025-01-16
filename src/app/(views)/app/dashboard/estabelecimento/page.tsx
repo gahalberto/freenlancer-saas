@@ -56,6 +56,7 @@ enum MODAL {
 
 const MashguiachDashboardPage = () => {
   const { data: session, status } = useSession()
+  const userId = session?.user?.id || ''
   const [modalVisible, setModalVisible] = useState(false)
   const [disabled, setDisabled] = useState(false)
   const [selectedDate, setSelectedDate] = useState<string>('')
@@ -78,6 +79,11 @@ const MashguiachDashboardPage = () => {
   const router = useRouter()
 
   useEffect(() => {
+    if (!session?.user?.id) {
+      alert('Usuário não autenticado. Por favor, faça login.')
+      router.push('/login')
+    }
+
     const fetchStores = async () => {
       if (!session) {
         return
@@ -92,7 +98,7 @@ const MashguiachDashboardPage = () => {
       }
     }
     fetchStores()
-  }, [session]) // Dependa apenas de `session` para evitar loops
+  }, [session?.user?.id]) // Dependa apenas de `session` para evitar loops
 
   const onSubmit = async (data: FormData) => {
     setDisabled(true)
@@ -219,7 +225,7 @@ const MashguiachDashboardPage = () => {
             </CButton>
           </CCol>
         </CRow>
-        <EventsStoreDashboard userId={session?.user.id} />
+        <EventsStoreDashboard userId={userId} />
       </CRow>
 
       <CModal
