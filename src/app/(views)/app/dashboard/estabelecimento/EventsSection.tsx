@@ -1,6 +1,7 @@
 'use client'
 import { getAllEvents } from '@/app/_actions/events/getAllEvents'
 import { getEventByEstabelecimento } from '@/app/_actions/events/getEventByEstabelecimento'
+import AddServiceToEventModal from '@/components/events/addServiceToEventModal'
 import {
   CBadge,
   CButton,
@@ -26,23 +27,17 @@ type EventsWithServices = StoreEvents & {
 
 type Props = {
   userId: string
+  events: EventsWithServices[]
 }
 
-const EventsStoreDashboard = ({ userId }: Props) => {
-  const [events, setEvents] = useState<EventsWithServices[]>([])
+const EventsStoreDashboard = ({ userId, events }: Props) => {
+  console.log(events)
   const [visibleOffcanvas, setVisibleOffcanvas] = useState<string | null>(null)
+  const [visible, setVisible] = useState(false)
 
-  // Fetch events data from your API
-  useEffect(() => {
-    const fetchEvents = async () => {
-      const response = await getEventByEstabelecimento(userId) // Atualize com sua rota real
-      if (response) {
-        setEvents(response)
-      }
-    }
-
-    fetchEvents()
-  }, [])
+  const handleModalClick = () => {
+    setVisible(!visible)
+  }
 
   const getDayOfWeek = (dateString: string) => {
     const days = ['DOMINGO', 'SEGUNDA', 'TERÇA', 'QUARTA', 'QUINTA', 'SEXTA', 'SÁBADO']
@@ -58,15 +53,6 @@ const EventsStoreDashboard = ({ userId }: Props) => {
       year: 'numeric',
     }).format(date)
   }
-
-  if (events.length === 0) {
-    return <p>Carregando...</p> // Indica que os dados estão carregando
-  }
-
-  if (!events) {
-    return <p>Nenhum evento cadastrado.</p>
-  }
-
   return (
     <div className="">
       <CRow className="g-4">
@@ -128,9 +114,15 @@ const EventsStoreDashboard = ({ userId }: Props) => {
                     <p>
                       <b>Telefone:</b> {event.responsableTelephone}
                     </p>
-                    <Link href={`/app/estabelecimento/events/${event.id}`}>
-                      <CButton color="primary">Abrir detalhes</CButton>
-                    </Link>
+                    <div className="d-flex gap-2 mt-3">
+                      <Link href={`/app/estabelecimento/events/${event.id}`}>
+                        <CButton color="primary">Abrir detalhes</CButton>
+                      </Link>
+                      <CButton color="warning" onClick={handleModalClick}>
+                        Solicitar Serviço
+                      </CButton>
+                    </div>
+
                     <h3 className="mt-4">Serviços do Mashguiach:</h3>
 
                     {event.EventsServices.length > 0 ? (

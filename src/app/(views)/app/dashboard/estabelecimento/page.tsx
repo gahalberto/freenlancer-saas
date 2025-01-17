@@ -22,10 +22,11 @@ import { z } from 'zod'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { getStores } from '@/app/_actions/stores/getStores'
-import { StoreEvents, Stores } from '@prisma/client'
+import { EventsServices, StoreEvents, Stores } from '@prisma/client'
 import StoresList from '../../stores/page'
 import { useRouter } from 'next/navigation'
 import AddModalAddress from './AddressModal'
+import { getEventByEstabelecimento } from '@/app/_actions/events/getEventByEstabelecimento'
 
 const schema = z.object({
   title: z.string().min(1, { message: 'Digite um título para o evento' }),
@@ -54,17 +55,41 @@ enum MODAL {
   SERVICE,
 }
 
+type EventsWithServices = StoreEvents & {
+  EventsServices: EventsServices[]
+}
+
 const MashguiachDashboardPage = () => {
   const { data: session, status } = useSession()
   const userId = session?.user?.id || ''
   const [modalVisible, setModalVisible] = useState(false)
   const [disabled, setDisabled] = useState(false)
-  const [selectedDate, setSelectedDate] = useState<string>('')
   const [pdfFile, setPdfFile] = useState<File | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [storeList, setStoreList] = useState<Stores[]>([])
   const [modal, setModal] = useState<MODAL>(MODAL['EVENT'])
-  const [event, setEvent] = useState<StoreEvents | null>(null)
+  const [events, setEvents] = useState<EventsWithServices[]>([])
+
+  const fetchEvents = async () => {
+    const response = await getEventByEstabelecimento(userId) // Atualize com sua rota real
+    if (response) {
+      setEvents(response)
+    }
+  }
+
+  const fetchStores = async () => {
+    if (!session) {
+      return
+    }
+    try {
+      const response = await getStores(session.user.id)
+      if (response) {
+        setStoreList(response)
+      }
+    } catch (error) {
+      console.error('Erro ao buscar lojas:', error)
+    }
+  }
 
   const {
     register,
@@ -79,36 +104,28 @@ const MashguiachDashboardPage = () => {
   const router = useRouter()
 
   useEffect(() => {
-    if (!session?.user?.id) {
-      alert('Usuário não autenticado. Por favor, faça login.')
-      router.push('/login')
-    }
-
-    const fetchStores = async () => {
-      if (!session) {
-        return
-      }
-      try {
-        const response = await getStores(session.user.id)
-        if (response) {
-          setStoreList(response)
-        }
-      } catch (error) {
-        console.error('Erro ao buscar lojas:', error)
-      }
-    }
-    fetchStores()
-  }, [session?.user?.id]) // Dependa apenas de `session` para evitar loops
-
-  const onSubmit = async (data: FormData) => {
-    setDisabled(true)
-
-    if (!session || !session.user) {
-      console.log('Usuário não autenticado')
-      setDisabled(false)
+    if (status === 'loading') {
+      // O estado de carregamento está ativo; não fazer nada até obter a autenticação
       return
     }
 
+    if (status === 'unauthenticated') {
+      // Se o usuário não está autenticado, redirecionar para a página de login
+      alert('Usuário não autenticado. Por favor, faça login.')
+      router.push('/login')
+      return
+    }
+
+    // Se o usuário estiver autenticado, carregue os dados
+    if (status === 'authenticated' && session?.user?.id) {
+      fetchEvents()
+      fetchStores()
+    }
+  }, [status, session?.user?.id]) // Inclua status para evitar comportamento inesperado
+
+  const onSubmit = async (data: FormData) => {
+    setDisabled(true)
+    console.log(userId)
     const eventData = {
       title: data.title,
       responsable: data.responsable,
@@ -118,13 +135,14 @@ const MashguiachDashboardPage = () => {
       serviceType: data.serviceType,
       date: new Date(data.date),
       eventOwner: {
-        connect: { id: session.user.id }, // Referencia o dono do evento
+        connect: { id: userId }, // Referencia o dono do evento
       },
       store: {
         connect: { id: data.store }, // Conecta o evento à loja usando o ID da loja
       },
       clientName: data.responsable,
       isApproved: false,
+      userId: userId,
     }
 
     const formData = new FormData()
@@ -151,8 +169,7 @@ const MashguiachDashboardPage = () => {
       if (response.ok) {
         const result = await response.json()
         if (result?.event?.id) {
-          setEvent(result.event) // Armazena o evento com ID
-          router.push(`/app/estabelecimento/events/${result.event.id}`)
+          setEvents(result.event) // Armazena o evento com ID
         } else {
           alert('Erro: ID do evento não encontrado.')
         }
@@ -167,55 +184,6 @@ const MashguiachDashboardPage = () => {
 
   return (
     <>
-      <h1>Olá, {session?.user.name}</h1>
-      {/* Agrupando os cards em um único CRow */}
-      <CRow>
-        <CCol xs={12} sm={6} md={4}>
-          <MashguiachButtonGroup
-            url="/app/stores"
-            title="Meus Estabelecimentos"
-            textColor="white"
-            icon={cilBadge}
-            color="primary"
-          />
-        </CCol>
-        <CCol xs={12} sm={6} md={4}>
-          <MashguiachButtonGroup
-            url="/app/estabelecimento/events"
-            title="Meus Eventos"
-            textColor="white"
-            icon={cilCalendar}
-            color="primary"
-          />
-        </CCol>
-        <CCol xs={12} sm={6} md={4}>
-          <MashguiachButtonGroup
-            url="/app/estabelecimento/events/create"
-            title="Criar Novo Evento"
-            textColor="white"
-            icon={cilList}
-            color="primary"
-          />
-        </CCol>
-        <CCol xs={12} sm={6} md={4}>
-          <MashguiachButtonGroup
-            url="/app/credits"
-            title="Adicionar Crédito"
-            textColor="white"
-            icon={cilMoney}
-            color="success"
-          />
-        </CCol>
-        <CCol xs={12} sm={6} md={4}>
-          <MashguiachButtonGroup
-            url="/app/courses"
-            title="Cursos"
-            textColor="white"
-            icon={cilStar}
-            color="primary"
-          />
-        </CCol>
-      </CRow>
       <CRow className="mt-4">
         <CRow className="mt-4 mb-4 align-items-center">
           <CCol xs="auto" className="d-flex align-items-center">
@@ -225,7 +193,7 @@ const MashguiachDashboardPage = () => {
             </CButton>
           </CCol>
         </CRow>
-        <EventsStoreDashboard userId={userId} />
+        <EventsStoreDashboard userId={userId} events={events} />
       </CRow>
 
       <CModal
@@ -321,6 +289,30 @@ const MashguiachDashboardPage = () => {
                     {errors.serviceType && <p>{errors.serviceType.message}</p>}
                   </CCol>
                 </CRow>
+
+                <CRow className="mb-3">
+                  <CCol md={6}>
+                    <CFormLabel>Tipo do Evento:</CFormLabel>
+                    <CFormInput
+                      type="text"
+                      disabled={disabled}
+                      {...register('eventType')}
+                      invalid={!!errors.eventType}
+                    />
+                    {errors.eventType && <p>{errors.eventType.message}</p>}
+                  </CCol>
+
+                  <CCol md={6}>
+                    <CFormLabel>Serviço do Evento:</CFormLabel>
+                    <CFormInput
+                      type="text"
+                      disabled={disabled}
+                      {...register('serviceType')}
+                      invalid={!!errors.serviceType}
+                    />
+                    {errors.serviceType && <p>{errors.serviceType.message}</p>}
+                  </CCol>
+                </CRow>
                 <CRow className="mb-3">
                   <CCol md={6}>
                     <CFormLabel>Dia do Evento:</CFormLabel>
@@ -377,9 +369,6 @@ const MashguiachDashboardPage = () => {
                 </CRow>
               </form>
             </>
-          )}
-          {modal === MODAL.ADDRESS && (
-            <>{modal === MODAL.ADDRESS && event && <AddModalAddress eventId={event.id} />}</>
           )}
         </CModalBody>
       </CModal>

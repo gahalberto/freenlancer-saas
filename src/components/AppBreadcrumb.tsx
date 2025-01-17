@@ -15,7 +15,7 @@ type route = {
 }
 
 const routeNames = [
-  { path: '/', name: 'Dashboard' },
+  { path: '/app', name: 'Dashboard' },
   { path: '/components/base/navs', name: 'Navs & Tabs' },
 ]
 
@@ -56,7 +56,6 @@ const AppBreadcrumb = () => {
 
   return (
     <CBreadcrumb className="m-0">
-      <CBreadcrumbItem href="/">Home</CBreadcrumbItem>
       {breadcrumbs &&
         breadcrumbs.map((breadcrumb, index) => {
           return (

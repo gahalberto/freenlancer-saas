@@ -4,26 +4,37 @@ import {
   CCard,
   CCardBody,
   CCardHeader,
+  CLink,
+  CTab,
   CTable,
   CTableBody,
+  CTableCaption,
   CTableDataCell,
   CTableHead,
   CTableHeaderCell,
   CTableRow,
+  CTooltip,
 } from '@coreui/react-pro'
-import { EventsServices } from '@prisma/client'
+import { EventsServices, User } from '@prisma/client'
 import { useEffect, useState } from 'react'
 import AddServiceToEventModal from './addServiceToEventModal'
 import CIcon from '@coreui/icons-react'
 import { cilTrash } from '@coreui/icons'
 import { deleteEvent } from '@/app/_actions/events/deleteEvent'
+import Link from 'next/link'
 
 type PropsType = {
   eventStoreId: string
 }
 
+interface ServiceType extends EventsServices {
+  Mashguiach: {
+    name: string
+  }
+}
+
 export const EventsTableByEvent = ({ eventStoreId }: PropsType) => {
-  const [eventServicesList, setEventServiceList] = useState<EventsServices[]>([])
+  const [eventServicesList, setEventServiceList] = useState<ServiceType[]>([])
   const [visible, setVisible] = useState(false)
 
   const handleModalClick = () => {
@@ -33,7 +44,7 @@ export const EventsTableByEvent = ({ eventStoreId }: PropsType) => {
   const fetchEventServices = async () => {
     const response = await getEventServices(eventStoreId)
     if (response) {
-      setEventServiceList(response)
+      setEventServiceList(response as ServiceType[])
     }
   }
 
@@ -67,61 +78,71 @@ export const EventsTableByEvent = ({ eventStoreId }: PropsType) => {
                 <CTableHeaderCell scope="col">Início</CTableHeaderCell>
                 <CTableHeaderCell scope="col">Fim</CTableHeaderCell>
                 <CTableHeaderCell scope="col">Preço</CTableHeaderCell>
-                <CTableHeaderCell scope="col">Tipo</CTableHeaderCell>
+                <CTableHeaderCell scope="col">Local</CTableHeaderCell>
                 <CTableHeaderCell scope="col">Observação</CTableHeaderCell>
                 <CTableHeaderCell scope="col">#</CTableHeaderCell>
               </CTableRow>
             </CTableHead>
             <CTableBody>
               {eventServicesList.map((service, index) => (
-                <CTableRow key={index}>
-                  {/* Supondo que você tem o nome do mashguiach, use-o aqui */}
-                  <CTableDataCell>
-                    <small>{service.mashguiachId ? `${service.mashguiachId}` : `S/N`}</small>
-                  </CTableDataCell>
-                  <CTableDataCell>
-                    <small>
-                      {new Date(service.arriveMashguiachTime).toLocaleDateString('pt-BR', {
-                        day: 'numeric',
-                        month: 'long',
-                        year: 'numeric',
-                        hour: '2-digit',
-                        minute: '2-digit',
-                      })}
-                    </small>
-                  </CTableDataCell>
-                  <CTableDataCell>
-                    <small>
-                      {new Date(service.endMashguiachTime).toLocaleDateString('pt-BR', {
-                        day: 'numeric',
-                        month: 'long',
-                        year: 'numeric',
-                        hour: '2-digit',
-                        minute: '2-digit',
-                      })}
-                    </small>
-                  </CTableDataCell>
-                  <CTableDataCell>
-                    <small>R$ {service.mashguiachPrice}</small>
-                  </CTableDataCell>
-                  <CTableDataCell>
-                    <small>{service.workType ?? ''}</small>
-                  </CTableDataCell>
+                <>
+                  <CTableRow key={index}>
+                    {/* Supondo que você tem o nome do mashguiach, use-o aqui */}
+                    <CTableDataCell>
+                      <Link href={`/app/profile/${service.mashguiachId}`}>
+                        {service.mashguiachId ? `${service.Mashguiach.name}` : `S/M`}
+                      </Link>
+                    </CTableDataCell>
 
-                  <CTableDataCell>
-                    <small>{service.observationText}</small>
-                  </CTableDataCell>
+                    <CTableDataCell>
+                      <small>
+                        {new Date(service.arriveMashguiachTime).toLocaleDateString('pt-BR', {
+                          day: 'numeric',
+                          month: 'long',
+                          year: 'numeric',
+                          hour: '2-digit',
+                          minute: '2-digit',
+                        })}
+                      </small>
+                    </CTableDataCell>
+                    <CTableDataCell>
+                      <small>
+                        {new Date(service.endMashguiachTime).toLocaleDateString('pt-BR', {
+                          day: 'numeric',
+                          month: 'long',
+                          year: 'numeric',
+                          hour: '2-digit',
+                          minute: '2-digit',
+                        })}
+                      </small>
+                    </CTableDataCell>
+                    <CTableDataCell>
+                      <small>R$ {service.mashguiachPrice}</small>
+                    </CTableDataCell>
+                    <CTableDataCell>
+                      <CTooltip
+                        content={`${service.address_street}, ${service.address_number} - ${service.address_neighbor} - ${service.address_city} - ${service.address_state}`}
+                      >
+                        <CLink> {service.workType ?? ''} </CLink>
+                      </CTooltip>
+                    </CTableDataCell>
 
-                  <CTableDataCell>
-                    <CButton
-                      size="sm"
-                      color="danger"
-                      onClick={() => handleDeleteButton(service.id)}
-                    >
-                      <CIcon icon={cilTrash} color="danger" />
-                    </CButton>
-                  </CTableDataCell>
-                </CTableRow>
+                    <CTableDataCell>
+                      <small>{service.observationText}</small>
+                    </CTableDataCell>
+
+                    <CTableDataCell>
+                      <CButton
+                        size="sm"
+                        color="danger"
+                        onClick={() => handleDeleteButton(service.id)}
+                      >
+                        <CIcon icon={cilTrash} color="danger" />
+                      </CButton>
+                    </CTableDataCell>
+                  </CTableRow>
+                  <CTableRow key={index}></CTableRow>
+                </>
               ))}
             </CTableBody>
           </CTable>

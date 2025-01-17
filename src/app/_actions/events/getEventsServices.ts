@@ -8,7 +8,12 @@ export const getEventServices = async (id: string) => {
       StoreEventsId: id, // Comparar diretamente com o ID do evento
     },
     include: {
-      Mashguiach: true,
+      Mashguiach: {
+        select: {
+          id: true,
+          name: true,
+        },
+      },
     },
   })
 }

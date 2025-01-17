@@ -29,6 +29,7 @@ import { useRouter } from 'next/navigation'
 import { getAllMashguichim } from '@/app/_actions/getAllMashguichim'
 import CIcon from '@coreui/icons-react'
 import { cilMap, cilSearch } from '@coreui/icons'
+import { User } from '@prisma/client'
 
 type PropsType = {
   visible: boolean
@@ -40,12 +41,9 @@ type PropsType = {
 const AddServiceToEventModal = ({ fetchAll, visible, onClose, StoreEventsId }: PropsType) => {
   const { data: session } = useSession()
   const [credits, setCredits] = useState(0)
-  const [mashguiachOptions, setMashguiachOptions] = useState<{ value: string; label: string }[]>([])
-  const [selectedMashguiach, setSelectedMashguiach] = useState<{
-    value: string
-    label: string
-  } | null>(null)
+  const [mashguiachOptions, setMashguiachOptions] = useState<User[]>([])
   const [productionOrEvent, setProductionOrEvent] = useState<string>('')
+  const [mashguiachSelected, setMashguiachSelected] = useState<string>('')
 
   // Estados para endereço
   const [addressZipcode, setAddressZipcode] = useState('')
@@ -65,11 +63,7 @@ const AddServiceToEventModal = ({ fetchAll, visible, onClose, StoreEventsId }: P
   const fetchMashguichim = async () => {
     const response = await getAllMashguichim()
     if (response) {
-      const formattedOptions = response.map((mashguiach) => ({
-        value: mashguiach.id,
-        label: mashguiach.name,
-      }))
-      setMashguiachOptions(formattedOptions)
+      setMashguiachOptions(response)
     }
   }
 
@@ -133,13 +127,13 @@ const AddServiceToEventModal = ({ fetchAll, visible, onClose, StoreEventsId }: P
       alert('Por favor, preencha todas as datas')
       return
     }
-
     try {
       const response = await createEventServices({
         StoreEventsId,
         arriveMashguiachTime,
         endMashguiachTime,
         isApproved: false,
+        mashguiachId: mashguiachSelected !== '999' ? mashguiachSelected : '',
         mashguiachPrice: totalPrice,
         mashguiachPricePerHour: 50,
         observationText,
@@ -213,7 +207,23 @@ const AddServiceToEventModal = ({ fetchAll, visible, onClose, StoreEventsId }: P
                 <option value="EVENTO">EVENTO</option>
               </CFormSelect>
             </CCol>
-            <CCol md={8}>
+
+            <CCol md={3}>
+              <CFormLabel>Mashguiach:</CFormLabel>
+              <CFormSelect
+                value={mashguiachSelected}
+                onChange={(e) => setMashguiachSelected(e.target.value)}
+              >
+                <option value="999">ALEATÓRIO</option>
+                {mashguiachOptions.map((m) => (
+                  <option key={m.id} value={m.id}>
+                    {m.name}
+                  </option>
+                ))}
+              </CFormSelect>
+            </CCol>
+
+            <CCol md={5}>
               <CFormLabel>Observação:</CFormLabel>
               <CFormTextarea
                 placeholder="Escreva aqui alguma observação"

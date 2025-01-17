@@ -73,11 +73,22 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       eventType,
       serviceType,
       date,
+      userId,
     } = req.body
 
     // Validar os dados obrigatórios
     if (!title || !store || !responsable || !date) {
       return res.status(400).json({ error: 'Dados incompletos fornecidos no formulário.' })
+    }
+
+    const ownerExists = await db.user.findFirst({
+      where: {
+        id: userId,
+      },
+    })
+
+    if (!ownerExists) {
+      return res.status(400).json({ error: 'Usuário não encontrado.' })
     }
 
     // Criar o evento no banco de dados
@@ -102,7 +113,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         serviceType,
         date: new Date(date),
         eventOwner: {
-          connect: { id: session.user.id },
+          connect: { id: ownerExists.id }, // Conecta pelo ID do usuário
         },
       },
     })
@@ -131,12 +142,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(200).json({
         success: true,
         message: 'Evento criado com sucesso com arquivo!',
+        id: updatedEvent.id, // Inclui o ID do evento
         event: updatedEvent,
       })
     } else {
       return res.status(200).json({
         success: true,
         message: 'Evento criado com sucesso sem arquivo!',
+        id: event.id, // Inclui o ID do evento
         event: event,
       })
     }
