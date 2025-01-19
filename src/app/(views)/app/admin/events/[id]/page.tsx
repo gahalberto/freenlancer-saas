@@ -336,51 +336,6 @@ const EditEventPage = ({ params }: ParamsType) => {
           </CCardBody>
         </CCard>
 
-        {/* Tabela de Endereços */}
-        <CCard>
-          <CCardHeader>
-            Endereços <AddAddressModal storeEventId={params.id} onAddressAdded={refreshAddresses} />
-          </CCardHeader>
-          <CCardBody>
-            <div className="table-responsive">
-              <CTable hover responsive="sm">
-                <CTableHead>
-                  <CTableRow>
-                    <CTableHeaderCell>#</CTableHeaderCell>
-                    <CTableHeaderCell>Tipo</CTableHeaderCell>
-                    <CTableHeaderCell>Rua</CTableHeaderCell>
-                    <CTableHeaderCell>Bairro</CTableHeaderCell>
-                    <CTableHeaderCell>Cidade</CTableHeaderCell>
-                    <CTableHeaderCell>CEP</CTableHeaderCell>
-                    <CTableHeaderCell>Ações</CTableHeaderCell>
-                  </CTableRow>
-                </CTableHead>
-                <CTableBody>
-                  {event?.EventsAdresses?.map((address, index) => (
-                    <CTableRow key={index}>
-                      <CTableHeaderCell>{index + 1}</CTableHeaderCell>
-                      <CTableDataCell>{address.workType}</CTableDataCell>
-                      <CTableDataCell>{address.address_street}</CTableDataCell>
-                      <CTableDataCell>{address.address_neighbor}</CTableDataCell>
-                      <CTableDataCell>{address.address_city}</CTableDataCell>
-                      <CTableDataCell>{address.address_zipcode}</CTableDataCell>
-                      <CTableDataCell>
-                        <CButton
-                          color="danger"
-                          size="sm"
-                          onClick={() => handleDeleteAddress(address.id)}
-                        >
-                          Remover
-                        </CButton>
-                      </CTableDataCell>
-                    </CTableRow>
-                  ))}
-                </CTableBody>
-              </CTable>
-            </div>
-          </CCardBody>
-        </CCard>
-
         {/* Mapa do Google */}
         {/* <CCard>
           <CCardHeader>Mapa</CCardHeader>
