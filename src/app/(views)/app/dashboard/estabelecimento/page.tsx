@@ -77,6 +77,12 @@ const MashguiachDashboardPage = () => {
     }
   }
 
+  if (!userId && status === 'authenticated') {
+    console.error('User ID não encontrado na sessão.')
+  }
+
+  console.log(userId)
+
   const fetchStores = async () => {
     if (!session) {
       return
@@ -104,28 +110,27 @@ const MashguiachDashboardPage = () => {
   const router = useRouter()
 
   useEffect(() => {
+    console.log('Session:', session)
+    console.log('Status:', status)
+
     if (status === 'loading') {
-      // O estado de carregamento está ativo; não fazer nada até obter a autenticação
       return
     }
 
     if (status === 'unauthenticated') {
-      // Se o usuário não está autenticado, redirecionar para a página de login
       alert('Usuário não autenticado. Por favor, faça login.')
       router.push('/login')
       return
     }
 
-    // Se o usuário estiver autenticado, carregue os dados
     if (status === 'authenticated' && session?.user?.id) {
       fetchEvents()
       fetchStores()
     }
-  }, [status, session?.user?.id]) // Inclua status para evitar comportamento inesperado
+  }, [status, session])
 
   const onSubmit = async (data: FormData) => {
     setDisabled(true)
-    console.log(userId)
     const eventData = {
       title: data.title,
       responsable: data.responsable,
@@ -168,8 +173,8 @@ const MashguiachDashboardPage = () => {
 
       if (response.ok) {
         const result = await response.json()
-        if (result?.event?.id) {
-          setEvents(result.event) // Armazena o evento com ID
+        if (result) {
+          router.push(`/app/estabelecimento/events/${result.event.id}`)
         } else {
           alert('Erro: ID do evento não encontrado.')
         }

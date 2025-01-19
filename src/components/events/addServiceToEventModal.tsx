@@ -133,7 +133,7 @@ const AddServiceToEventModal = ({ fetchAll, visible, onClose, StoreEventsId }: P
         arriveMashguiachTime,
         endMashguiachTime,
         isApproved: false,
-        mashguiachId: mashguiachSelected !== '999' ? mashguiachSelected : '',
+        mashguiachId: mashguiachSelected !== '999' ? mashguiachSelected : null, // Envia undefined se for 999
         mashguiachPrice: totalPrice,
         mashguiachPricePerHour: 50,
         observationText,

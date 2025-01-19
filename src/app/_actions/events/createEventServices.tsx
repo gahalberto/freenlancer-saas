@@ -13,7 +13,7 @@ type CreateEventServicesInput = {
   mashguiachPricePerHour: number
   observationText: string
   productionOrEvent: string
-  mashguiachId: string
+  mashguiachId?: string | null
   address_zipcode: string
   address_street: string
   address_number: string
@@ -25,6 +25,9 @@ type CreateEventServicesInput = {
 export const createEventServices = async (data: CreateEventServicesInput) => {
   const session = await getServerSession(authOptions)
   // Criando o serviço de eventos no banco de dados
+
+  const mashguiachId = data.mashguiachId || null // Converter undefined para null
+
   const createService = await db.eventsServices.create({
     data: {
       StoreEventsId: data.StoreEventsId,
@@ -35,7 +38,7 @@ export const createEventServices = async (data: CreateEventServicesInput) => {
       mashguiachPricePerHour: data.mashguiachPricePerHour,
       observationText: data.observationText,
       workType: data.productionOrEvent === 'PRODUCAO' ? 'PRODUCAO' : 'EVENTO',
-      mashguiachId: data.mashguiachId,
+      mashguiachId: mashguiachId,
       address_zipcode: data.address_zipcode,
       address_street: data.address_street,
       address_number: data.address_number,

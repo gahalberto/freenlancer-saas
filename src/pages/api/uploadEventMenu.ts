@@ -113,7 +113,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         serviceType,
         date: new Date(date),
         eventOwner: {
-          connect: { id: ownerExists.id }, // Conecta pelo ID do usuário
+          connect: { id: session.user.id },
         },
       },
     })

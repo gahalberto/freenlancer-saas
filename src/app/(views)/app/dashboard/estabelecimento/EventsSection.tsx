@@ -76,7 +76,7 @@ const EventsStoreDashboard = ({ userId, events }: Props) => {
               </CCardHeader>
               <CCardBody>
                 <p>
-                  <b>{event.title}</b> - {event.title}
+                  <b>{event.title}</b> - {event.date.toLocaleDateString()}
                 </p>
                 <CButton
                   size="sm"
