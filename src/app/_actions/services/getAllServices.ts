@@ -11,6 +11,11 @@ export const getAllServices = async () => {
         },
       },
     },
+    where: {
+      StoreEvents: {
+        deletedAt: null,
+      }
+    }
   })
 
   return services

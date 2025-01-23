@@ -6,7 +6,8 @@ export const getEventsToAproveCount = async () => {
     try {
         const count = await db.storeEvents.count({ 
             where: { 
-                isApproved: false 
+                isApproved: false, 
+                deletedAt: null
             } 
         });
         return count;

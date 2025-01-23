@@ -348,39 +348,8 @@ const EditEventPage = ({ params }: ParamsType) => {
         </CCard> */}
 
         {/* Renderiza o EventsTableByEvent apenas se o event.id estiver definido */}
-        {event?.isApproved ? (
-          <EventsTableByEvent eventStoreId={event.id} />
-        ) : (
-          <>
-            <CCard style={{ width: '100%', marginTop: '20px' }}>
-              <CCardHeader>
-                <CCardTitle>Solicitação de Mashguiach</CCardTitle>
-              </CCardHeader>
-              <CCardBody>
-                <CPlaceholder as={CCardTitle} animation="glow" xs={12}>
-                  <CBadge color="danger">EVENTO EM ANÁLISE!</CBadge>
-                  <p> Você receberá um e-mail quando o evento for aprovado pelos rabinos.</p>
-                  <CPlaceholder xs={6} />
-                </CPlaceholder>
-                <CPlaceholder as={CCardText} animation="glow">
-                  <CPlaceholder xs={7} />
-                  <CPlaceholder xs={4} />
-                  <CPlaceholder xs={4} />
-                  <CPlaceholder xs={6} />
-                  <CPlaceholder xs={8} />
-                </CPlaceholder>
-                <CPlaceholder
-                  as={CButton}
-                  color="primary"
-                  disabled
-                  href="#"
-                  tabIndex={-1}
-                  xs={6}
-                ></CPlaceholder>
-              </CCardBody>
-            </CCard>
-          </>
-        )}
+        {event?.id && <EventsTableByEvent eventStoreId={event.id} /> }  
+      
       </CCol>
     </CRow>
   )
