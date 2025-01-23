@@ -1,6 +1,7 @@
 "use client"
 import { makeAdmin } from "@/app/_actions/admin/makeAdmin"
 import { getUsers } from "@/app/_actions/getUsers"
+import { DeleteUser } from "@/app/_actions/users/deleteUser"
 import { CAvatar, CBadge, CButton, CCardBody, CCollapse, CSmartTable } from "@coreui/react-pro"
 import { MashguiachQuestions, User } from "@prisma/client"
 import Link from "next/link"
@@ -10,15 +11,22 @@ const Users = () => {
   const [details, setDetails] = useState<MashguiachQuestions[]>([])
   const [usersData, setUsersData] = useState<User[]>([]);
 
-  useEffect(() => {
-    const fetchUsers = async () => {
-      const users = await getUsers();
-      if (users) setUsersData(users);
-    }
+  const fetchUsers = async () => {
+    const users = await getUsers();
+    if (users) setUsersData(users);
+  }
 
+
+
+  useEffect(() => {
     fetchUsers();
     console.log(`Users: ${usersData}`);
   }, []);
+
+  const desativarUser = (userId: string) => {
+    DeleteUser(userId)
+    fetchUsers();
+  }
 
   const columns = [
     {
@@ -140,8 +148,8 @@ const Users = () => {
 
                 </CButton>
 
-                <CButton size="sm" color="danger" className="m-1">
-                  Desativaaar
+                <CButton size="sm" color="danger" onClick={() => desativarUser(item.id)} className="m-1">
+                  Desativar Usuário
                 </CButton>
 
                 <CButton size="sm" onClick={() => handleTornarAdmin(item.id)} color="dark" className="m-1">

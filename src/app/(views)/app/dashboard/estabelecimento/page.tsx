@@ -294,30 +294,6 @@ const MashguiachDashboardPage = () => {
                     {errors.serviceType && <p>{errors.serviceType.message}</p>}
                   </CCol>
                 </CRow>
-
-                <CRow className="mb-3">
-                  <CCol md={6}>
-                    <CFormLabel>Tipo do Evento:</CFormLabel>
-                    <CFormInput
-                      type="text"
-                      disabled={disabled}
-                      {...register('eventType')}
-                      invalid={!!errors.eventType}
-                    />
-                    {errors.eventType && <p>{errors.eventType.message}</p>}
-                  </CCol>
-
-                  <CCol md={6}>
-                    <CFormLabel>Serviço do Evento:</CFormLabel>
-                    <CFormInput
-                      type="text"
-                      disabled={disabled}
-                      {...register('serviceType')}
-                      invalid={!!errors.serviceType}
-                    />
-                    {errors.serviceType && <p>{errors.serviceType.message}</p>}
-                  </CCol>
-                </CRow>
                 <CRow className="mb-3">
                   <CCol md={6}>
                     <CFormLabel>Dia do Evento:</CFormLabel>
@@ -368,8 +344,8 @@ const MashguiachDashboardPage = () => {
                   </CCol>
                 </CRow>
                 <CRow>
-                  <CButton type="submit" color="primary" className="mt-3">
-                    CRIAR EVENTO
+                  <CButton type="submit" color="primary" className="mt-3" disabled={disabled}>
+                    {disabled ? 'Aguarde...' : 'Adicionar Evento'}
                   </CButton>
                 </CRow>
               </form>

@@ -50,6 +50,7 @@ model User {
   address_lat      String?
   address_lng      String?
   pixKey           String?               @default("")
+  deleteAt         DateTime?             
   Certifications   Certifications[]
   EventsServices   EventsServices[]
   mashguiachJobs   FixedJobs[]
