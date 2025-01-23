@@ -2,6 +2,7 @@
 import { makeAdmin } from "@/app/_actions/admin/makeAdmin"
 import { getUsers } from "@/app/_actions/getUsers"
 import { DeleteUser } from "@/app/_actions/users/deleteUser"
+import { DesativarAction } from "@/app/_actions/users/desativarUser"
 import { CAvatar, CBadge, CButton, CCardBody, CCollapse, CSmartTable } from "@coreui/react-pro"
 import { MashguiachQuestions, User } from "@prisma/client"
 import Link from "next/link"
@@ -24,7 +25,7 @@ const Users = () => {
   }, []);
 
   const desativarUser = (userId: string) => {
-    DeleteUser(userId)
+    DesativarAction(userId)
     fetchUsers();
   }
 
@@ -110,9 +111,9 @@ const Users = () => {
         ),
         status: (item: any) => (
           <td>
-            {item.status && (
-              <CBadge color="success">Ativo</CBadge>
-            )}
+            {item.deleteAt ? (
+              <CBadge color="danger">DESATIVADO</CBadge>
+            ) : (<CBadge color="success">ATIVO</CBadge>)}
           </td>
         ),
         show_details: (item: any) => {

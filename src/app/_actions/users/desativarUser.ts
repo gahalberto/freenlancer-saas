@@ -2,7 +2,7 @@
 
 import { db } from "@/app/_lib/prisma"
 
-export const DeleteUser = async (id: string) => {
+export const DesativarAction = async (id: string) => {
     return await db.user.update({
         where: {
             id: id
