@@ -1,8 +1,6 @@
 "use client"
 import { makeAdmin } from "@/app/_actions/admin/makeAdmin"
 import { getUsers } from "@/app/_actions/getUsers"
-import { DeleteUser } from "@/app/_actions/users/deleteUser"
-import { DesativarAction } from "@/app/_actions/users/desativarUser"
 import { CAvatar, CBadge, CButton, CCardBody, CCollapse, CSmartTable } from "@coreui/react-pro"
 import { MashguiachQuestions, User } from "@prisma/client"
 import Link from "next/link"
@@ -23,11 +21,6 @@ const Users = () => {
     fetchUsers();
     console.log(`Users: ${usersData}`);
   }, []);
-
-  const desativarUser = (userId: string) => {
-    DesativarAction(userId)
-    fetchUsers();
-  }
 
   const columns = [
     {
@@ -149,9 +142,9 @@ const Users = () => {
 
                 </CButton>
 
-                <CButton size="sm" color="danger" onClick={() => desativarUser(item.id)} className="m-1">
+                {/* <CButton size="sm" color="danger" onClick={() => desativarUser(item.id)} className="m-1">
                   Desativar Usuário
-                </CButton>
+                </CButton> */}
 
                 <CButton size="sm" onClick={() => handleTornarAdmin(item.id)} color="dark" className="m-1">
                   TORNAR ADMIN
