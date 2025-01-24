@@ -2,9 +2,7 @@
 
 import { aproveEvent } from '@/app/_actions/events/aproveEvent'
 import { getEventInfo } from '@/app/_actions/events/getEventInfo'
-import ButtonCompo from '@/components/CButtonCom'
 import { EventsTableByEvent } from '@/components/events/eventsTable'
-import Map from '@/components/googleMaps'
 import {
   CBadge,
   CButton,
@@ -67,12 +65,6 @@ const schema = z.object({
     .string()
     .min(1, { message: 'Digite o número de um responsável pelo evento.' }),
   nrPax: z.string(),
-  address_zicode: z.string().min(1, { message: 'Digite o CEP e clique em buscar' }),
-  address_street: z.string().min(1, { message: 'Digite a rua, digite o CEP e clique em buscar' }),
-  address_number: z.string().min(1, { message: 'Digite o número do endereço' }),
-  address_neighbor: z.string().min(1, { message: 'Digite o bairro' }),
-  address_city: z.string().min(1, { message: 'Digite a cidade' }),
-  address_state: z.string().min(1, { message: 'Digite o Estado' }),
   store: z.string().min(1, { message: 'Selecione uma loja' }),
   eventType: z.string().min(1, { message: 'Digite o tipo do evento, bar mitzvah?' }),
   serviceType: z.string().min(1, { message: 'O que será servido? Qual tipo de serviço?' }),
@@ -99,6 +91,7 @@ const EditEventPage = ({ params }: ParamsType) => {
     register,
     handleSubmit,
     formState: { errors },
+    getValues,
     setValue,
     reset,
   } = useForm<FormData>({
@@ -108,12 +101,6 @@ const EditEventPage = ({ params }: ParamsType) => {
       responsable: '',
       responsableTelephone: '',
       nrPax: '',
-      address_zicode: '',
-      address_street: '',
-      address_number: '',
-      address_neighbor: '',
-      address_city: '',
-      address_state: '',
       store: '',
       eventType: '',
       serviceType: '',
@@ -170,12 +157,6 @@ const EditEventPage = ({ params }: ParamsType) => {
           responsable: response.responsable || '',
           responsableTelephone: response.responsableTelephone || '',
           nrPax: response.nrPax ? String(response.nrPax) : '',
-          address_zicode: response.address_zicode || '',
-          address_street: response.address_street || '',
-          address_number: response.address_number || '',
-          address_neighbor: response.address_neighbor || '',
-          address_city: response.address_city || '',
-          address_state: response.address_state || '',
           store: response.store?.id || '',
           eventType: response.eventType || '',
           serviceType: response.serviceType || '',
@@ -187,26 +168,25 @@ const EditEventPage = ({ params }: ParamsType) => {
     fetchEvent()
   }, [params.id, reset])
 
-  const handleDeleteAddress = (id: string) => {
-    deleteAddresToEvenet(id)
-    fetchEvent()
-  }
 
   const onSubmit = async (data: FormData) => {
-    // Converte a data de string para Date
-    const formattedData = {
-      ...data,
-      date: new Date(data.date), // Converte a data
-      nrPax: parseInt(data.nrPax), // Garante que o campo `nrPax` seja numérico
-      store: {
-        connect: { id: data.store }, // Conecta a relação `store` pelo ID
-      },
+    try {
+      const formattedData = {
+        ...data,
+        date: new Date(data.date),
+        nrPax: parseInt(data.nrPax),
+        store: {
+          connect: { id: data.store },
+        },
+      }
+      console.log('Dados formatados:', formattedData)
+      await updateEvents({ data: formattedData, eventId: params.id })
+      fetchEvent()
+    } catch (error) {
+      console.error('Erro ao atualizar evento:', error)
     }
-
-    updateEvents({ data: formattedData, eventId: params.id })
-    fetchEvent()
   }
-
+  
   return (
     <CRow>
       <CCol xs={12}>
@@ -230,11 +210,11 @@ const EditEventPage = ({ params }: ParamsType) => {
             )}
           </CCardHeader>
           <CCardBody>
-            <p className="text-body-secondary small">
+          <form className="row g-3" onSubmit={handleSubmit(onSubmit)}>
+          <p className="text-body-secondary small">
               Confira todos os dados do evento. Após o cadastro, o evento será enviado para
               aprovação.
             </p>
-            <CForm className="row g-3" onSubmit={handleSubmit(onSubmit)}>
               <CRow className="g-3">
                 {/* Nome do Evento e Responsável */}
                 <CCol md={6}>
@@ -299,18 +279,30 @@ const EditEventPage = ({ params }: ParamsType) => {
                   )}
                 </CCol>
 
-                {/* Data do Evento e Número de Pax */}
-                <CCol md={6}>
-                  <CFormLabel>Dia do Evento:</CFormLabel>
-                  <CDatePicker
-                    onDateChange={(date) => {
-                      if (date instanceof Date && !isNaN(date.getTime())) {
-                        setValue('date', date.toISOString().split('T')[0])
+                  {/* Data do Evento e Número de Pax */}
+
+                  <CCol md={6}>
+                    <CFormLabel>Dia do Evento:</CFormLabel>
+                    <CDatePicker
+                      locale="pt-BR" // Defina a localidade, se aplicável
+                      onDateChange={(date) => {
+                        console.log('Data selecionada:', date)
+                        if (date instanceof Date && !isNaN(date.getTime())) {
+                          setValue('date', date.toISOString().split('T')[0]) // Atualiza o estado do formulário
+                        } else {
+                          setValue('date', '') // Reseta o valor se a data for inválida
+                        }
+                      }}
+                      placeholder={
+                        getValues('date')
+                          ? new Date(getValues('date')).toLocaleDateString('pt-BR')
+                          : 'Selecione a data'
                       }
-                    }}
-                  />
-                  {errors.date && <p className="text-danger small">{errors.date.message}</p>}
-                </CCol>
+                    />
+                    {errors.date && <p className="text-danger small">{errors.date.message}</p>}
+                  </CCol>
+
+                
                 <CCol md={6}>
                   <CFormLabel>Qtd de Pax:</CFormLabel>
                   <CFormInput type="number" {...register('nrPax')} invalid={!!errors.nrPax} />
@@ -320,7 +312,7 @@ const EditEventPage = ({ params }: ParamsType) => {
               <CButton type="submit" color="primary" className="mt-3">
                 Atualizar
               </CButton>
-            </CForm>
+            </form>
           </CCardBody>
         </CCard>
         <CCard className="mb-4">

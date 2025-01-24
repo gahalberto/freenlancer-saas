@@ -15,7 +15,7 @@ type route = {
 }
 
 const routeNames = [
-  { path: '/app', name: 'Dashboard' },
+  { path: '/app', name: 'Início' },
   { path: '/components/base/navs', name: 'Navs & Tabs' },
 ]
 
