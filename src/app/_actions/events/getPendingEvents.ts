@@ -6,7 +6,7 @@ export const getPeddingEvent = async () => {
   return await db.storeEvents.findMany({
     where: {
       deletedAt: null,
-      isApproved: true,
+      isApproved: false,
       date: {
         gte: new Date()
       }
