@@ -7,6 +7,9 @@ export const getPeddingEvent = async () => {
     where: {
       deletedAt: null,
       isApproved: true,
+      date: {
+        gte: new Date()
+      }
     },
     include: {
       store: true,

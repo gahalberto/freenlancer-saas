@@ -6,6 +6,9 @@ export const getAllEvents = async () => {
   return await db.storeEvents.findMany({
     where: {
       deletedAt: null,
+      date: {
+        gte: new Date()
+      }
     },
     include: {
       store: true,
