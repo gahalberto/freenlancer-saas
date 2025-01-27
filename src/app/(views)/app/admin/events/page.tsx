@@ -19,6 +19,7 @@ import Link from 'next/link'
 import { Stores } from '@prisma/client'
 import { getAllEvents } from '@/app/_actions/events/getAllEvents'
 import { deleteEventById } from '@/app/_actions/events/deleteUserEvent'
+import { getPeddingEvent } from '@/app/_actions/events/getPendingEvents'
 
 type StoresWithEvents = Stores & {
   store: {
@@ -33,7 +34,7 @@ const AdminEvents = () => {
   useEffect(() => {
     const fetchStores = async () => {
       if (status === 'authenticated') {
-        const data = await getAllEvents()
+        const data = await getPeddingEvent()
         setStoresList(data as any)
       }
     }

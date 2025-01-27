@@ -323,7 +323,7 @@ const AddServiceToEventModal = ({ fetchAll, visible, onClose, StoreEventsId }: P
         </CModalBody>
         <CModalFooter>
           <CButton color="primary" onClick={handleSubmit}>
-            Pagar & Solicitar Mashguiach
+            Solicitar Mashguiach
           </CButton>
           <CButton color="secondary" onClick={onClose}>
             Cancelar

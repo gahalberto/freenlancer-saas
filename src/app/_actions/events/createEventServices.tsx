@@ -50,41 +50,41 @@ export const createEventServices = async (data: CreateEventServicesInput) => {
 
   //  const tokens = await db.notificationToken.findMany();
 
-  if (createService) {
-    await db.user.update({
-      where: {
-        id: session?.user.id,
-      },
-      data: {
-        credits: {
-          decrement: data.mashguiachPrice,
-        },
-      },
-    })
+  // if (createService) {
+  //   await db.user.update({
+  //     where: {
+  //       id: session?.user.id,
+  //     },
+  //     data: {
+  //       credits: {
+  //         decrement: data.mashguiachPrice,
+  //       },
+  //     },
+  //   })
 
-    await db.creditsTranscition.create({
-      data: {
-        user1: session?.user.id as string,
-        amount: data.mashguiachPrice,
-        serviceId: createService.id, // Valor dinâmico correto
-        status: 'Pending',
-        description: [
-          {
-            message: `O usuário ${session?.user.id} contratou um serviço de Mashguiach`,
-            date: new Date(),
-          },
-        ],
-        createdAt: new Date(), // Adicionei o campo createdAt
-        updateAt: new Date(), // Adicionei o campo updateAt
-      },
-    })
+  //   await db.creditsTranscition.create({
+  //     data: {
+  //       user1: session?.user.id as string,
+  //       amount: data.mashguiachPrice,
+  //       serviceId: createService.id, // Valor dinâmico correto
+  //       status: 'Pending',
+  //       description: [
+  //         {
+  //           message: `O usuário ${session?.user.id} contratou um serviço de Mashguiach`,
+  //           date: new Date(),
+  //         },
+  //       ],
+  //       createdAt: new Date(), // Adicionei o campo createdAt
+  //       updateAt: new Date(), // Adicionei o campo updateAt
+  //     },
+  //   })
 
-    await createNotification({
-      message: 'Novo trabalho disponível, confira',
-      redirectUrl: '/events/${createService.id}',
-      userId: '',
-      icon: 'cilPlus',
-    })
-  }
+  //   await createNotification({
+  //     message: 'Novo trabalho disponível, confira',
+  //     redirectUrl: '/events/${createService.id}',
+  //     userId: '',
+  //     icon: 'cilPlus',
+  //   })
+  // }
   return createService
 }
