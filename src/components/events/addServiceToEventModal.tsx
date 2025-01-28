@@ -30,6 +30,7 @@ import { getAllMashguichim } from '@/app/_actions/getAllMashguichim'
 import CIcon from '@coreui/icons-react'
 import { cilMap, cilSearch } from '@coreui/icons'
 import { User } from '@prisma/client'
+import { findStoreAddress } from '@/app/_actions/users/getUserAddress'
 
 type PropsType = {
   visible: boolean
@@ -59,6 +60,42 @@ const AddServiceToEventModal = ({ fetchAll, visible, onClose, StoreEventsId }: P
       setCredits(response.credits)
     }
   }
+
+  const fetchUserAddress = async () => {
+    try {
+      const response = await findStoreAddress(StoreEventsId); // Função que busca o endereço do usuário
+      if (response) {
+        setAddressZipcode(response.address_zipcode || "");
+        setAddressStreet(response.address_street || "");
+        setAddressNumber(response.address_number || "");
+        setAddressNeighbor(response.address_neighbor || "");
+        setAddressCity(response.address_city || "");
+        setAddressState(response.address_state || "");
+      } else {
+        alert("Endereço do usuário não encontrado.");
+      }
+    } catch (error) {
+      console.error("Erro ao buscar endereço do usuário:", error);
+      alert("Erro ao buscar o endereço do usuário.");
+    }
+  };
+
+    // Monitora a mudança para "PRODUÇÃO"
+    useEffect(() => {
+      if (productionOrEvent === "PRODUCAO") {
+        fetchUserAddress(); // Preenche os campos com o endereço do usuário
+      } else {
+        // Limpa os campos de endereço se não for "PRODUÇÃO"
+        setAddressZipcode("");
+        setAddressStreet("");
+        setAddressNumber("");
+        setAddressNeighbor("");
+        setAddressCity("");
+        setAddressState("");
+      }
+    }, [productionOrEvent]);
+  
+
 
   const fetchMashguichim = async () => {
     const response = await getAllMashguichim()
