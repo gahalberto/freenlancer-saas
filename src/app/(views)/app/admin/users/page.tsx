@@ -132,7 +132,7 @@ const Users = () => {
               <CCardBody className="p-3">
                 <h4>{item.name}</h4>
                 <p className="text-muted">Endereço: {item.address}</p>
-                <CButton className="m-1" size="sm" color="info">
+                <CButton className="m-1" size="sm" color="info" href={`./users/${item.id}`}>
                   Editar Usuário
                 </CButton>
                 <CButton size="sm" color="success" className="m-1">

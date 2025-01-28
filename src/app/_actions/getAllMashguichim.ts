@@ -3,5 +3,5 @@
 import { db } from "../_lib/prisma"
 
 export const getAllMashguichim = async () => {
-    return await db.user.findMany({where: {roleId: 1}})
+    return await db.user.findMany({where: {roleId: 1}, orderBy: { name: 'asc' }})
 }
