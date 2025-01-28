@@ -175,7 +175,7 @@ const Estabelecimentos = () => {
                     ))}
                 </p>
 
-                <CButton className="m-1" size="sm" color="info" href={`./users/${item.id}`}>
+                <CButton className="m-1" size="sm" color="info" href={`./estabelecimentos/editar/${item.id}`}>
                   Editar
                 </CButton>
                 <CButton size="sm" color="primary" className="m-1">

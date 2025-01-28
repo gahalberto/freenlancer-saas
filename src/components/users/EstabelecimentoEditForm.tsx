@@ -1,7 +1,9 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { userSchema, UserFormData } from "@/app/_schemas/userSchema";
+import { useForm } from "react-hook-form";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
 import {
   CCard,
   CCardBody,
@@ -17,25 +19,29 @@ import {
   CToastBody,
   CToaster,
 } from "@coreui/react-pro";
-import { useForm } from "react-hook-form";
-import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { esatebelcimentoSchema, EstabelecimentoFormData } from "@/app/_schemas/estabelecimentoSchema";
 
 interface UserEditFormProps {
-  initialData: UserFormData;
+  initialData: {
+    id?: string;
+    title?: string;
+  };
 }
 
-const UserEditForm = ({ initialData }: UserEditFormProps) => {
-  const { register, handleSubmit, formState: { errors } } = useForm<UserFormData>({
-    resolver: zodResolver(userSchema),
-    defaultValues: initialData,
+const EstabelecimentoEditForm = ({ initialData }: UserEditFormProps) => {
+  const { register, handleSubmit, formState: { errors } } = useForm<EstabelecimentoFormData>({
+    resolver: zodResolver(esatebelcimentoSchema),
+    defaultValues: {
+      id: initialData.id,
+      title: initialData.title,
+    },
   });
 
   const router = useRouter();
   const [loading, setLoading] = useState(false);
-  const [toastVisible, setToastVisible] = useState(false); // Controla a exibição do toast
+  const [toastVisible, setToastVisible] = useState(false);
 
-  const onSubmit = async (data: UserFormData) => {
+  const onSubmit = async (data: EstabelecimentoFormData) => {
     setLoading(true);
     try {
       await fetch(`/api/estabelecimento/${initialData.id}`, {
@@ -46,8 +52,8 @@ const UserEditForm = ({ initialData }: UserEditFormProps) => {
         body: JSON.stringify(data),
       });
 
-      setToastVisible(true); // Mostra o toast após o sucesso
-      setTimeout(() => setToastVisible(false), 3000); // Esconde o toast após 3 segundos
+      setToastVisible(true);
+      setTimeout(() => setToastVisible(false), 3000);
     } catch (error) {
       console.error("Failed to update user:", error);
     } finally {
@@ -59,27 +65,15 @@ const UserEditForm = ({ initialData }: UserEditFormProps) => {
     <>
       <CCard>
         <CCardHeader>
-          <h5>Editar Usuário</h5>
+          <h5>Editar Estabelecimento</h5>
         </CCardHeader>
         <CCardBody>
           <CForm onSubmit={handleSubmit(onSubmit)}>
             <CRow className="mb-3">
               <CCol md={6}>
                 <CFormLabel>Nome</CFormLabel>
-                <CFormInput type="text" {...register("name")} invalid={!!errors.name} />
-                {errors.name && <p className="text-danger">{errors.name.message}</p>}
-              </CCol>
-              <CCol md={6}>
-                <CFormLabel>Email</CFormLabel>
-                <CFormInput type="email" {...register("email")} invalid={!!errors.email} />
-                {errors.email && <p className="text-danger">{errors.email.message}</p>}
-              </CCol>
-            </CRow>
-            <CRow className="mb-3">
-              <CCol md={6}>
-                <CFormLabel>Telefone</CFormLabel>
-                <CFormInput type="text" {...register("phone")} invalid={!!errors.phone} />
-                {errors.phone && <p className="text-danger">{errors.phone.message}</p>}
+                <CFormInput type="text" {...register("title")} invalid={!!errors.title} />
+                {errors.title && <p className="text-danger">{errors.title.message}</p>}
               </CCol>
             </CRow>
             <CButton type="submit" color="primary" disabled={loading}>
@@ -89,9 +83,8 @@ const UserEditForm = ({ initialData }: UserEditFormProps) => {
         </CCardBody>
       </CCard>
 
-      {/* Renderiza o toast condicionalmente */}
       {toastVisible && (
-    <CToaster className="position-static">
+        <CToaster className="position-static">
           <CToast animation autohide visible>
             <CToastHeader closeButton>
               <svg
@@ -108,7 +101,7 @@ const UserEditForm = ({ initialData }: UserEditFormProps) => {
               <div className="fw-bold me-auto">Sucesso!</div>
               <small>Agora</small>
             </CToastHeader>
-            <CToastBody>Usuário atualizado com sucesso!</CToastBody>
+            <CToastBody>Estabelecimento atualizado com sucesso!</CToastBody>
           </CToast>
         </CToaster>
       )}
@@ -116,4 +109,4 @@ const UserEditForm = ({ initialData }: UserEditFormProps) => {
   );
 };
 
-export default UserEditForm;
+export default EstabelecimentoEditForm;
