@@ -14,11 +14,14 @@ export const updateEvents = async ({ data, eventId }: eventsProps) => {
       where: {
         id: eventId,
       },
-      data,
-    })
+      data: {
+        ...data,
+        date: data.date ? new Date(data.date) : undefined, // Verifica se 'data.date' existe antes de criar um 'Date'
+      },
+    });
 
-    return true
+    return true;
   } catch (error) {
-    throw error
+    throw error;
   }
-}
+};

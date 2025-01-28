@@ -168,24 +168,25 @@ const EditEventPage = ({ params }: ParamsType) => {
     fetchEvent()
   }, [params.id, reset])
 
-
   const onSubmit = async (data: FormData) => {
     try {
+      // Corrige o deslocamento de fuso horário
+      const localDate = new Date(data.date + 'T00:00:00'); // Adiciona "T00:00:00" para tratar como local
       const formattedData = {
         ...data,
-        date: new Date(data.date),
+        date: localDate, // Envia como objeto Date no fuso horário correto
         nrPax: parseInt(data.nrPax),
         store: {
           connect: { id: data.store },
         },
-      }
-      console.log('Dados formatados:', formattedData)
-      await updateEvents({ data: formattedData, eventId: params.id })
-      fetchEvent()
+      };
+      console.log('Dados formatados:', formattedData);
+      await updateEvents({ data: formattedData, eventId: params.id });
+      fetchEvent();
     } catch (error) {
-      console.error('Erro ao atualizar evento:', error)
+      console.error('Erro ao atualizar evento:', error);
     }
-  }
+  };
   
   return (
     <CRow>
@@ -210,11 +211,11 @@ const EditEventPage = ({ params }: ParamsType) => {
             )}
           </CCardHeader>
           <CCardBody>
-          <form className="row g-3" onSubmit={handleSubmit(onSubmit)}>
-          <p className="text-body-secondary small">
-              Confira todos os dados do evento. Após o cadastro, o evento será enviado para
-              aprovação.
-            </p>
+            <form className="row g-3" onSubmit={handleSubmit(onSubmit)}>
+              <p className="text-body-secondary small">
+                Confira todos os dados do evento. Após o cadastro, o evento será enviado para
+                aprovação.
+              </p>
               <CRow className="g-3">
                 {/* Nome do Evento e Responsável */}
                 <CCol md={6}>
@@ -279,30 +280,27 @@ const EditEventPage = ({ params }: ParamsType) => {
                   )}
                 </CCol>
 
-                  {/* Data do Evento e Número de Pax */}
+                {/* Data do Evento e Número de Pax */}
 
-                  <CCol md={6}>
-                    <CFormLabel>Dia do Evento:</CFormLabel>
-                    <CDatePicker
-                      locale="pt-BR" // Defina a localidade, se aplicável
-                      onDateChange={(date) => {
-                        console.log('Data selecionada:', date)
-                        if (date instanceof Date && !isNaN(date.getTime())) {
-                          setValue('date', date.toISOString().split('T')[0]) // Atualiza o estado do formulário
-                        } else {
-                          setValue('date', '') // Reseta o valor se a data for inválida
-                        }
-                      }}
-                      placeholder={
-                        getValues('date')
-                          ? new Date(getValues('date')).toLocaleDateString('pt-BR')
-                          : 'Selecione a data'
+                <CCol md={6}>
+                  <CFormLabel>Dia do Evento:</CFormLabel>
+                  <CDatePicker
+                    onDateChange={(date) => {
+                      if (date instanceof Date && !isNaN(date.getTime())) {
+                        setValue('date', date.toISOString().split('T')[0]) // Formato para o backend
+                      } else {
+                        setValue('date', '') // Reseta se inválido
                       }
-                    />
-                    {errors.date && <p className="text-danger small">{errors.date.message}</p>}
-                  </CCol>
+                    }}
+                    placeholder={
+                      getValues('date')
+                        ? event?.date.toLocaleDateString()
+                        : 'Selecione a data'
+                    }
+                  />
+                  {errors.date && <p className="text-danger small">{errors.date.message}</p>}
+                </CCol>
 
-                
                 <CCol md={6}>
                   <CFormLabel>Qtd de Pax:</CFormLabel>
                   <CFormInput type="number" {...register('nrPax')} invalid={!!errors.nrPax} />
@@ -340,8 +338,7 @@ const EditEventPage = ({ params }: ParamsType) => {
         </CCard> */}
 
         {/* Renderiza o EventsTableByEvent apenas se o event.id estiver definido */}
-        {event?.id && <EventsTableByEvent eventStoreId={event.id} /> }  
-      
+        {event?.id && <EventsTableByEvent eventStoreId={event.id} />}
       </CCol>
     </CRow>
   )

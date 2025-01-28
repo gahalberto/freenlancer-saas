@@ -3,7 +3,7 @@
 import { db } from '@/app/_lib/prisma'
 
 export const getEventInfo = async (id: string) => {
-  return await db.storeEvents.findUnique({
+  const event = await db.storeEvents.findUnique({
     where: { id },
     include: {
       eventOwner: true,
@@ -11,4 +11,7 @@ export const getEventInfo = async (id: string) => {
       EventsAdresses: true,
     },
   })
+  
+  
+  return event;
 }

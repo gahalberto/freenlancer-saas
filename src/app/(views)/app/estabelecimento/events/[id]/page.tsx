@@ -144,31 +144,29 @@ const EditEventPage = ({ params }: ParamsType) => {
 
   useEffect(() => {
     const fetchEvent = async () => {
-      const response = await getEventInfo(params.id)
+      const response = await getEventInfo(params.id);
       if (response) {
-        setEvent(response as EventWithOwner)
+        // Ajusta a data para o fuso horário local
+        const localDate = new Date(
+          new Date(response.date).getTime() -
+            new Date(response.date).getTimezoneOffset() * 60000
+        );
+  
         reset({
           title: response.title || '',
           responsable: response.responsable || '',
           responsableTelephone: response.responsableTelephone || '',
           nrPax: response.nrPax ? String(response.nrPax) : '',
-          address_zicode: response.address_zicode || '',
-          address_street: response.address_street || '',
-          address_number: response.address_number || '',
-          address_neighbor: response.address_neighbor || '',
-          address_city: response.address_city || '',
-          address_state: response.address_state || '',
           store: response.store?.id || '',
           eventType: response.eventType || '',
           serviceType: response.serviceType || '',
-          date: response.date ? new Date(response.date).toISOString().split('T')[0] : '',
-        })
+          date: localDate.toISOString().split('T')[0], // Formato para o input
+        });
       }
-    }
-
-    fetchEvent()
-  }, [params.id, reset])
-
+    };
+    fetchEvent();
+  }, [params.id, reset]);
+  
   const onSubmit = async (data: FormData) => {
     if (!session || !session.user) {
       console.log('Usuário não autenticado')
@@ -205,7 +203,6 @@ const EditEventPage = ({ params }: ParamsType) => {
               aprovação.
             </p>
             <CForm className="row g-3" onSubmit={handleSubmit(onSubmit)}>
-              <fieldset disabled={disabled}>
                 <CRow className="g-3">
                   {/* Nome do Evento e Responsável */}
                   <CCol md={6}>
@@ -279,21 +276,24 @@ const EditEventPage = ({ params }: ParamsType) => {
                   <CCol md={6}>
                     <CFormLabel>Dia do Evento:</CFormLabel>
                     <CDatePicker
-                      locale="pt-BR" // Defina a localidade, se aplicável
-                      onDateChange={(date) => {
-                        console.log('Data selecionada:', date)
-                        if (date instanceof Date && !isNaN(date.getTime())) {
-                          setValue('date', date.toISOString().split('T')[0]) // Atualiza o estado do formulário
-                        } else {
-                          setValue('date', '') // Reseta o valor se a data for inválida
-                        }
-                      }}
-                      placeholder={
-                        getValues('date')
-                          ? new Date(getValues('date')).toLocaleDateString('pt-BR')
-                          : 'Selecione a data'
-                      }
-                    />
+  locale="pt-BR"
+  onDateChange={(date) => {
+    if (date instanceof Date && !isNaN(date.getTime())) {
+      // Ajuste para evitar problemas com o fuso horário
+      const adjustedDate = new Date(
+        date.getTime() - date.getTimezoneOffset() * 60000
+      );
+      setValue('date', adjustedDate.toISOString().split('T')[0]); // Atualiza o estado do formulário
+    } else {
+      setValue('date', ''); // Reseta o valor se a data for inválida
+    }
+  }}
+  placeholder={
+    getValues('date')
+      ? new Date(getValues('date')).toLocaleDateString('pt-BR')
+      : 'Selecione a data'
+  }
+/>
                     {errors.date && <p className="text-danger small">{errors.date.message}</p>}
                   </CCol>
 
@@ -307,7 +307,6 @@ const EditEventPage = ({ params }: ParamsType) => {
                 {/* <CButton type="submit" color="primary" className="mt-3" disabled={disabled}>
                   Atualizar
                 </CButton> */}
-              </fieldset>
             </CForm>
 
             <CRow className="mt-4 mb-4">
