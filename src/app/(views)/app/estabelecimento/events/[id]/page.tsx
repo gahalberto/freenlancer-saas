@@ -2,20 +2,16 @@
 
 import { aproveEvent } from '@/app/_actions/events/aproveEvent'
 import { getEventInfo } from '@/app/_actions/events/getEventInfo'
-import ButtonCompo from '@/components/CButtonCom'
 import { EventsTableByEvent } from '@/components/events/eventsTable'
-import Map from '@/components/googleMaps'
 import {
   CBadge,
   CButton,
   CCard,
   CCardBody,
   CCardHeader,
-  CCardImage,
   CCardText,
   CCardTitle,
   CCol,
-  CCollapse,
   CDatePicker,
   CForm,
   CFormInput,
@@ -29,16 +25,21 @@ import {
   CTableHead,
   CTableHeaderCell,
   CTableRow,
+  CToast,
+  CToastBody,
+  CToastHeader,
 } from '@coreui/react-pro'
 import { EventsAdresses, StoreEvents, Stores } from '@prisma/client'
 import { useSession } from 'next-auth/react'
-import { useEffect, useState } from 'react'
-import AddAdressModal from './AddAddressForm'
+import { useEffect, useRef, useState } from 'react'
 import { deleteAddresToEvenet } from '@/app/_actions/events/deleteAddresToEvent'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
+import AddAddressModal from '../../../estabelecimento/events/[id]/AddAddressForm'
+import { updateEvents } from '@/app/_actions/events/updateEvents'
 import { getStores } from '@/app/_actions/stores/getStores'
+import { getAllStores } from '@/app/_actions/stores/getAllStores'
 
 interface ParamsType {
   params: {
@@ -64,12 +65,6 @@ const schema = z.object({
     .string()
     .min(1, { message: 'Digite o número de um responsável pelo evento.' }),
   nrPax: z.string(),
-  address_zicode: z.string().min(1, { message: 'Digite o CEP e clique em buscar' }),
-  address_street: z.string().min(1, { message: 'Digite a rua, digite o CEP e clique em buscar' }),
-  address_number: z.string().min(1, { message: 'Digite o número do endereço' }),
-  address_neighbor: z.string().min(1, { message: 'Digite o bairro' }),
-  address_city: z.string().min(1, { message: 'Digite a cidade' }),
-  address_state: z.string().min(1, { message: 'Digite o Estado' }),
   store: z.string().min(1, { message: 'Selecione uma loja' }),
   eventType: z.string().min(1, { message: 'Digite o tipo do evento, bar mitzvah?' }),
   serviceType: z.string().min(1, { message: 'O que será servido? Qual tipo de serviço?' }),
@@ -90,14 +85,14 @@ const EditEventPage = ({ params }: ParamsType) => {
   const [event, setEvent] = useState<EventWithOwner | null>(null)
   const [selectedDate, setSelectedDate] = useState<Date | null>(null)
   const [storeList, setStoreList] = useState<Stores[]>([])
-  const [menuVisible, setMenuVisible] = useState(false)
+  const [toasts, setToasts] = useState([]) // Estado para controlar toasts
 
   const {
     register,
     handleSubmit,
     formState: { errors },
-    setValue,
     getValues,
+    setValue,
     reset,
   } = useForm<FormData>({
     resolver: zodResolver(schema),
@@ -106,18 +101,13 @@ const EditEventPage = ({ params }: ParamsType) => {
       responsable: '',
       responsableTelephone: '',
       nrPax: '',
-      address_zicode: '',
-      address_street: '',
-      address_number: '',
-      address_neighbor: '',
-      address_city: '',
-      address_state: '',
       store: '',
       eventType: '',
       serviceType: '',
       date: '',
     },
   })
+
   const fetchEvent = async () => {
     const response = await getEventInfo(params.id)
     if (response) {
@@ -133,6 +123,17 @@ const EditEventPage = ({ params }: ParamsType) => {
     }
   }
 
+  const fetchStores = async () => {
+    try {
+      const response = await getAllStores()
+      if (response) {
+        setStoreList(response)
+      }
+    } catch (error) {
+      console.error('Erro ao buscar lojas:', error)
+    }
+  }
+
   const handleAproveEvent = async (eventId: string, isApproved: boolean) => {
     const updatedEvent = await aproveEvent(eventId, !isApproved)
     if (updatedEvent) {
@@ -142,16 +143,15 @@ const EditEventPage = ({ params }: ParamsType) => {
     }
   }
 
+  const refreshAddresses = () => {
+    fetchEvent()
+  }
+
   useEffect(() => {
     const fetchEvent = async () => {
-      const response = await getEventInfo(params.id);
+      const response = await getEventInfo(params.id)
       if (response) {
-        // Ajusta a data para o fuso horário local
-        const localDate = new Date(
-          new Date(response.date).getTime() -
-            new Date(response.date).getTimezoneOffset() * 60000
-        );
-  
+        setEvent(response as EventWithOwner)
         reset({
           title: response.title || '',
           responsable: response.responsable || '',
@@ -160,27 +160,41 @@ const EditEventPage = ({ params }: ParamsType) => {
           store: response.store?.id || '',
           eventType: response.eventType || '',
           serviceType: response.serviceType || '',
-          date: localDate.toISOString().split('T')[0], // Formato para o input
-        });
+          date: response.date ? new Date(response.date).toISOString().split('T')[0] : '',
+        })
       }
-    };
-    fetchEvent();
-  }, [params.id, reset]);
-  
-  const onSubmit = async (data: FormData) => {
-    if (!session || !session.user) {
-      console.log('Usuário não autenticado')
-      setDisabled(false)
-      return
     }
-  }
+    fetchStores()
+    fetchEvent()
+  }, [params.id, reset])
 
+  const onSubmit = async (data: FormData) => {
+    try {
+      // Corrige o deslocamento de fuso horário
+      const localDate = new Date(data.date + 'T00:00:00'); // Adiciona "T00:00:00" para tratar como local
+      const formattedData = {
+        ...data,
+        date: localDate, // Envia como objeto Date no fuso horário correto
+        nrPax: parseInt(data.nrPax),
+        store: {
+          connect: { id: data.store },
+        },
+      };
+      console.log('Dados formatados:', formattedData);
+      await updateEvents({ data: formattedData, eventId: params.id });
+      fetchEvent();
+      alert("Atualizado com sucesso")
+    } catch (error) {
+      console.error('Erro ao atualizar evento:', error);
+    }
+  };
+  
   return (
     <CRow>
       <CCol xs={12}>
         {!event?.isApproved && (
           <CCardTitle className="text-center mb-4">
-            <CBadge color="danger">ATENÇÃO: Esse evento está em análise pelos rabinos!</CBadge>
+            <CBadge color="danger">ATENÇÃO: Analise o evento e libere!</CBadge>
           </CCardTitle>
         )}
         <CCard className="mb-4">
@@ -198,133 +212,118 @@ const EditEventPage = ({ params }: ParamsType) => {
             )}
           </CCardHeader>
           <CCardBody>
-            <p className="text-body-secondary small">
-              Confira todos os dados do evento. Após o cadastro, o evento será enviado para
-              aprovação.
-            </p>
-            <CForm className="row g-3" onSubmit={handleSubmit(onSubmit)}>
-                <CRow className="g-3">
-                  {/* Nome do Evento e Responsável */}
-                  <CCol md={6}>
-                    <CFormLabel>Nome do Evento:</CFormLabel>
-                    <CFormInput type="text" {...register('title')} invalid={!!errors.title} />
-                    {errors.title && <p className="text-danger small">{errors.title.message}</p>}
-                  </CCol>
-                  <CCol md={6}>
-                    <CFormLabel>Responsável pelo Evento:</CFormLabel>
-                    <CFormInput
-                      type="text"
-                      {...register('responsable')}
-                      invalid={!!errors.responsable}
-                    />
-                    {errors.responsable && (
-                      <p className="text-danger small">{errors.responsable.message}</p>
-                    )}
-                  </CCol>
-
-                  {/* Telefone e Estabelecimento */}
-                  <CCol md={6}>
-                    <CFormLabel>Telefone do Responsável:</CFormLabel>
-                    <CFormInput
-                      type="text"
-                      {...register('responsableTelephone')}
-                      invalid={!!errors.responsableTelephone}
-                    />
-                    {errors.responsableTelephone && (
-                      <p className="text-danger small">{errors.responsableTelephone.message}</p>
-                    )}
-                  </CCol>
-                  <CCol md={6}>
-                    <CFormLabel>Estabelecimento:</CFormLabel>
-                    <CFormSelect {...register('store')} invalid={!!errors.store}>
-                      <option>Selecione o estabelecimento</option>
-                      {storeList.map((item, index) => (
-                        <option value={item.id} key={index}>
-                          {item.title}
-                        </option>
-                      ))}
-                    </CFormSelect>
-                    {errors.store && <p className="text-danger small">{errors.store.message}</p>}
-                  </CCol>
-
-                  {/* Tipo do Evento e Serviço */}
-                  <CCol md={6}>
-                    <CFormLabel>Tipo do Evento:</CFormLabel>
-                    <CFormInput
-                      type="text"
-                      {...register('eventType')}
-                      invalid={!!errors.eventType}
-                    />
-                    {errors.eventType && (
-                      <p className="text-danger small">{errors.eventType.message}</p>
-                    )}
-                  </CCol>
-                  <CCol md={6}>
-                    <CFormLabel>Serviço do Evento:</CFormLabel>
-                    <CFormInput
-                      type="text"
-                      {...register('serviceType')}
-                      invalid={!!errors.serviceType}
-                    />
-                    {errors.serviceType && (
-                      <p className="text-danger small">{errors.serviceType.message}</p>
-                    )}
-                  </CCol>
-
-                  {/* Data do Evento e Número de Pax */}
-
-                  <CCol md={6}>
-                    <CFormLabel>Dia do Evento:</CFormLabel>
-                    <CDatePicker
-  locale="pt-BR"
-  onDateChange={(date) => {
-    if (date instanceof Date && !isNaN(date.getTime())) {
-      // Ajuste para evitar problemas com o fuso horário
-      const adjustedDate = new Date(
-        date.getTime() - date.getTimezoneOffset() * 60000
-      );
-      setValue('date', adjustedDate.toISOString().split('T')[0]); // Atualiza o estado do formulário
-    } else {
-      setValue('date', ''); // Reseta o valor se a data for inválida
-    }
-  }}
-  placeholder={
-    getValues('date')
-      ? new Date(getValues('date')).toLocaleDateString('pt-BR')
-      : 'Selecione a data'
-  }
-/>
-                    {errors.date && <p className="text-danger small">{errors.date.message}</p>}
-                  </CCol>
-
-                  <CCol md={6}>
-                    <CFormLabel>Qtd de Pax:</CFormLabel>
-                    <CFormInput type="number" {...register('nrPax')} invalid={!!errors.nrPax} />
-                    {errors.nrPax && <p className="text-danger small">{errors.nrPax.message}</p>}
-                  </CCol>
-                </CRow>
-
-                {/* <CButton type="submit" color="primary" className="mt-3" disabled={disabled}>
-                  Atualizar
-                </CButton> */}
-            </CForm>
-
-            <CRow className="mt-4 mb-4">
-              <CButton color="primary" onClick={() => setMenuVisible(!menuVisible)}>
-                {menuVisible === true ? `Ocultar menu` : `Mostrar Menu`}
-              </CButton>
-              <CCollapse visible={menuVisible}>
-                <CCard className="mt-3">
-                  {event?.menuUrl && (
-                    <iframe
-                      src={event?.menuUrl}
-                      style={{ width: '100%', height: '600px', border: 'none' }}
-                      title="Menu PDF"
-                    ></iframe>
+            <form className="row g-3" onSubmit={handleSubmit(onSubmit)}>
+              <p className="text-body-secondary small">
+                Confira todos os dados do evento. Após o cadastro, o evento será enviado para
+                aprovação.
+              </p>
+              <CRow className="g-3">
+                {/* Nome do Evento e Responsável */}
+                <CCol md={6}>
+                  <CFormLabel>Nome do Evento:</CFormLabel>
+                  <CFormInput type="text" {...register('title')} invalid={!!errors.title} />
+                  {errors.title && <p className="text-danger small">{errors.title.message}</p>}
+                </CCol>
+                <CCol md={6}>
+                  <CFormLabel>Responsável pelo Evento:</CFormLabel>
+                  <CFormInput
+                    type="text"
+                    {...register('responsable')}
+                    invalid={!!errors.responsable}
+                  />
+                  {errors.responsable && (
+                    <p className="text-danger small">{errors.responsable.message}</p>
                   )}
-                </CCard>
-              </CCollapse>
-            </CRow>
+                </CCol>
+
+                {/* Telefone e Estabelecimento */}
+                <CCol md={6}>
+                  <CFormLabel>Telefone do Responsável:</CFormLabel>
+                  <CFormInput
+                    type="text"
+                    {...register('responsableTelephone')}
+                    invalid={!!errors.responsableTelephone}
+                  />
+                  {errors.responsableTelephone && (
+                    <p className="text-danger small">{errors.responsableTelephone.message}</p>
+                  )}
+                </CCol>
+                <CCol md={6}>
+                  <CFormLabel>Estabelecimento:</CFormLabel>
+                  <CFormSelect {...register('store')} invalid={!!errors.store}>
+                    <option>Selecione o estabelecimento</option>
+                    {storeList.map((item, index) => (
+                      <option value={item.id} key={index}>
+                        {item.title}
+                      </option>
+                    ))}
+                  </CFormSelect>
+                  {errors.store && <p className="text-danger small">{errors.store.message}</p>}
+                </CCol>
+
+                {/* Tipo do Evento e Serviço */}
+                <CCol md={6}>
+                  <CFormLabel>Tipo do Evento:</CFormLabel>
+                  <CFormInput type="text" {...register('eventType')} invalid={!!errors.eventType} />
+                  {errors.eventType && (
+                    <p className="text-danger small">{errors.eventType.message}</p>
+                  )}
+                </CCol>
+                <CCol md={6}>
+                  <CFormLabel>Serviço do Evento:</CFormLabel>
+                  <CFormInput
+                    type="text"
+                    {...register('serviceType')}
+                    invalid={!!errors.serviceType}
+                  />
+                  {errors.serviceType && (
+                    <p className="text-danger small">{errors.serviceType.message}</p>
+                  )}
+                </CCol>
+
+                {/* Data do Evento e Número de Pax */}
+
+                <CCol md={6}>
+                  <CFormLabel>Dia do Evento:</CFormLabel>
+                  <CDatePicker
+                    onDateChange={(date) => {
+                      if (date instanceof Date && !isNaN(date.getTime())) {
+                        setValue('date', date.toISOString().split('T')[0]) // Formato para o backend
+                      } else {
+                        setValue('date', '') // Reseta se inválido
+                      }
+                    }}
+                    placeholder={
+                      getValues('date')
+                        ? event?.date.toLocaleDateString()
+                        : 'Selecione a data'
+                    }
+                  />
+                  {errors.date && <p className="text-danger small">{errors.date.message}</p>}
+                </CCol>
+
+                <CCol md={6}>
+                  <CFormLabel>Qtd de Pax:</CFormLabel>
+                  <CFormInput type="number" {...register('nrPax')} invalid={!!errors.nrPax} />
+                  {errors.nrPax && <p className="text-danger small">{errors.nrPax.message}</p>}
+                </CCol>
+              </CRow>
+              <CButton type="submit" color="primary" className="mt-3">
+                Atualizar
+              </CButton>
+            </form>
+          </CCardBody>
+        </CCard>
+        <CCard className="mb-4">
+          <CCardHeader>MENU PDF</CCardHeader>
+          <CCardBody>
+            {event?.menuUrl && (
+              <iframe
+                src={event?.menuUrl}
+                style={{ width: '100%', height: '600px', border: 'none' }}
+                title="Menu PDF"
+              ></iframe>
+            )}
           </CCardBody>
         </CCard>
 
@@ -340,7 +339,7 @@ const EditEventPage = ({ params }: ParamsType) => {
         </CCard> */}
 
         {/* Renderiza o EventsTableByEvent apenas se o event.id estiver definido */}
-        {event && <EventsTableByEvent eventStoreId={event.id} />}
+        {event?.id && <EventsTableByEvent eventStoreId={event.id} />}
       </CCol>
     </CRow>
   )
