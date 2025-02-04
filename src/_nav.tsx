@@ -85,7 +85,7 @@ const _nav = [
     items: [
       {
         component: CNavItem,
-        name: 'Todos',
+        name: 'Tudo',
         href: '/app/admin/events/todos',
         icon: <CIcon icon={cilCircle} customClassName="nav-icon" />,
       },
