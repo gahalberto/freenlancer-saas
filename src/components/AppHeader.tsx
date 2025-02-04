@@ -50,14 +50,16 @@ const AppHeader = (): JSX.Element => {
         headerRef.current.classList.toggle('shadow-sm', document.documentElement.scrollTop > 0)
     })
 
-    const fetchCredits = async () => {
-      const response = await getCreditsByUser()
-      if (response) {
-        setCredits(response.credits)
-      }
-    }
+    setColorMode('light')
 
-    fetchCredits()
+    // const fetchCredits = async () => {
+    //   const response = await getCreditsByUser()
+    //   if (response) {
+    //     setCredits(response.credits)
+    //   }
+    // }
+
+    // fetchCredits()
   }, [])
 
   return (
@@ -85,11 +87,11 @@ const AppHeader = (): JSX.Element => {
         </CHeaderNav>
 
         <CHeaderNav className="ms-auto ms-md-0">
-          <li className="nav-item py-1">
+          {/* <li className="nav-item py-1">
             <div className="vr h-100 mx-2 text-body text-opacity-75"></div>
-          </li>
+          </li> */}
           <CDropdown variant="nav-item" placement="bottom-end">
-            <CDropdownToggle caret={false}>
+            {/* <CDropdownToggle caret={false}>
               {colorMode === 'dark' ? (
                 <CIcon icon={cilMoon} size="lg" />
               ) : colorMode === 'auto' ? (
@@ -97,7 +99,7 @@ const AppHeader = (): JSX.Element => {
               ) : (
                 <CIcon icon={cilSun} size="lg" />
               )}
-            </CDropdownToggle>
+            </CDropdownToggle> */}
 
             <CDropdownMenu>
               <CDropdownItem
@@ -135,7 +137,8 @@ const AppHeader = (): JSX.Element => {
             </li>
             <AppHeaderDropdownNotif />
           </CHeaderNav>
-          <CHeaderNav className="ms-left ms-md-0 d-flex align-items-center justify-content-center">
+          {/* CRÉDITOS CREDITOS */}
+          {/* <CHeaderNav className="ms-left ms-md-0 d-flex align-items-center justify-content-center">
             <li className="nav-item py-1">
               <div className="vr h-100 mx-2 text-body text-opacity-75"></div>
             </li>
@@ -147,7 +150,7 @@ const AppHeader = (): JSX.Element => {
                 <div className="text-opacity-75">R$ {credits}</div>
               </Link>
             </div>
-          </CHeaderNav>
+          </CHeaderNav> */}
           <li className="nav-item py-1">
             <div className="vr h-100 mx-2 text-body text-opacity-75"></div>
           </li>

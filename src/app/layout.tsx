@@ -20,18 +20,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en" className={inter.className}>
       <head>
         <title>Beit Yaacov - Dep. Cashrut</title>
-        <Script
-          id="get-color-scheme"
-          strategy="beforeInteractive"
-          dangerouslySetInnerHTML={{
-            __html: `
-        const userMode = localStorage.getItem('coreui-pro-next-js-admin-template-theme-default');
-        const systemDarkMode = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
-        if (userMode === 'dark' || (userMode !== 'light' && systemDarkMode)) {
-          document.documentElement.dataset.coreuiTheme = 'dark';
-        }`,
-          }}
-        />
       </head>
       <body>
         <Provider store={store}>
