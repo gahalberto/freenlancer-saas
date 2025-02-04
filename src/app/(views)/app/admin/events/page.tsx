@@ -75,15 +75,18 @@ const AdminEvents = () => {
                   <b> {store.store.title} </b> - {store.title}{' '}
                 </CTableDataCell>
                 <CTableDataCell>
-                  <div className="flex items-center">
+                <div className="flex items-center">
                     <Link
                       href={`/app/admin/events/${store.id}`}
                       className="text-blue-600 hover:underline"
                     >
-                      Ver/Liberar
+                    <CButton size="sm" color="primary" variant='outline'>
+                      Editar
+                    </CButton>
+
                     </Link>
                     <span className="mx-4 h-5 w-px bg-gray-300"></span>
-                    <CButton size="sm" color="danger" onClick={() => handleDeleteEvent(store.id)}>
+                    <CButton size="sm" color="danger" variant='outline' onClick={() => handleDeleteEvent(store.id)}>
                       Excluir
                     </CButton>
                   </div>
