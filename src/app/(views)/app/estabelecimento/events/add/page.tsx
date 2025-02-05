@@ -1,8 +1,9 @@
 'use client'
-
-import { useSession } from 'next-auth/react'
+import { getStores } from '@/app/_actions/stores/getStores'
 import {
   CButton,
+  CCard,
+  CCardBody,
   CCol,
   CDatePicker,
   CFormInput,
@@ -12,18 +13,18 @@ import {
   CModalBody,
   CModalHeader,
   CModalTitle,
+  CProgress,
+  CProgressBar,
   CRow,
 } from '@coreui/react-pro'
-import EventsStoreDashboard from './EventsSection'
-import { useEffect, useState } from 'react'
-import { z } from 'zod'
-import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { getStores } from '@/app/_actions/stores/getStores'
 import { EventsServices, StoreEvents, Stores } from '@prisma/client'
+import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
-import { getEventByEstabelecimento } from '@/app/_actions/events/getEventByEstabelecimento'
-import AddModalAddress from './AddressModal'
+import { useEffect, useState } from 'react'
+import { useForm } from 'react-hook-form'
+import { z } from 'zod'
+import AddServiceToEventModal from './addService'
 
 const schema = z.object({
   title: z.string().min(1, { message: 'Digite um título para o evento' }),
@@ -56,7 +57,7 @@ type EventsWithServices = StoreEvents & {
   EventsServices: EventsServices[]
 }
 
-const MashguiachDashboardPage = () => {
+const AddEventFormPage = () => {
   const { data: session, status } = useSession()
   const userId = session?.user?.id || ''
   const [modalVisible, setModalVisible] = useState(false)
@@ -64,22 +65,12 @@ const MashguiachDashboardPage = () => {
   const [pdfFile, setPdfFile] = useState<File | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [storeList, setStoreList] = useState<Stores[]>([])
-  const [modal, setModal] = useState<MODAL>(MODAL['ADDRESS'])
+  const [modal, setModal] = useState<MODAL>(MODAL['EVENT'])
   const [events, setEvents] = useState<EventsWithServices[]>([])
-  const [createdEventId, setCreatedEventId] = useState<string>(`d9911e17-1e1b-4df4-bb8c-f450c3c056c6`)
-
-
-  const fetchEvents = async () => {
-    const response = await getEventByEstabelecimento(userId) // Atualize com sua rota real
-    if (response) {
-      setEvents(response)
-    }
-  }
-
-  if (!userId && status === 'authenticated') {
-    console.error('User ID não encontrado na sessão.')
-  }
-
+  const [createdEventId, setCreatedEventId] = useState<string>(
+    ``,
+  )
+  const [progress, setProgress] = useState<number>(40)
 
   const fetchStores = async () => {
     if (!session) {
@@ -119,7 +110,6 @@ const MashguiachDashboardPage = () => {
     }
 
     if (status === 'authenticated' && session?.user?.id) {
-      fetchEvents()
       fetchStores()
     }
   }, [status, session])
@@ -170,7 +160,8 @@ const MashguiachDashboardPage = () => {
         const result = await response.json()
         if (result) {
           setCreatedEventId(result.id)
-          setModal(MODAL['ADDRESS']);
+          setProgress(80)
+          setModal(MODAL['ADDRESS'])
           // router.push(`/app/estabelecimento/events/${result.event.id}`)
         } else {
           alert('Erro: ID do evento não encontrado.')
@@ -186,37 +177,18 @@ const MashguiachDashboardPage = () => {
 
   return (
     <>
-      <CRow className="mt-4">
-        <CRow className="mt-4 mb-4 align-items-center">
-          <CCol xs="auto" className="d-flex align-items-center">
-            <h3 className="me-3">Seus próximos eventos:</h3>
-            <CButton color="primary" size="sm" onClick={() => router.push('/app/estabelecimento/events/add')}>
-              Adicionar
-            </CButton>
-          </CCol>
-        </CRow>
-        <EventsStoreDashboard userId={userId} events={events} />
-      </CRow>
-
-      <CModal
-        size="xl"
-        visible={modalVisible}
-        onClose={() => setModalVisible(false)}
-        aria-labelledby="OptionalSizesExample1"
-      >
-        <CModalHeader>
-          <CModalTitle id="OptionalSizesExample1">
-            {modal === MODAL.EVENT && '1/2 - Adicionar um novo evento'}
-            {modal === MODAL.ADDRESS && '2/2 - Adicionar endereço ao evento'}
-          </CModalTitle>
-        </CModalHeader>
-        <CModalBody>
-          {modal === MODAL.EVENT && (
-            <>
-              <p className="text-body-secondary small">
-                Confira todos os dados do evento. Após o cadastro, o evento será enviado para
-                aprovação.
-              </p>
+      <>
+        {modal === MODAL.EVENT ? (<h3>1/2 - CRIAR NOVO EVENTO</h3>) : (<h3>2/2 ADICIONAR ENDEREÇOS E SOLICITAR MASHGUIACH</h3>) }
+        <CProgress color="secondary" value={progress} className="mb-2">
+          <CProgressBar className="text-white">{progress}%</CProgressBar>
+        </CProgress>
+        <CCard>
+          <CCardBody>
+            <p className="text-body-secondary small">
+              Confira todos os dados do evento. Após o cadastro, o evento será enviado para
+              aprovação.
+            </p>
+            {modal === MODAL.EVENT && (
               <form
                 className="row g-3"
                 onSubmit={handleSubmit(onSubmit)} // Remova o e.preventDefault() manual
@@ -342,25 +314,20 @@ const MashguiachDashboardPage = () => {
                 </CRow>
                 <CRow>
                   <CButton type="submit" color="primary" className="mt-3" disabled={disabled}>
-                    {disabled ? 'Aguarde...' : 'Adicionar Evento'}
+                    {disabled ? 'Aguarde...' : 'Próximo passo 2/2'}
                   </CButton>
+                  <label>Atenção: Após clicar acima, não poderá voltar! Verifique os dados!</label>
                 </CRow>
               </form>
-            </>
-          )}
+            )}
+                  {modal === MODAL.ADDRESS && <AddServiceToEventModal createdEventId={String(createdEventId)} />}
 
-{modal === MODAL.ADDRESS && createdEventId ? (
-  <AddModalAddress />
-) : <p>Carregando...</p>}
-
-        </CModalBody>
-      </CModal>
-      
-
-
+          </CCardBody>
+        </CCard>
+      </>
 
     </>
   )
 }
 
-export default MashguiachDashboardPage
+export default AddEventFormPage

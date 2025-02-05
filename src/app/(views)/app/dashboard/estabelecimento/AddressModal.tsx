@@ -48,7 +48,7 @@ type Props = {
   eventId: string
 }
 
-const AddModalAddress = ({ eventId }: Props) => {
+const AddModalAddress = () => {
   const [eventAddresses, setEventAddresses] = useState<EventsAdresses[]>([])
   const [arriveMashguiachTime, setArriveMashguiachTime] = useState<Date | null>(null)
   const [endMashguiachTime, setEndMashguiachTime] = useState<Date | null>(null)
@@ -104,48 +104,48 @@ const AddModalAddress = ({ eventId }: Props) => {
     }
   }
 
-  const fetchAllAddresses = async () => {
-    try {
-      const response = await getAddressByEventId(eventId)
-      setEventAddresses(Array.isArray(response) ? response : [])
-    } catch (error) {
-      console.error('Erro ao buscar endereços:', error)
-      setEventAddresses([])
-    }
-  }
+  // const fetchAllAddresses = async () => {
+  //   try {
+  //     const response = await getAddressByEventId(eventId)
+  //     setEventAddresses(Array.isArray(response) ? response : [])
+  //   } catch (error) {
+  //     console.error('Erro ao buscar endereços:', error)
+  //     setEventAddresses([])
+  //   }
+  // }
 
-  const handleDeleteAddress = (id: string) => {
-    deleteAddresToEvenet(id)
-    fetchAllAddresses()
-  }
+  // const handleDeleteAddress = (id: string) => {
+  //   deleteAddresToEvenet(id)
+  //   fetchAllAddresses()
+  // }
 
-  useEffect(() => {
-    if (arriveMashguiachTime && endMashguiachTime) {
-      const { price, hours } = calculatePrice(arriveMashguiachTime, endMashguiachTime)
-      setTotalPrice(price + transportPrice)
-      setTotalHours(hours)
-    }
-    fetchAllAddresses()
-  }, [arriveMashguiachTime, endMashguiachTime, transportPrice])
+  // useEffect(() => {
+  //   if (arriveMashguiachTime && endMashguiachTime) {
+  //     const { price, hours } = calculatePrice(arriveMashguiachTime, endMashguiachTime)
+  //     setTotalPrice(price + transportPrice)
+  //     setTotalHours(hours)
+  //   }
+  //   fetchAllAddresses()
+  // }, [arriveMashguiachTime, endMashguiachTime, transportPrice])
 
-  const onSubmit = handleSubmit(async (data) => {
-    try {
-      const formattedData = {
-        ...data,
-        storeEventId: eventId,
-      }
+  // const onSubmit = handleSubmit(async (data) => {
+  //   try {
+  //     const formattedData = {
+  //       ...data,
+  //       storeEventId: eventId,
+  //     }
 
-      await AddAddressToEvent(formattedData)
-      fetchAllAddresses()
-      alert('Endereço adicionado com sucesso!')
-    } catch (error) {
-      console.error(error)
-      alert('Ocorreu um erro ao adicionar o endereço.')
-    }
-  })
+  //     await AddAddressToEvent(formattedData)
+  //     fetchAllAddresses()
+  //     alert('Endereço adicionado com sucesso!')
+  //   } catch (error) {
+  //     console.error(error)
+  //     alert('Ocorreu um erro ao adicionar o endereço.')
+  //   }
+  // })
 
   return (
-    <CForm onSubmit={onSubmit}>
+    <CForm onSubmit={() => {}}>
       <CRow className="gy-3">
         <span>
           Agora é o moomento de colocar os endereço(s) do evento. Se for produção seleciona o tipo
@@ -344,11 +344,11 @@ const AddModalAddress = ({ eventId }: Props) => {
                 <CTableDataCell>{address.address_neighbor}</CTableDataCell>
                 <CTableDataCell>{address.address_city}</CTableDataCell>
                 <CTableDataCell>{address.address_zipcode}</CTableDataCell>
-                <CTableDataCell>
+                {/* <CTableDataCell>
                   <CButton color="danger" size="sm" onClick={() => handleDeleteAddress(address.id)}>
                     Remover
                   </CButton>
-                </CTableDataCell>
+                </CTableDataCell> */}
               </CTableRow>
             ))}
           </CTableBody>
@@ -361,4 +361,4 @@ const AddModalAddress = ({ eventId }: Props) => {
   )
 }
 
-export default AddModalAddress
+export default AddModalAddress;

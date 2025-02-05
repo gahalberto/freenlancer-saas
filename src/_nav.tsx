@@ -273,7 +273,7 @@ const _nav = [
     component: CNavItem,
     name: 'Criar Evento',
     roleId: [2, 3],
-    href: '/app/estabelecimento/events/create',
+    href: '/app/estabelecimento/events/add',
     icon: <CIcon icon={cilPlus} customClassName="nav-icon" />,
   },
   {
