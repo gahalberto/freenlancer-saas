@@ -64,7 +64,6 @@
     "cmdk": "^1.0.0",
     "crypto": "^1.0.1",
     "date-fns": "^2.30.0",
-    "date-fns-tz": "^3.2.0",
     "dompurify": "^3.1.6",
     "dotenv": "^16.4.7",
     "eslint": "8.57.0",
