@@ -1,4 +1,5 @@
 'use client'
+import { aproveEvent } from '@/app/_actions/events/aproveEvent'
 import { getAllEvents } from '@/app/_actions/events/getAllEvents'
 import {
   CBadge,
@@ -16,7 +17,9 @@ import {
   CCol,
 } from '@coreui/react-pro'
 import { EventsServices, StoreEvents, Stores } from '@prisma/client'
+import { EditIcon, EyeIcon, KeyIcon } from 'lucide-react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 
 type EventsWithServices = StoreEvents & {
@@ -28,14 +31,18 @@ const AdminSecondSection = () => {
   const [events, setEvents] = useState<EventsWithServices[]>([])
   const [visibleOffcanvas, setVisibleOffcanvas] = useState<string | null>(null)
 
+  const router = useRouter()
+
+  const fetchEvents = async () => {
+    const response = await getAllEvents() // Atualize com sua rota real
+    if (response) {
+      setEvents(response)
+    }
+  }
+
+  
   // Fetch events data from your API
   useEffect(() => {
-    const fetchEvents = async () => {
-      const response = await getAllEvents() // Atualize com sua rota real
-      if (response) {
-        setEvents(response)
-      }
-    }
 
     fetchEvents()
   }, [])
@@ -63,6 +70,11 @@ const AdminSecondSection = () => {
     return <p>Nenhum evento cadastrado.</p>
   }
 
+  const handleApproveEvent = (eventId: string, isApproved: boolean) => {
+    aproveEvent(eventId, isApproved);
+    fetchEvents()
+  }
+
   return (
     <div className="">
       <CRow className="g-4">
@@ -70,31 +82,42 @@ const AdminSecondSection = () => {
           <CCol key={event.id} xs={12} sm={6} md={4} lg={6}>
             <CCard>
               <CCardHeader>
-                <b>
+                <b style={{fontSize: '15px'}}>
                   {getDayOfWeek(event.date.toString())} -{' '}
                   {formatDateInPortuguese(event.date.toString())} -{' '}
-                  {event.isApproved ? (
-                    <CBadge size="sm" color="primary">
-                      APROVADO
-                    </CBadge>
-                  ) : (
-                    <CBadge size="sm" color="danger">
-                      PENDENTE
-                    </CBadge>
-                  )}{' '}
                 </b>
               </CCardHeader>
               <CCardBody>
                 <p>
                   <b>{event.store.title}</b> - {event.title}
                 </p>
-                <CButton
+                  <div style={{display: 'flex', gap: '4px'}}>
+                  <CButton
                   size="sm"
-                  color="primary"
+                  color="secondary"
                   onClick={() => setVisibleOffcanvas(event.id.toString())}
                 >
-                  Mostrar Detalhes
+                  <EyeIcon size={14} /> Mostrar Detalhes
                 </CButton>
+                
+                <CButton
+                  size="sm"
+                  className='text-white'
+                  color='secondary'
+                  onClick={() => router.push(`/app/admin/events/${event.id}`)}
+                > <EditIcon size={14} />
+                  Editar
+                </CButton>
+
+                <CButton
+                  size="sm"
+                  className='text-white'
+                  color={event.isApproved ? 'danger' : 'dark'}
+                  onClick={() => handleApproveEvent(event.id, event.isApproved)}
+                > <KeyIcon size={14} /> {event.isApproved ? 'Trancar' : 'Liberar'}
+                </CButton>
+
+                  </div>
                 <COffcanvas
                   placement="start"
                   visible={visibleOffcanvas === event.id.toString()}

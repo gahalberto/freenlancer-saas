@@ -135,7 +135,7 @@ const EditEventPage = ({ params }: ParamsType) => {
   }
 
   const handleAproveEvent = async (eventId: string, isApproved: boolean) => {
-    const updatedEvent = await aproveEvent(eventId, !isApproved)
+    const updatedEvent = await aproveEvent(eventId, isApproved)
     if (updatedEvent) {
       setEvent((prevEvent) =>
         prevEvent ? { ...prevEvent, isApproved: !prevEvent.isApproved } : prevEvent,

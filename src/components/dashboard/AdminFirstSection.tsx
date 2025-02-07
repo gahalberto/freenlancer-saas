@@ -47,7 +47,7 @@ const AdminFirstSection = () => {
             <CWidgetStatsC
               className="mb-3"
               icon={<CIcon icon={cilUser} height={36} />}
-              color="primary"
+              color="secondary"
               inverse
               progress={{ value: qtdMashguiach !== null ? (qtdMashguiach / 100) * 100 : 0 }} // Progresso baseado em qtdMashguiach
               title="QTD. MASHGUIACHIM"
@@ -60,7 +60,7 @@ const AdminFirstSection = () => {
             <CWidgetStatsC
               className="mb-3"
               icon={<CIcon icon={cilBurger} height={36} />}
-              color="primary"
+              color="secondary"
               inverse
               progress={{
                 value: qtdEstabelecimentos !== null ? (qtdEstabelecimentos / 100) * 100 : 0,

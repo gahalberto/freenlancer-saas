@@ -167,11 +167,11 @@ const EditEventPage = ({ params }: ParamsType) => {
     fetchStores()
     fetchEvent()
   }, [params.id, reset])
-
+  
   const onSubmit = async (data: FormData) => {
     try {
       // Corrige o deslocamento de fuso horário
-      const localDate = new Date(data.date + 'T00:00:00'); // Adiciona "T00:00:00" para tratar como local
+      const localDate = new Date(data.date + 'T00:00:00'); // Trata a data como local
       const formattedData = {
         ...data,
         date: localDate, // Envia como objeto Date no fuso horário correto
@@ -182,8 +182,8 @@ const EditEventPage = ({ params }: ParamsType) => {
       };
       console.log('Dados formatados:', formattedData);
       await updateEvents({ data: formattedData, eventId: params.id });
-      fetchEvent();
-      alert("Atualizado com sucesso")
+      fetchEvent(); // Atualiza os dados do evento após a edição
+      alert('Atualizado com sucesso');
     } catch (error) {
       console.error('Erro ao atualizar evento:', error);
     }

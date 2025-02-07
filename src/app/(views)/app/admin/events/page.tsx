@@ -20,27 +20,34 @@ import { Stores } from '@prisma/client'
 import { getAllEvents } from '@/app/_actions/events/getAllEvents'
 import { deleteEventById } from '@/app/_actions/events/deleteUserEvent'
 import { getPeddingEvent } from '@/app/_actions/events/getPendingEvents'
+import { aproveEvent } from '@/app/_actions/events/aproveEvent'
 
 type StoresWithEvents = Stores & {
   store: {
     title: string
   }
+  isApproved: boolean
 }
 
 const AdminEvents = () => {
   const { data: session, status } = useSession()
   const [storesList, setStoresList] = useState<StoresWithEvents[]>([])
 
-  useEffect(() => {
-    const fetchStores = async () => {
-      if (status === 'authenticated') {
-        const data = await getPeddingEvent()
-        setStoresList(data as any)
-      }
+  const fetchStores = async () => {
+    if (status === 'authenticated') {
+      const data = await getPeddingEvent()
+      setStoresList(data as any)
     }
+  }
 
+  useEffect(() => {
     fetchStores()
   }, [session, status])
+
+  const handleReleaseEvent = async (eventId: string, isApproved: boolean) => {
+    const approved = await aproveEvent(eventId, isApproved)
+    if (approved) fetchStores()
+  }
 
   const handleDeleteEvent = async (eventId: string) => {
     try {
@@ -75,21 +82,32 @@ const AdminEvents = () => {
                   <b> {store.store.title} </b> - {store.title}{' '}
                 </CTableDataCell>
                 <CTableDataCell>
-                <div className="flex items-center">
-                    <Link
-                      href={`/app/admin/events/${store.id}`}
-                      className="text-blue-600 hover:underline"
-                    >
-                    <CButton size="sm" color="primary" variant='outline'>
+                  <Link
+                    href={`/app/admin/events/${store.id}`}
+                    className="text-blue-600 hover:underline"
+                  >
+                    <CButton size="sm" color="primary" >
                       Editar
                     </CButton>
-
-                    </Link>
-                    <span className="mx-4 h-5 w-px bg-gray-300"></span>
-                    <CButton size="sm" color="danger" variant='outline' onClick={() => handleDeleteEvent(store.id)}>
-                      Excluir
-                    </CButton>
-                  </div>
+                  </Link>
+                </CTableDataCell>
+                <CTableDataCell>
+                  <CButton
+                    size="sm"
+                    color="warning"
+                    onClick={() => handleReleaseEvent(store.id, store.isApproved)}
+                  >
+                    {store.isApproved ? 'Trancar' : 'Liberar'}
+                  </CButton>
+                </CTableDataCell>
+                <CTableDataCell>
+                  <CButton
+                    size="sm"
+                    color="danger"
+                    onClick={() => handleDeleteEvent(store.id)}
+                  >
+                    Excluir
+                  </CButton>
                 </CTableDataCell>
               </CTableRow>
             ))}

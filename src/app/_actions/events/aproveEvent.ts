@@ -1,27 +1,17 @@
 "use server"
 
 import { db } from "@/app/_lib/prisma"
-import { authOptions } from "@/pages/api/auth/[...nextauth]";
-import { getServerSession } from "next-auth";
 
 export const aproveEvent = async (id: string, isApproved: boolean) => {
-    const session = await getServerSession(authOptions);
+    console.log("Recebido:", id, isApproved);
 
     try {
-        const event = await db.storeEvents.findUnique({
-            where: { id },
-        });
-
-        if (!event) {
-            throw new Error(`Evento com ID ${id} não encontrado.`);
-        }
-
         const updatedEvent = await db.storeEvents.update({
             where: { id },
-            data: {
-                isApproved: !!isApproved,
-            },
+            data: { isApproved: !isApproved },
         });
+
+        console.log("Atualizado:", updatedEvent);
 
         return updatedEvent;
     } catch (error) {
