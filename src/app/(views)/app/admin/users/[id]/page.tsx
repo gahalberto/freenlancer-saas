@@ -1,5 +1,6 @@
 import { db } from "@/app/_lib/prisma";
 import UserEditForm from "@/components/users/UserEditForm";
+import NewPasswordForm from "./NewPasswordForm";
 
 interface ParamsProps {
   params: {
@@ -18,5 +19,12 @@ export default async function UserInfo({ params }: ParamsProps) {
   }
 
   // Passe os dados para o Client Component
-  return <UserEditForm initialData={userInfo} />;
+  return(
+    <>
+    <div style={{ marginBottom: '20px' }}>
+    <UserEditForm initialData={userInfo} />
+    </div>
+     <NewPasswordForm initialData={userInfo}/>
+    </>
+  );
 }
