@@ -9,7 +9,7 @@ import { EventsServices } from '@prisma/client'
 import { useRouter } from 'next/navigation'
 
 const CalendarComponent = () => {
-  const [events, setEvents] = useState<{ title: string; start: Date; end: Date; url?: string }[]>(
+  const [events, setEvents] = useState<{ title: string; workType: string, start: Date; end: Date; url?: string }[]>(
     [],
   )
   const router = useRouter()
@@ -19,9 +19,13 @@ const CalendarComponent = () => {
       const data = await getAllServices() // Supondo que o serviço retorna os eventos
       const formattedEvents = data.map((event) => ({
         title: event.StoreEvents.title, // Nome do evento
+        workType: event.workType || 'none', // Nome do evento
         start: event.arriveMashguiachTime,
         end: event.endMashguiachTime,
         url: `/app/admin/events/${event.StoreEvents.id}`, // Link para os detalhes do evento
+        backgroundColor: event.workType === 'PRODUCAO' ? 'green' : 'blue', // Define a cor do evento
+        borderColor: event.workType === 'PRODUCAO' ? 'darkgreen' : 'darkblue', // Define a borda do evento
+        textColor: 'white' // Ajusta a cor do texto para melhor visibilidade  
       }))
       setEvents(formattedEvents)
     }

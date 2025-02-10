@@ -26,6 +26,14 @@ import { Certifications, User } from '@prisma/client'
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
 
+const daysOfWeek = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
+export interface WorkScheduleFormData {
+  day: string
+  timeIn: string | null
+  timeOut: string | null
+  isDayOff: boolean
+}
+
 const Estabelecimentos = () => {
   const [details, setDetails] = useState<number[]>([])
   const [storeData, setStoreData] = useState([])
@@ -33,7 +41,15 @@ const Estabelecimentos = () => {
   const [certificateSelected, setCertificateSelected] = useState('')
   const [modalVisible, setModalVisible] = useState(false)
   const [mashguiachSelected, setMashguiachSelected] = useState<string>('')
-
+  const [schedule, setSchedule] = useState<WorkScheduleFormData[]>(
+    daysOfWeek.map((day) => ({
+      day,
+      timeIn: '',
+      timeOut: '',
+      isDayOff: false
+    }))
+  )
+  
   const fetchEstabelecimentos = async () => {
     const estabelecimentos = await getAllStores()
     if (estabelecimentos) setStoreData(estabelecimentos as any)
@@ -88,7 +104,8 @@ const Estabelecimentos = () => {
   const [selectedStore, setSelectedStore] = useState('')
   const [mashguiachList, setMashguiachList] = useState<User[]>([])
   const [mashguiachOptions, setMashguiachOptions] = useState<User[]>([])
-  const [price, setPrice] = useState(0)
+  const [price, setPrice] = useState<number>()
+  const [salaryHour, setSalaryHour] = useState<number>()
 
   const handleCertificationAdded = () => {
     fetchEstabelecimentos() // Atualiza os dados da tabela
@@ -98,6 +115,18 @@ const Estabelecimentos = () => {
     setVisible(!visible)
     setSelectedStore(storeId)
   }
+
+  const handleSetSchedulePreset = (timeIn: string, timeOut: string) => {
+    setSchedule(
+      daysOfWeek.map((day) => ({
+        day,
+        timeIn,
+        timeOut,
+        isDayOff: false
+      }))
+    )
+  }
+
 
   const handleShowCertificate = (certification: any) => {
     setCertificateSelected(certification)
@@ -109,18 +138,26 @@ const Estabelecimentos = () => {
     setModalVisible(!modalVisible)
   }
 
-  const handleAddMashguiach = async () => {
+  const handleChangeSchedule = (index: number, field: keyof WorkScheduleFormData, value: string | boolean) => {
+    const updatedSchedule = [...schedule]
+    updatedSchedule[index][field] = value as never
+    setSchedule(updatedSchedule)
+  }
+
+  const handleSubmit = async () => {
+    if (!mashguiachSelected || !price || !salaryHour) {
+      alert('Selecione um Mashguiach e defina um salário válido!')
+      return
+    }
+
     try {
-      const res = await addMashguiachFixedJob(mashguiachSelected, selectedStore, price)
-      if (res) {
-        fetchEstabelecimentos()
-        setModalVisible(false)
-      }
-      setSelectedStore('')
-      setMashguiachSelected('')
-      setPrice(0)
+      await addMashguiachFixedJob(mashguiachSelected, selectedStore, price, salaryHour, schedule)
+      alert('Mashguiach registrado com sucesso!')
+      setModalVisible(false)
+      fetchEstabelecimentos()
     } catch (error) {
-      alert(error)
+      alert(error || 'Erro ao registrar Mashguiach')
+      console.error(error)
     }
   }
 
@@ -186,7 +223,6 @@ const Estabelecimentos = () => {
                 <p className="text-muted">
                   <b>T. Comercial:</b> {item.comercialPhone}
                 </p>
-                <p className="text-muted">
                 Certificados:
                 {item.Certifications &&
                   item.Certifications.map((certification: any, index: number) => (
@@ -200,16 +236,7 @@ const Estabelecimentos = () => {
                       {certification.title || `Certificado ${index + 1}`}
                     </CButton>
                   ))}
-                  </p>
-                  <p>Mashguichim Fixos:{" "}
-                  {item.fixedJobs && item.fixedJobs.length > 0
-                  ? item.fixedJobs
-                      .filter((job: any) => job.mashguiach) // Filtra somente os fixedJobs que possuem mashguiach
-                      .map((job: any) => job.mashguiach.name) // Mapeia para obter o nome do mashguiach
-                      .join(', ') || 'Não foram encontrados Mashguiach Fixo para esse estabelecimento!' // Junta os nomes em uma string separada por vírgulas ou exibe 'NAO TEM'
-                  : 'Não foram encontrados Mashguiach Fixo para esse estabelecimento!'}
-
-                  </p>
+                <p>Mashguichim Fixos:</p>
                 {/* Agrupamento dos botões */}
                 {/* Agrupamento dos botões */}
                 <div className="mb-3">
@@ -251,68 +278,98 @@ const Estabelecimentos = () => {
                     >
                       + Certificado
                     </CButton>
-                  </div>
+                    <CButton className="flex-fill ms-1" size="lg" color="primary" onClick={() => handleAddMashguiachModal(item.id)}>
+                Registrar Mashguiach
+              </CButton>
 
-                  {/* Linha 3: Registrar Mashguiach */}
-                  <div className="d-flex flex-row">
-                    <CButton
-                      className="flex-fill"
-                      size="lg"
-                      color="primary"
-                      style={{ marginBottom: '20px' }}
-                      onClick={() => handleAddMashguiachModal(item.id)}
-                    >
-                      Registrar Mashguiach ao estabelecimento
-                    </CButton>
                   </div>
+            <CModal visible={modalVisible} onClose={() => setModalVisible(false)}>
+        <CModalHeader>
+          <CModalTitle>Registro de Mashguiach</CModalTitle>
+        </CModalHeader>
+        <CModalBody>
+          <CForm>
+            <CCol>
+              <CFormLabel>Mashguiach:</CFormLabel>
+              <CFormSelect value={mashguiachSelected} onChange={(e) => setMashguiachSelected(e.target.value)}>
+                <option value="">Selecione um Mashguiach</option>
+                {mashguiachOptions.map((m) => (
+                  <option key={m.id} value={m.id}>
+                    {m.name}
+                  </option>
+                ))}
+              </CFormSelect>
+            </CCol>
+
+            <CCol style={{ marginTop: '10px' }}>
+              <CFormLabel>Salário</CFormLabel>
+              <CFormInput
+                type="number"
+                placeholder="R$"
+                value={price}
+                onChange={(e) => setPrice(Number(e.target.value))}
+              />
+            </CCol>
+
+            <CCol style={{ marginTop: '10px' }}>
+              <CFormLabel>Salário por hora:</CFormLabel>
+              <CFormInput
+                type="number"
+                placeholder="R$"
+                value={salaryHour}
+                onChange={(e) => setSalaryHour(Number(e.target.value))}
+              />
+            </CCol>
+
+            <h5 className="mt-3">Horários de Trabalho</h5>
+                        {/* Botões para preencher automaticamente os horários */}
+                        <div className="d-flex justify-content-between mb-3">
+              <CButton color="success" onClick={() => handleSetSchedulePreset('07:00', '16:00')}>
+                07:00 às 16:00
+              </CButton>
+              <CButton color="warning" onClick={() => handleSetSchedulePreset('16:00', '00:00')}>
+                16:00 às 00:00
+              </CButton>
+            </div>
+
+            {schedule.map((day, index) => (
+              <div key={day.day} className="d-flex align-items-center mb-2">
+                <CFormLabel className="me-2">{day.day}</CFormLabel>
+                <CFormInput
+                  type="time"
+                  value={day.timeIn || ''}
+                  onChange={(e) => handleChangeSchedule(index, 'timeIn', e.target.value)}
+                  disabled={day.isDayOff}
+                  className="me-2"
+                />
+                <CFormInput
+                  type="time"
+                  value={day.timeOut || ''}
+                  onChange={(e) => handleChangeSchedule(index, 'timeOut', e.target.value)}
+                  disabled={day.isDayOff}
+                  className="me-2"
+                />
+                <input
+                  type="checkbox"
+                  checked={day.isDayOff}
+                  onChange={(e) => handleChangeSchedule(index, 'isDayOff', e.target.checked)}
+                />
+                <label className="ms-2">Folga</label>
+              </div>
+            ))}
+          </CForm>
+        </CModalBody>
+        <CModalFooter>
+          <CButton color="secondary" onClick={() => setModalVisible(false)}>
+            Fechar
+          </CButton>
+          <CButton color="primary" onClick={handleSubmit}>
+            Salvar
+          </CButton>
+        </CModalFooter>
+      </CModal>
+
                 </div>
-                <CModal
-                  visible={modalVisible}
-                  onClose={() => setModalVisible(false)}
-                  aria-labelledby="LiveDemoExampleLabel"
-                >
-                  <CModalHeader>
-                    <CModalTitle id="LiveDemoExampleLabel">Registro de Mashguiach</CModalTitle>
-                  </CModalHeader>
-                  <CModalBody>
-                    {selectedStore}
-                    <CForm>
-                      <CCol md={3}>
-                        <CFormLabel>Mashguiach:</CFormLabel>
-                        <CFormSelect
-                          value={mashguiachSelected}
-                          onChange={(e) => setMashguiachSelected(e.target.value)}
-                        >
-                          <option key={0}>Selecione uma opção</option>
-                          {mashguiachOptions.map((m) => (
-                            <option key={m.id} value={m.id}>
-                              {m.name}
-                            </option>
-                          ))}
-                        </CFormSelect>
-                      </CCol>
-
-                      <CCol style={{ marginTop: '10px' }}>
-                        <CFormInput
-                          type="email"
-                          label="Salário"
-                          placeholder="R$"
-                          text="Valor em Reais."
-                          value={price}
-                          onChange={(e) => setPrice(Number(e.target.value))}
-                        />
-                      </CCol>
-                    </CForm>
-                  </CModalBody>
-                  <CModalFooter>
-                    <CButton color="secondary" onClick={() => setModalVisible(false)}>
-                      Close
-                    </CButton>
-                    <CButton onClick={handleAddMashguiach} color="primary">
-                      Salvar
-                    </CButton>
-                  </CModalFooter>
-                </CModal>
               </CCardBody>
             </CCollapse>
           ),

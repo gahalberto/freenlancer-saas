@@ -337,14 +337,30 @@ model FixedJobs {
   id              String    @id @default(uuid())
   store_id        String
   price           Int?
+  price_per_hour  Float
   user_id         String
+  timeIn          DateTime?
+  timeOut         DateTime?
   observationText String?
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
   deletedAt       DateTime?
 
-  mashguiach User   @relation(fields: [user_id], references: [id])
-  store      Stores @relation(fields: [store_id], references: [id])
+  WorkSchedule WorkSchedule[]
+  mashguiach   User           @relation(fields: [user_id], references: [id])
+  store        Stores         @relation(fields: [store_id], references: [id])
+}
+
+model WorkSchedule {
+  id         String  @id @default(uuid())
+  fixedJobId String
+  dayOfWeek  String // "Sunday", "Monday", etc.
+  timeIn     String? // "08:00", null se folga
+  timeOut    String? // "17:00", null se folga
+  isDayOff   Boolean @default(false) // Se é um dia de folga normal
+  sundayOff  Int? // Exemplo: 1 significa que o funcionário folga no 1º domingo do mês
+
+  fixedJob FixedJobs @relation(fields: [fixedJobId], references: [id], onDelete: Cascade)
 }
 
 model Notification {
