@@ -1,9 +1,28 @@
 'use client'
+import { addMashguiachFixedJob } from '@/app/_actions/admin/addMashguiachFixedJob'
+import { getAllMashguichim } from '@/app/_actions/getAllMashguichim'
 import { getAllStores } from '@/app/_actions/stores/getAllStores'
 import CertificateModal from '@/components/admin/estabelecimentos/certificationModal'
 import CertificationForm from '@/components/admin/estabelecimentos/CreateCertificationForm'
-import { CAvatar, CBadge, CButton, CCardBody, CCollapse, CSmartTable } from '@coreui/react-pro'
-import { Certifications } from '@prisma/client'
+import {
+  CAvatar,
+  CBadge,
+  CButton,
+  CCardBody,
+  CCol,
+  CCollapse,
+  CForm,
+  CFormInput,
+  CFormLabel,
+  CFormSelect,
+  CModal,
+  CModalBody,
+  CModalFooter,
+  CModalHeader,
+  CModalTitle,
+  CSmartTable,
+} from '@coreui/react-pro'
+import { Certifications, User } from '@prisma/client'
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
 
@@ -12,13 +31,23 @@ const Estabelecimentos = () => {
   const [storeData, setStoreData] = useState([])
   const [certificateVisible, setCertificateVisible] = useState(false)
   const [certificateSelected, setCertificateSelected] = useState('')
+  const [modalVisible, setModalVisible] = useState(false)
+  const [mashguiachSelected, setMashguiachSelected] = useState<string>('')
 
   const fetchEstabelecimentos = async () => {
     const estabelecimentos = await getAllStores()
     if (estabelecimentos) setStoreData(estabelecimentos as any)
   }
 
+  const fetchAllMashguichim = async () => {
+    const response = await getAllMashguichim()
+    if (response) {
+      setMashguiachOptions(response)
+    }
+  }
+
   useEffect(() => {
+    fetchAllMashguichim()
     fetchEstabelecimentos()
     console.log(`Users: ${storeData}`)
   }, [])
@@ -36,10 +65,6 @@ const Estabelecimentos = () => {
       _style: { width: '40%' },
     },
     {
-      key: 'status',
-      _style: { width: '20%' },
-    },
-    {
       key: 'show_details',
       label: '',
       _style: { width: '1%' },
@@ -47,21 +72,6 @@ const Estabelecimentos = () => {
       sorter: false,
     },
   ]
-
-  const getBadge = (status: string) => {
-    switch (status) {
-      case 'Active':
-        return 'success'
-      case 'Inactive':
-        return 'secondary'
-      case 'Pending':
-        return 'warning'
-      case 'Banned':
-        return 'danger'
-      default:
-        return 'primary'
-    }
-  }
 
   const toggleDetails = (index: number) => {
     const position = details.indexOf(index)
@@ -76,6 +86,9 @@ const Estabelecimentos = () => {
 
   const [visible, setVisible] = useState(false)
   const [selectedStore, setSelectedStore] = useState('')
+  const [mashguiachList, setMashguiachList] = useState<User[]>([])
+  const [mashguiachOptions, setMashguiachOptions] = useState<User[]>([])
+  const [price, setPrice] = useState(0)
 
   const handleCertificationAdded = () => {
     fetchEstabelecimentos() // Atualiza os dados da tabela
@@ -89,6 +102,26 @@ const Estabelecimentos = () => {
   const handleShowCertificate = (certification: any) => {
     setCertificateSelected(certification)
     setCertificateVisible(true)
+  }
+
+  const handleAddMashguiachModal = (storeId: string) => {
+    setSelectedStore(storeId)
+    setModalVisible(!modalVisible)
+  }
+
+  const handleAddMashguiach = async () => {
+    try {
+      const res = await addMashguiachFixedJob(mashguiachSelected, selectedStore, price)
+      if (res) {
+        fetchEstabelecimentos()
+        setModalVisible(false)
+      }
+      setSelectedStore('')
+      setMashguiachSelected('')
+      setPrice(0)
+    } catch (error) {
+      alert(error)
+    }
   }
 
   return (
@@ -126,9 +159,6 @@ const Estabelecimentos = () => {
               <CAvatar src={`/images/avatars/avatar.jpg`} />
             </td>
           ),
-          status: (item: any) => (
-            <td>{item.status && <CBadge color={getBadge(item.status)}>{item.status}</CBadge>}</td>
-          ),
           show_details: (item: any) => (
             <td className="py-2">
               <CButton
@@ -145,7 +175,6 @@ const Estabelecimentos = () => {
           details: (item) => (
             <CCollapse visible={details.includes(item.id)}>
               <CCardBody className="p-3">
-                <h4>{item.title}</h4>
                 <p className="text-muted">
                   <b>Endereço:</b> {item.address_street} {item.address_number},{' '}
                   {item.address_neighborhood}, {item.address_city} - {item.address_state} -{' '}
@@ -158,49 +187,138 @@ const Estabelecimentos = () => {
                   <b>T. Comercial:</b> {item.comercialPhone}
                 </p>
                 <p className="text-muted">
-                  Mashguiach fixo:
-                  {item.isMashguiach ? <b> Sim</b> : <b>: Não</b>}
-                </p>
-                <p className="text-muted">
-                  Certificados:
-                  {item.Certifications &&
-                    item.Certifications.map((certification: any, index: number) => (
-                      <CButton
-                        key={index}
-                        color="dark"
-                        onClick={() => handleShowCertificate(certification)}
-                      >
-                        {certification.title || `Certificado ${index + 1}`}
-                      </CButton>
-                    ))}
-                </p>
+                Certificados:
+                {item.Certifications &&
+                  item.Certifications.map((certification: any, index: number) => (
+                    <CButton
+                      key={index}
+                      color="dark"
+                      size="lg"
+                      className="m-1"
+                      onClick={() => handleShowCertificate(certification)}
+                    >
+                      {certification.title || `Certificado ${index + 1}`}
+                    </CButton>
+                  ))}
+                  </p>
+                  <p>Mashguichim Fixos:{" "}
+                  {item.fixedJobs && item.fixedJobs.length > 0
+                  ? item.fixedJobs
+                      .filter((job: any) => job.mashguiach) // Filtra somente os fixedJobs que possuem mashguiach
+                      .map((job: any) => job.mashguiach.name) // Mapeia para obter o nome do mashguiach
+                      .join(', ') || 'Não foram encontrados Mashguiach Fixo para esse estabelecimento!' // Junta os nomes em uma string separada por vírgulas ou exibe 'NAO TEM'
+                  : 'Não foram encontrados Mashguiach Fixo para esse estabelecimento!'}
 
-                <CButton className="m-1" size="sm" color="info" href={`./estabelecimentos/editar/${item.id}`}>
-                  Editar
-                </CButton>
-                <CButton size="sm" color="primary" className="m-1">
-                  <Link className="text-white no-underline" href={`https://wa.me/${item.phone}`}>
-                    Chamar no Whatsapp
-                  </Link>
-                </CButton>
-                <CButton size="sm" color="primary" className="m-1">
-                  Desativar
-                </CButton>
-                <CButton
-                  size="sm"
-                  color="primary"
-                  className="m-1"
-                  onClick={() => handleCertificationAddButton(item.id)}
+                  </p>
+                {/* Agrupamento dos botões */}
+                {/* Agrupamento dos botões */}
+                <div className="mb-3">
+                  {/* Linha 1: Editar Loja e Desativar */}
+                  <div className="d-flex flex-row mb-2">
+                    <CButton
+                      className="flex-fill me-1" // flex-fill faz o botão crescer; me-1 adiciona margem à direita
+                      size="lg"
+                      color="primary"
+                      href={`./estabelecimentos/editar/${item.id}`}
+                    >
+                      Editar Loja
+                    </CButton>
+                    <CButton
+                      className="flex-fill ms-1" // ms-1 adiciona margem à esquerda
+                      size="lg"
+                      color="primary"
+                      // onClick={() => handleDesativar(item.id)}
+                    >
+                      Desativar
+                    </CButton>
+                  </div>
+
+                  {/* Linha 2: Whatsapp e + Certificado */}
+                  <div className="d-flex flex-row mb-2">
+                    <CButton className="flex-fill me-1" size="lg" color="primary">
+                      <Link
+                        className="text-white no-underline"
+                        href={`https://wa.me/${item.phone}`}
+                      >
+                        Whatsapp
+                      </Link>
+                    </CButton>
+                    <CButton
+                      className="flex-fill ms-1"
+                      size="lg"
+                      color="primary"
+                      onClick={() => handleCertificationAddButton(item.id)}
+                    >
+                      + Certificado
+                    </CButton>
+                  </div>
+
+                  {/* Linha 3: Registrar Mashguiach */}
+                  <div className="d-flex flex-row">
+                    <CButton
+                      className="flex-fill"
+                      size="lg"
+                      color="primary"
+                      style={{ marginBottom: '20px' }}
+                      onClick={() => handleAddMashguiachModal(item.id)}
+                    >
+                      Registrar Mashguiach ao estabelecimento
+                    </CButton>
+                  </div>
+                </div>
+                <CModal
+                  visible={modalVisible}
+                  onClose={() => setModalVisible(false)}
+                  aria-labelledby="LiveDemoExampleLabel"
                 >
-                  Adicionar Certificado
-                </CButton>
+                  <CModalHeader>
+                    <CModalTitle id="LiveDemoExampleLabel">Registro de Mashguiach</CModalTitle>
+                  </CModalHeader>
+                  <CModalBody>
+                    {selectedStore}
+                    <CForm>
+                      <CCol md={3}>
+                        <CFormLabel>Mashguiach:</CFormLabel>
+                        <CFormSelect
+                          value={mashguiachSelected}
+                          onChange={(e) => setMashguiachSelected(e.target.value)}
+                        >
+                          <option key={0}>Selecione uma opção</option>
+                          {mashguiachOptions.map((m) => (
+                            <option key={m.id} value={m.id}>
+                              {m.name}
+                            </option>
+                          ))}
+                        </CFormSelect>
+                      </CCol>
+
+                      <CCol style={{ marginTop: '10px' }}>
+                        <CFormInput
+                          type="email"
+                          label="Salário"
+                          placeholder="R$"
+                          text="Valor em Reais."
+                          value={price}
+                          onChange={(e) => setPrice(Number(e.target.value))}
+                        />
+                      </CCol>
+                    </CForm>
+                  </CModalBody>
+                  <CModalFooter>
+                    <CButton color="secondary" onClick={() => setModalVisible(false)}>
+                      Close
+                    </CButton>
+                    <CButton onClick={handleAddMashguiach} color="primary">
+                      Salvar
+                    </CButton>
+                  </CModalFooter>
+                </CModal>
               </CCardBody>
             </CCollapse>
           ),
         }}
         selectable
-        sorterValue={{ column: 'status', state: 'asc' }}
-        tableFilter
+        sorterValue={{ column: 'name', state: 'asc' }}
         tableProps={{
           className: 'add-this-class',
           responsive: true,

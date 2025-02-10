@@ -50,7 +50,7 @@ model User {
   address_lat      String?
   address_lng      String?
   pixKey           String?               @default("")
-  deleteAt         DateTime?             
+  deleteAt         DateTime?
   Certifications   Certifications[]
   EventsServices   EventsServices[]
   mashguiachJobs   FixedJobs[]
@@ -59,8 +59,29 @@ model User {
   questionarios    MashguiachQuestions[]
   role             Role                  @relation(fields: [roleId], references: [id])
   synagogue        Synagogue?            @relation(fields: [synagogueId], references: [id])
+  TimeEntries      TimeEntries[]
 
   @@map("users")
+}
+
+enum TYPE_ENTRIES {
+  ENTRADA
+  SAIDA
+}
+
+model TimeEntries {
+  id        Int          @id @default(autoincrement())
+  user_id   String
+  store_id  String
+  type      TYPE_ENTRIES
+  data_hora DateTime
+  latitude  Float?
+  longitude Float?
+
+  user   User   @relation(fields: [user_id], references: [id])
+  stores Stores @relation(fields: [store_id], references: [id])
+
+  @@map("time_entries")
 }
 
 model Transaction {
@@ -208,9 +229,11 @@ model Stores {
   imageUrl         String?          @default("")
   menuUrl          String?          @default("")
   Certifications   Certifications[]
+  times_entries    TimeEntries[] // Defina como um array para refletir a relação one-to-many
   reports          Reports[]
   StoreEvents      StoreEvents[]
   storeType        StoresType       @relation(fields: [storeTypeId], references: [id])
+  fixedJobs        FixedJobs[]
 }
 
 model Certifications {
@@ -241,9 +264,9 @@ model StoreEvents {
   ownerId              String
   responsable          String?
   date                 DateTime
-  deletedAt  DateTime?    // Campo opcional
-  createdAt  DateTime     @default(now())
-  updatedAt  DateTime?     @updatedAt
+  deletedAt            DateTime? // Campo opcional
+  createdAt            DateTime         @default(now())
+  updatedAt            DateTime?        @updatedAt
   nrPax                Int
   clientName           String
   eventType            String
@@ -299,36 +322,29 @@ model EventsServices {
   reallyMashguiachEndTime DateTime?
   mashguiachPricePerHour  Float             @default(0)
   transport_price         Float?            @default(0)
-  address_zipcode  String?
-  address_street   String?
-  address_number   String?
-  address_neighbor String?
-  address_city     String?
-  address_state    String?
+  address_zipcode         String?
+  address_street          String?
+  address_number          String?
+  address_neighbor        String?
+  address_city            String?
+  address_state           String?
   StoreEvents             StoreEvents       @relation(fields: [StoreEventsId], references: [id])
   Mashguiach              User?             @relation(fields: [mashguiachId], references: [id])
   workType                WORKTYPE?
 }
 
 model FixedJobs {
-  id              String     @id @default(uuid())
-  title           String
-  restaurant      String
-  address         String
-  price           String
-  mashguiachId    String
-  observationText String
-  mashguiach      User       @relation(fields: [mashguiachId], references: [id])
-  workTimes       WorkTime[]
-}
+  id              String    @id @default(uuid())
+  store_id        String
+  price           Int?
+  user_id         String
+  observationText String?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  deletedAt       DateTime?
 
-model WorkTime {
-  id         Int        @id @default(autoincrement())
-  day        DaysOfWeek
-  startTime  Int
-  endTime    Int
-  fixedJobId String
-  fixedJob   FixedJobs  @relation(fields: [fixedJobId], references: [id])
+  mashguiach User   @relation(fields: [user_id], references: [id])
+  store      Stores @relation(fields: [store_id], references: [id])
 }
 
 model Notification {

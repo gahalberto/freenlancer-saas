@@ -85,15 +85,15 @@ const Map = ({ zipcode, showButtons }: TypeProps) => {
 
     return (
         <>
-            <GoogleMap mapContainerStyle={containerStyle} center={coordinates} zoom={15}>
+            <GoogleMap clickableIcons={false}  mapContainerStyle={containerStyle} center={coordinates} zoom={15}>
                 <Marker position={coordinates} />
                 {userLocation && <Marker position={userLocation} label="Sua Localização" />}
             </GoogleMap>
 
             {travelInfo && (
-                <div>
-                    <p><b>Tempo da sua casa ao evento:</b> {travelInfo.duration}</p>
-                    <p><b>Distancia da sua casa:</b> {travelInfo.distance}</p>
+                <div className="mt-2">
+                    <div><b>Tempo da sua casa ao evento:</b> {travelInfo.duration}</div>
+                    <div><b>Distancia da sua casa:</b> {travelInfo.distance}</div>
                 </div>
             )}
 

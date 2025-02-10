@@ -43,29 +43,40 @@ import { confirmExit } from '@/app/_actions/events/confirmExitTime'
 import { confirmEntrance } from '@/app/_actions/events/confirmHours'
 import EventInfoModal from '@/components/dashboard/EventsInfoModal'
 import { updateUserPix, userHasPix } from '@/app/_actions/users/hasPix'
+import NextEventsDashboard from './NextEvents'
+import { getNextEventsMashguiach } from '@/app/_actions/events/getNextEventsByMashguiach'
+import { db } from '@/app/_lib/prisma'
+import { MashguiachEntrace } from '@/app/_actions/time-entries/timeIn'
+import { MashguiachExit } from '@/app/_actions/time-entries/timeOut'
 
-// Extender o tipo EventsServices para incluir StoreEvents
+// Extendendo o tipo EventsServices para incluir StoreEvents
 interface EventsServicesWithStoreEvents extends EventsServices {
-  StoreEvents: StoreEvents // Adiciona a relação StoreEvents
+  StoreEvents: StoreEvents
+}
+
+type ServicesWithEvents = EventsServices & {
+  StoreEvents: StoreEvents
 }
 
 export default function MashguiachDashboard() {
-  // Chamar o hook `useSession` primeiro, sem condicional
+  // Obtém a sessão do usuário
   const { data: session, status } = useSession()
 
-  // Definimos os hooks de estado, sem condicional
+  // Estados da aplicação
   const [serviceData, setServiceData] = useState<EventsServicesWithStoreEvents[] | null>(null)
-  const [arriveMashguiachTime, setArriveMashguiachTime] = useState<Date | null>(new Date())
-  const [endMashguiachTime, setEndMashguiachTime] = useState<Date | null>(new Date())
   const [selectedEvent, setSelectedEvent] = useState<EventsServicesWithStoreEvents | null>(null)
-  const [visible, setVisible] = useState(false)
+  const [error, setError] = useState('')
   const [visibleInfoModal, setVisibleInfoModal] = useState(false)
   const [toast, addToast] = useState(0)
-  const toaster = useRef()
+  const toaster = useRef(null)
   const [hasPix, setHasPixKey] = useState('')
   const [pixKey, setPixKey] = useState('')
   const [visiblePix, setVisiblePix] = useState(false)
+  const [futuresEvents, setFuturesEvents] = useState<ServicesWithEvents[]>([])
+  const [latitude, setLatidude] = useState(0)
+  const [longitude, setLongitude] = useState(0)
 
+  // Toast de exemplo para confirmação
   const exampleToast = (
     <CToast
       autohide={false}
@@ -74,20 +85,20 @@ export default function MashguiachDashboard() {
       className="text-white align-items-center"
     >
       <div className="d-flex">
-        <CToastBody>✅ Check-in/Check-out feito com sucesso.</CToastBody>
+        <CToastBody>✅ Entrada/Saída registrado com sucesso!</CToastBody>
         <CToastClose className="me-2 m-auto" white />
       </div>
     </CToast>
   )
 
-  const fetchHasPix = async () => {
-    const userId = session?.user?.id
+  const userId = session?.user?.id
 
+  // Função para buscar se o usuário possui chave Pix cadastrada
+  const fetchHasPix = async () => {
     if (!userId) {
       console.error('User ID is undefined')
       return
     }
-
     const response = await userHasPix(userId)
     if (response) {
       setHasPixKey(response.pixKey || '')
@@ -95,72 +106,137 @@ export default function MashguiachDashboard() {
     }
   }
 
+  // Função para buscar os eventos do dia atual
   const fetchEvents = async () => {
-    const today = new Date() // Pega a data atual
-    const response = await getServicesByDate(today) // Passa a data atual para a função
+    const today = new Date()
+    const response = await getServicesByDate(today)
     if (response.length > 0) {
       setServiceData(response)
     }
   }
 
-  // Hook para buscar eventos quando o componente é montado
+  // Função para buscar os próximos eventos
+  const fetchFuturesEvents = async () => {
+    if (userId) {
+      const res = await getNextEventsMashguiach(userId)
+      setFuturesEvents(res)
+    }
+  }
+
+  // Busca os dados assim que a sessão estiver disponível
   useEffect(() => {
     if (session?.user?.id) {
       fetchHasPix()
       fetchEvents()
+      fetchFuturesEvents()
     }
   }, [session?.user?.id])
-  // Exibe uma mensagem de carregamento até que o status da sessão seja "authenticated"
+
   if (status === 'loading') {
     return <p>Carregando...</p>
   }
 
-  console.log('Session data:', session)
-
-  // Verifica se o usuário não está autenticado
   if (status === 'unauthenticated') {
     return <p>Usuário não autenticado</p>
   }
 
-  // Quando a sessão está autenticada, podemos usar os valores da sessão
   const userName = session?.user?.name || 'Usuário'
   const hasAnsweredQuestions = session?.user?.asweredQuestions || false
-
-  const handleConfirmEntrance = async (item: any) => {
-    setSelectedEvent(item)
-    setVisible(true)
-  }
-
-  const handleSaveEntrace = async (id: string) => {
-    const utcDate = new Date(arriveMashguiachTime as Date).toISOString() // Converte para UTC
-    await confirmEntrance(id, new Date(utcDate))
-    setSelectedEvent(null)
-    setVisible(false)
-    addToast(exampleToast as any)
-  }
-
-  const handleSaveExit = async (id: any) => {
-    confirmExit(id, endMashguiachTime as Date)
-    setSelectedEvent(null)
-    setVisible(false)
-    addToast(exampleToast as any)
-  }
 
   const handleInfoModal = (event: EventsServicesWithStoreEvents) => {
     setVisibleInfoModal(true)
     setSelectedEvent(event)
   }
 
-  console.log(hasPix)
-
   const onPixSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     await updateUserPix(session?.user?.id as string, pixKey)
   }
 
-  console.log(hasPix)
+  const getUserLocation = (): Promise<GeolocationPosition> => {
+    return new Promise((resolve, reject) => {
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(resolve, reject)
+      } else {
+        reject(new Error('Geolocalização não é suportada pelo seu navegador.'))
+      }
+    })
+  }
+
+  // Função para registrar a entrada após obter a localização
+  const handleConfirmEntrace = async () => {
+    if (!userId) {
+      alert('Não foi possível salvar seu usuário! Por favor entre em contato com a administração')
+      return
+    }
+
+    const now = new Date()
+    if (
+      !confirm(
+        `Você está registrando entrada ao serviço no dia ${now.toLocaleDateString()} às ${now.toTimeString()}`,
+      )
+    ) {
+      return
+    }
+
+    try {
+      // Tenta obter a localização do usuário
+      const position = await getUserLocation()
+      const { latitude, longitude } = position.coords
+      setLatidude(latitude)
+      setLongitude(longitude)
+
+      // Registra a entrada com a localização obtida
+      await MashguiachEntrace(userId, latitude, longitude)
+      addToast(exampleToast as any)
+    } catch (error: any) {
+      console.error('Erro ao registrar entrada:', error.message)
+      alert(error.message)
+    }
+  }
+
+  const handleRegisterExit = async () => {
+    if (!userId) {
+      alert('Não foi possível salvar seu usuário! Por favor entre em contato com a administração')
+      return
+    }
+
+    const now = new Date()
+    if (
+      !confirm(
+        `Você está registrando saída ao serviço no dia ${now.toLocaleDateString()} às ${now.toTimeString()}`,
+      )
+    ) {
+      return
+    }
+
+    try {
+      // Tenta obter a localização do usuário
+      const position = await getUserLocation()
+      const { latitude, longitude } = position.coords
+      setLatidude(latitude)
+      setLongitude(longitude)
+
+      // Registra a entrada com a localização obtida
+      await MashguiachExit(userId, latitude, longitude)
+      addToast(exampleToast as any)
+    } catch (error: any) {
+      console.error('Erro ao registrar entrada:', error.message)
+      alert(error.message)
+    }
+  }
+
+
   return (
     <>
+      <div className="d-flex flex-column mb-10" style={{ marginBottom: '10px' }}>
+        <CButton color="primary" size="lg" className="mb-2" onClick={handleConfirmEntrace}>
+          Registrar Entrada
+        </CButton>
+        <CButton color="warning" size="lg" onClick={handleRegisterExit}>
+          Registrar Saída
+        </CButton>
+      </div>
       {!hasAnsweredQuestions && <DangerAlert />}
       {hasPix.length === 0 && visiblePix && (
         <CCard style={{ marginBottom: '20px' }}>
@@ -187,123 +263,6 @@ export default function MashguiachDashboard() {
           </CCardBody>
         </CCard>
       )}
-      {/* Agrupando os cards em um único CRow */}
-      {visibleInfoModal && (
-        <EventInfoModal
-          visible={visibleInfoModal}
-          onClose={() => setVisibleInfoModal(visible)}
-          selectedEvent={selectedEvent}
-        />
-      )}
-      <CRow>
-        {serviceData?.map((item) => (
-          <>
-            {(!item.reallyMashguiachArrive || !item.reallyMashguiachEndTime) && (
-              <CCol xs={12} sm={12} md={12}>
-                <CCard
-                  textBgColor="warning"
-                  className="mb-3  transition duration-300 hover:bg-blue-500 hover:text-white" // Classe Tailwind para mudar cor no hover
-                  textColor="dark"
-                  onMouseEnter={(e) => (e.currentTarget.style.transform = 'scale(1.05)')} // Efeito de zoom ao passar o mouse
-                  onMouseLeave={(e) => (e.currentTarget.style.transform = 'scale(1)')} // Remove o efeito ao retirar o mouse
-                >
-                  <CCardHeader>
-                    <CCardTitle>
-                      <CIcon icon={cilWarning} style={{ marginRight: 10 }} />
-                      <b>Você tem um evento HOJE!</b>
-                    </CCardTitle>
-                  </CCardHeader>
-                  <CCardBody className="flex justify-center text-center items-center">
-                    <p>
-                      <b>{item.StoreEvents?.title}</b>{' '}
-                    </p>
-
-                    <CCol>
-                      <CButton
-                        color="light"
-                        size="sm"
-                        className="mt-2 mb-2"
-                        onClick={() => handleInfoModal(item as any)}
-                      >
-                        <CIcon icon={cilNotes} /> Ver detalhes
-                      </CButton>
-                    </CCol>
-
-                    <CButton
-                      color="light"
-                      size="sm"
-                      className="mt-2"
-                      onClick={() => handleConfirmEntrance(item.id)}
-                    >
-                      <CIcon icon={cilClock} /> Confirmar horário de entrada/saída
-                    </CButton>
-                  </CCardBody>
-                </CCard>
-              </CCol>
-            )}
-
-            <CModal visible={visible} onClose={() => setVisible(false)}>
-              <CModalHeader closeButton>Detalhes do Evento</CModalHeader>
-              <CModalBody>
-                {selectedEvent ? (
-                  <>
-                    <CFormLabel>
-                      Confirmar Horário de <b>Entrada</b>:
-                    </CFormLabel>
-                    <CDatePicker
-                      timepicker
-                      locale="pt-BR"
-                      onDateChange={(date: Date | null) => {
-                        if (date) {
-                          const selectedDate = new Date(date)
-                          setArriveMashguiachTime(selectedDate) // Atualiza o estado com a data e hora selecionada
-                        }
-                      }}
-                    />
-                    <CCol md={12} className="text-center mt-3">
-                      <CButton
-                        color="info"
-                        size="sm"
-                        className="mt-2"
-                        onClick={() => handleSaveEntrace(item.id)}
-                      >
-                        <CIcon icon={cilClock} /> Confirmar horário de Entrada
-                      </CButton>
-                    </CCol>
-
-                    <CFormLabel className="mt-4">
-                      Confirmar Horário de <b>Saída</b>:
-                    </CFormLabel>
-                    <CDatePicker
-                      timepicker
-                      locale="pt-BR"
-                      onDateChange={(date: Date | null) => {
-                        if (date) {
-                          const selectedDate = new Date(date)
-                          setEndMashguiachTime(selectedDate) // Atualiza o estado com a data e hora selecionada
-                        }
-                      }}
-                    />
-                    <CCol md={12} className="text-center mt-3">
-                      <CButton
-                        color="dark"
-                        size="sm"
-                        className="mt-2"
-                        onClick={() => handleSaveExit(item.id)}
-                      >
-                        <CIcon icon={cilClock} /> Confirmar horário de Saída
-                      </CButton>
-                    </CCol>
-                  </>
-                ) : (
-                  <p>Nenhum evento selecionado.</p>
-                )}
-              </CModalBody>
-            </CModal>
-          </>
-        ))}
-      </CRow>
-
       <CRow style={{ justifyItems: 'center', alignItems: 'center' }}>
         <CCol xs={12} sm={6} md={4}>
           <MashguiachButtonGroup
@@ -332,24 +291,14 @@ export default function MashguiachDashboard() {
             color="primary"
           />
         </CCol>
-        <CCol xs={12} sm={6} md={4}>
-          <MashguiachButtonGroup
-            url="app/relatorios/create"
-            title="Criar Relatório"
-            textColor="white"
-            icon={cilPlus}
-            color="primary"
-          />
-        </CCol>
-        <CCol xs={12} sm={6} md={4}>
-          <MashguiachButtonGroup
-            url="/app/courses"
-            title="Cursos"
-            textColor="white"
-            icon={cilStar}
-            color="primary"
-          />
-        </CCol>
+      </CRow>
+      <CRow className="mt-4">
+        <CRow className="mt-4 mb-4 align-items-center">
+          <CCol xs="auto" className="d-flex align-items-center">
+            <h3 className="me-3">Seus próximos eventos confirmados:</h3>
+          </CCol>
+        </CRow>
+        {userId && <NextEventsDashboard userId={userId} services={futuresEvents} />}
       </CRow>
       <CToaster className="p-3" placement="top-end" push={toast as any} ref={toaster as any} />
     </>
