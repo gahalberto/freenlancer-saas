@@ -1,3 +1,4 @@
+import { getEntriesByDay, getExitByDay } from '@/app/_actions/banco-de-horas/getMashguiachEntriesCount'
 import { getMashguiachCount } from '@/app/_actions/dashboards/getMashguiachCount'
 import { getStoreCount } from '@/app/_actions/dashboards/getStoreCount'
 import { getEventsToAproveCount } from '@/app/_actions/events/getEventsToAproveCount'
@@ -11,6 +12,8 @@ const AdminFirstSection = () => {
   const [qtdMashguiach, setQtdMashguiach] = useState<number | null>(null)
   const [qtdEstabelecimentos, setQtdEstabelecimentos] = useState<number | null>(null)
   const [eventToAprove, setEventToAprove] = useState<number | null>(null)
+  const [entriesCount, setEntriesCount] = useState(0);
+  const [exitCount, setExitCount] = useState(0);
 
   const [loading, setLoading] = useState(true)
 
@@ -19,6 +22,12 @@ const AdminFirstSection = () => {
       try {
         const mashguiachCount = await getMashguiachCount()
         setQtdMashguiach(mashguiachCount)
+        
+        const entryCount = await getEntriesByDay();
+        setEntriesCount(entryCount);
+
+        const exitCount = await getExitByDay();
+        setExitCount(exitCount);
 
         const estabelecimentosCount = await getStoreCount()
         setQtdEstabelecimentos(estabelecimentosCount)
@@ -84,6 +93,33 @@ const AdminFirstSection = () => {
             />
           </Link>
         </CCol>
+
+
+        <CCol xs={4} md={4} lg={4}>
+            <CWidgetStatsC
+              className="mb-3"
+              icon={<CIcon icon={cilWarning} height={36} />}
+              color={`${eventToAprove ? `secondary` : 'primary'}`}
+              inverse
+              progress={{ value: eventToAprove !== null ? (eventToAprove / 100) * 100 : 0 }} // Progresso baseado em qtdEstabelecimentos
+              title="ENTRADAS"
+              value={entriesCount !== null ? entriesCount : '0'}
+            />
+        </CCol>
+
+        <CCol xs={4} md={4} lg={4}>
+            <CWidgetStatsC
+              className="mb-3"
+              icon={<CIcon icon={cilWarning} height={36} />}
+              color={`${eventToAprove ? `secondary` : 'primary'}`}
+              inverse
+              progress={{ value: eventToAprove !== null ? (eventToAprove / 100) * 100 : 0 }} // Progresso baseado em qtdEstabelecimentos
+              title="Saídas Registradas"
+              value={entriesCount !== null ? entriesCount : '0'}
+            />
+        </CCol>
+
+
       </CRow>
     </>
   )
