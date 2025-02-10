@@ -102,13 +102,6 @@ const Users = () => {
             <CAvatar src={`/images/avatars/avatar.jpg`} />
           </td>
         ),
-        status: (item: any) => (
-          <td>
-            {item.deleteAt ? (
-              <CBadge color="danger">DESATIVADO</CBadge>
-            ) : (<CBadge color="success">ATIVO</CBadge>)}
-          </td>
-        ),
         show_details: (item: any) => {
           return (
             <td className="py-2">
