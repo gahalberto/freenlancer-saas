@@ -66,6 +66,7 @@ const NextEventsDashboard = ({ userId, services }: Props) => {
                 <b>
                   {service.StoreEvents.title} -{' '}
                   {formatDateInPortuguese(service.arriveMashguiachTime.toString())} -{' '}
+                  {service.StoreEvents.isApproved ? (<CBadge color='warning'>EVENTO APROVADO</CBadge>) : (<CBadge color='warning'>EVENTO PENDENTE</CBadge>)}
                 </b>
                 <CButton
                   size="sm"

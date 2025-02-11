@@ -152,6 +152,7 @@ const RegisterForm = () => {
             <CIcon icon={cilMap} />
           </CInputGroupText>
           <CFormInput
+            type='number'
             placeholder="Digite o número"
             autoComplete="address"
             {...register('address_number')}

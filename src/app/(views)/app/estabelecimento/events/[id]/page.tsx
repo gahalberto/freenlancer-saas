@@ -30,7 +30,7 @@ import {
   CToastHeader,
 } from '@coreui/react-pro'
 import { EventsAdresses, StoreEvents, Stores } from '@prisma/client'
-import { useSession } from 'next-auth/react'
+import { getSession, useSession } from 'next-auth/react'
 import { useEffect, useRef, useState } from 'react'
 import { deleteAddresToEvenet } from '@/app/_actions/events/deleteAddresToEvent'
 import { useForm } from 'react-hook-form'
@@ -81,6 +81,7 @@ type FormData = z.infer<typeof schema>
 
 const EditEventPage = ({ params }: ParamsType) => {
   const { data: session, status } = useSession()
+  
   const [disabled, setDisabled] = useState(true)
   const [event, setEvent] = useState<EventWithOwner | null>(null)
   const [selectedDate, setSelectedDate] = useState<Date | null>(null)
@@ -112,27 +113,19 @@ const EditEventPage = ({ params }: ParamsType) => {
     const response = await getEventInfo(params.id)
     if (response) {
       setEvent(response as EventWithOwner)
-      setSelectedDate(new Date(response.date))
-
-      // Habilita os campos apenas se o usuário tiver o role necessário
-      if (session?.user.roleId === 3) {
-        setDisabled(false)
-      } else {
-        setDisabled(true)
-      }
+      reset({
+        title: response.title || '',
+        responsable: response.responsable || '',
+        responsableTelephone: response.responsableTelephone || '',
+        nrPax: response.nrPax ? String(response.nrPax) : '',
+        store: response.store?.id || '',
+        eventType: response.eventType || '',
+        serviceType: response.serviceType || '',
+        date: response.date ? new Date(response.date).toISOString().split('T')[0] : '',
+      })
     }
   }
 
-  const fetchStores = async () => {
-    try {
-      const response = await getAllStores()
-      if (response) {
-        setStoreList(response)
-      }
-    } catch (error) {
-      console.error('Erro ao buscar lojas:', error)
-    }
-  }
 
   const handleAproveEvent = async (eventId: string, isApproved: boolean) => {
     const updatedEvent = await aproveEvent(eventId, !isApproved)
@@ -148,23 +141,23 @@ const EditEventPage = ({ params }: ParamsType) => {
   }
 
   useEffect(() => {
-    const fetchEvent = async () => {
-      const response = await getEventInfo(params.id)
-      if (response) {
-        setEvent(response as EventWithOwner)
-        reset({
-          title: response.title || '',
-          responsable: response.responsable || '',
-          responsableTelephone: response.responsableTelephone || '',
-          nrPax: response.nrPax ? String(response.nrPax) : '',
-          store: response.store?.id || '',
-          eventType: response.eventType || '',
-          serviceType: response.serviceType || '',
-          date: response.date ? new Date(response.date).toISOString().split('T')[0] : '',
-        })
+    const fetchStores = async () => {
+      const session = await getSession();
+
+      if (!session || !session.user || !session.user.id) {
+        console.error('Sessão ou ID do usuário não encontrado');
+        return;
+      }
+      try {
+        const response = await getStores(session?.user.id as string)
+        if (response) {
+          setStoreList(response)
+        }
+      } catch (error) {
+        console.error('Erro ao buscar lojas:', error)
       }
     }
-    fetchStores()
+    fetchStores();
     fetchEvent()
   }, [params.id, reset])
   
