@@ -64,13 +64,13 @@ const NextEventsDashboard = ({ userId, services }: Props) => {
             <CCard>
               <CCardHeader>
                 <b>
+                {service.StoreEvents.isApproved ? (<CBadge color='warning'>EVENTO APROVADO</CBadge>) : (<CBadge color='danger'>EVENTO PENDENTE</CBadge>)} | { " "}
                   {service.StoreEvents.title} -{' '}
-                  {formatDateInPortuguese(service.arriveMashguiachTime.toString())} -{' '}
-                  {service.StoreEvents.isApproved ? (<CBadge color='warning'>EVENTO APROVADO</CBadge>) : (<CBadge color='warning'>EVENTO PENDENTE</CBadge>)}
+                  {formatDateInPortuguese(service.arriveMashguiachTime.toString())} {' '}
                 </b>
                 <CButton
                   size="sm"
-                  color="primary"
+                  variant='outline'
                   onClick={() => setVisibleOffcanvas(service.id.toString())}
                 >
                   Mostrar Detalhes
