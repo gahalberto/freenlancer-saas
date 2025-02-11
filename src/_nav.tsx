@@ -102,6 +102,12 @@ const _nav = [
         href: '/app/admin/events/estabelecimento',
         icon: <CIcon icon={cilCircle} customClassName="nav-icon" />,
       },
+      {
+        component: CNavItem,
+        name: 'Por Mashguiach',
+        href: '/app/admin/events/mashguiach',
+        icon: <CIcon icon={cilCircle} customClassName="nav-icon" />,
+      },
 
     ]
   },
