@@ -25,6 +25,7 @@ import { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
 import AddServiceToEventModal from './addService'
+import { set } from 'date-fns'
 
 const schema = z.object({
   title: z.string().min(1, { message: 'Digite um título para o evento' }),
@@ -36,13 +37,7 @@ const schema = z.object({
   store: z.string().min(1, { message: 'Selecione uma loja' }),
   eventType: z.string().min(1, { message: 'Digite o tipo do evento, bar mitzvah?' }),
   serviceType: z.string().min(1, { message: 'O que será servido? Qual tipo de serviço?' }),
-  date: z.string().refine(
-    (value) => {
-      const date = new Date(value)
-      return !isNaN(date.getTime())
-    },
-    { message: 'Data inválida' },
-  ),
+  date: z.date(),
 })
 
 type FormData = z.infer<typeof schema>
@@ -268,13 +263,21 @@ const AddEventFormPage = () => {
                     <CFormLabel>Dia do Evento:</CFormLabel>
                     <CDatePicker
                       disabled={disabled}
-                      onDateChange={(date) => {
-                        if (date instanceof Date && !isNaN(date.getTime())) {
-                          setValue('date', date.toISOString().split('T')[0]) // Atualiza o campo do formulário diretamente
-                        } else {
-                          setValue('date', '') // Limpa o campo
+                      onDateChange={(date: Date | null) => {
+                        if (date) {
+                          setValue('date', date)
                         }
                       }}
+
+                      //                onDateChange={(date: Date | null) => setArriveMashguiachTime(date || null)}
+
+                      // onDateChange={(date) => {
+                      //   if (date instanceof Date && !isNaN(date.getTime())) {
+                      //     setValue('date', date.toISOString().split('T')[0]) // Atualiza o campo do formulário diretamente
+                      //   } else {
+                      //     setValue('date', '') // Limpa o campo
+                      //   }
+                      // }}
                     />
                     {errors.date && <p>{errors.date.message}</p>}
                   </CCol>

@@ -121,11 +121,12 @@ const EditEventPage = ({ params }: ParamsType) => {
         store: response.store?.id || '',
         eventType: response.eventType || '',
         serviceType: response.serviceType || '',
-        date: response.date ? new Date(response.date).toISOString().split('T')[0] : '',
+        date: response.date.toLocaleDateString(),
       })
     }
   }
 
+  console.log(event )
 
   const handleAproveEvent = async (eventId: string, isApproved: boolean) => {
     const updatedEvent = await aproveEvent(eventId, !isApproved)
@@ -279,6 +280,7 @@ const EditEventPage = ({ params }: ParamsType) => {
                 <CCol md={6}>
                   <CFormLabel>Dia do Evento:</CFormLabel>
                   <CDatePicker
+                    locale="pt-BR"
                     onDateChange={(date) => {
                       if (date instanceof Date && !isNaN(date.getTime())) {
                         setValue('date', date.toISOString().split('T')[0]) // Formato para o backend
