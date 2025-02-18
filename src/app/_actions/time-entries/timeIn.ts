@@ -4,9 +4,9 @@ import { db } from "@/app/_lib/prisma"
 
 export const MashguiachEntrace = async (userId: string, latitude?: number, longitude?: number) => {
   try {
-    const store = await db.stores.findFirst({
+    const store = await db.fixedJobs.findFirst({
       where: {
-        mashguiachId: userId,
+        user_id: userId,
       },
       select: {
         id: true
