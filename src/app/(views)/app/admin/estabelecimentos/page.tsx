@@ -2,6 +2,7 @@
 import { addMashguiachFixedJob } from '@/app/_actions/admin/addMashguiachFixedJob'
 import { getAllMashguichim } from '@/app/_actions/getAllMashguichim'
 import { getAllStores } from '@/app/_actions/stores/getAllStores'
+import CertificateModal from '@/components/admin/estabelecimentos/certificationModal'
 import CertificationForm from '@/components/admin/estabelecimentos/CreateCertificationForm'
 import {
   CAvatar,
@@ -24,8 +25,6 @@ import {
 import { Certifications, User } from '@prisma/client'
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
-import jsPDF from 'jspdf'
-import html2canvas from 'html2canvas'
 
 const daysOfWeek = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
 export interface WorkScheduleFormData {
@@ -38,6 +37,8 @@ export interface WorkScheduleFormData {
 const Estabelecimentos = () => {
   const [details, setDetails] = useState<number[]>([])
   const [storeData, setStoreData] = useState([])
+  const [certificateVisible, setCertificateVisible] = useState(false)
+  const [certificateSelected, setCertificateSelected] = useState('')
   const [modalVisible, setModalVisible] = useState(false)
   const [mashguiachSelected, setMashguiachSelected] = useState<string>('')
   const [schedule, setSchedule] = useState<WorkScheduleFormData[]>(
@@ -48,7 +49,7 @@ const Estabelecimentos = () => {
       isDayOff: false
     }))
   )
-
+  
   const fetchEstabelecimentos = async () => {
     const estabelecimentos = await getAllStores()
     if (estabelecimentos) setStoreData(estabelecimentos as any)
@@ -64,6 +65,7 @@ const Estabelecimentos = () => {
   useEffect(() => {
     fetchAllMashguichim()
     fetchEstabelecimentos()
+    console.log(`Users: ${storeData}`)
   }, [])
 
   const columns = [
@@ -100,6 +102,7 @@ const Estabelecimentos = () => {
 
   const [visible, setVisible] = useState(false)
   const [selectedStore, setSelectedStore] = useState('')
+  const [mashguiachList, setMashguiachList] = useState<User[]>([])
   const [mashguiachOptions, setMashguiachOptions] = useState<User[]>([])
   const [price, setPrice] = useState<number>()
   const [salaryHour, setSalaryHour] = useState<number>()
@@ -122,6 +125,12 @@ const Estabelecimentos = () => {
         isDayOff: false
       }))
     )
+  }
+
+
+  const handleShowCertificate = (certification: any) => {
+    setCertificateSelected(certification)
+    setCertificateVisible(true)
   }
 
   const handleAddMashguiachModal = (storeId: string) => {
@@ -152,64 +161,19 @@ const Estabelecimentos = () => {
     }
   }
 
-  // Função para gerar o PDF diretamente
-  const handleDownloadPDF = async (certificate: any, storename: string) => {
-    console.log('Gerando PDF do certificado:', certificate)
-    const element = document.createElement('div')
-    element.style.width = '297mm'
-    element.style.height = '210mm'
-    element.style.position = 'absolute'
-    element.style.left = '-9999px'
-    element.style.backgroundImage = `url('/images/certificado.png')`
-    element.style.backgroundSize = 'cover'
-    element.style.backgroundPosition = 'center'
-    element.style.padding = '5%'
-
-    // Adiciona o conteúdo do certificado ao elemento
-    element.innerHTML = `
-      <div style="position: absolute; top: 35%; left: 10%; width: 80%; text-align: center; font-family: Arial, sans-serif;">
-        <h1 style="font-family: 'Cardo', serif; font-size: 20px; font-weight: bold; margin-bottom: 10px;">
-          ${storename || 'Nome do Estabelecimento'}
-        </h1>
-        <h2 style="font-size: 16px; color: red; margin-bottom: 20px;">
-          ${certificate.HashgachotType || 'Tipo não informado'}
-        </h2>
-        <p style="font-size: 12px; margin-bottom: 10px;">
-          <b>${certificate.description || 'Descrição em português não disponível'}</b>
-        </p>
-        <p style="font-size: 12px; margin-bottom: 20px;">
-          ${certificate.englishDescription || 'Descrição em inglês não disponível'}
-        </p>
-        <p style="font-size: 10px; margin-bottom: 5px;">
-          <b>Data de expedição:</b> ${certificate.issueDate ? new Date(certificate.issueDate).toLocaleDateString('pt-BR') : 'Data não informada'}
-        </p>
-        <p style="font-size: 10px; margin-bottom: 5px;">
-          <b>Data de validade:</b> ${certificate.validationDate ? new Date(certificate.validationDate).toLocaleDateString('pt-BR') : 'Data não informada'}
-        </p>
-        <p style="font-size: 10px; margin-top: 20px;">
-          Obs: ${certificate.observation || 'Sem observações adicionais'}
-        </p>
-      </div>
-    `
-
-    document.body.appendChild(element)
-
-    const canvas = await html2canvas(element, { scale: 2 })
-    const pdf = new jsPDF('l', 'mm', 'a4')
-    const imgData = canvas.toDataURL('image/png')
-    pdf.addImage(imgData, 'PNG', 0, 0, 297, 210)
-    pdf.save('certificado.pdf')
-
-    document.body.removeChild(element)
-  }
-
   return (
     <>
       <CertificationForm
         selectedStore={selectedStore}
         visible={visible}
         setVisible={setVisible}
-        onCertificationAdded={handleCertificationAdded}
+        onCertificationAdded={handleCertificationAdded} // Passa o callback
+      />
+
+      <CertificateModal
+        visible={certificateVisible}
+        setVisible={setCertificateVisible}
+        certificateId={certificateSelected}
       />
 
       <CSmartTable
@@ -267,16 +231,19 @@ const Estabelecimentos = () => {
                       color="dark"
                       size="lg"
                       className="m-1"
-                      onClick={() => handleDownloadPDF(certification, item.title)}
+                      onClick={() => handleShowCertificate(certification)}
                     >
                       {certification.title || `Certificado ${index + 1}`}
                     </CButton>
                   ))}
                 <p>Mashguichim Fixos:</p>
+                {/* Agrupamento dos botões */}
+                {/* Agrupamento dos botões */}
                 <div className="mb-3">
+                  {/* Linha 1: Editar Loja e Desativar */}
                   <div className="d-flex flex-row mb-2">
                     <CButton
-                      className="flex-fill me-1"
+                      className="flex-fill me-1" // flex-fill faz o botão crescer; me-1 adiciona margem à direita
                       size="lg"
                       color="primary"
                       href={`./estabelecimentos/editar/${item.id}`}
@@ -284,13 +251,16 @@ const Estabelecimentos = () => {
                       Editar Loja
                     </CButton>
                     <CButton
-                      className="flex-fill ms-1"
+                      className="flex-fill ms-1" // ms-1 adiciona margem à esquerda
                       size="lg"
                       color="primary"
+                      // onClick={() => handleDesativar(item.id)}
                     >
                       Desativar
                     </CButton>
                   </div>
+
+                  {/* Linha 2: Whatsapp e + Certificado */}
                   <div className="d-flex flex-row mb-2">
                     <CButton className="flex-fill me-1" size="lg" color="primary">
                       <Link
@@ -309,9 +279,96 @@ const Estabelecimentos = () => {
                       + Certificado
                     </CButton>
                     <CButton className="flex-fill ms-1" size="lg" color="primary" onClick={() => handleAddMashguiachModal(item.id)}>
-                      Registrar Mashguiach
-                    </CButton>
+                Registrar Mashguiach
+              </CButton>
+
                   </div>
+            <CModal visible={modalVisible} onClose={() => setModalVisible(false)}>
+        <CModalHeader>
+          <CModalTitle>Registro de Mashguiach</CModalTitle>
+        </CModalHeader>
+        <CModalBody>
+          <CForm>
+            <CCol>
+              <CFormLabel>Mashguiach:</CFormLabel>
+              <CFormSelect value={mashguiachSelected} onChange={(e) => setMashguiachSelected(e.target.value)}>
+                <option value="">Selecione um Mashguiach</option>
+                {mashguiachOptions.map((m) => (
+                  <option key={m.id} value={m.id}>
+                    {m.name}
+                  </option>
+                ))}
+              </CFormSelect>
+            </CCol>
+
+            <CCol style={{ marginTop: '10px' }}>
+              <CFormLabel>Salário</CFormLabel>
+              <CFormInput
+                type="number"
+                placeholder="R$"
+                value={price}
+                onChange={(e) => setPrice(Number(e.target.value))}
+              />
+            </CCol>
+
+            <CCol style={{ marginTop: '10px' }}>
+              <CFormLabel>Salário por hora:</CFormLabel>
+              <CFormInput
+                type="number"
+                placeholder="R$"
+                value={salaryHour}
+                onChange={(e) => setSalaryHour(Number(e.target.value))}
+              />
+            </CCol>
+
+            <h5 className="mt-3">Horários de Trabalho</h5>
+                        {/* Botões para preencher automaticamente os horários */}
+                        <div className="d-flex justify-content-between mb-3">
+              <CButton color="success" onClick={() => handleSetSchedulePreset('07:00', '16:00')}>
+                07:00 às 16:00
+              </CButton>
+              <CButton color="warning" onClick={() => handleSetSchedulePreset('16:00', '00:00')}>
+                16:00 às 00:00
+              </CButton>
+            </div>
+
+            {schedule.map((day, index) => (
+              <div key={day.day} className="d-flex align-items-center mb-2">
+                <CFormLabel className="me-2">{day.day}</CFormLabel>
+                <CFormInput
+                  type="time"
+                  value={day.timeIn || ''}
+                  onChange={(e) => handleChangeSchedule(index, 'timeIn', e.target.value)}
+                  disabled={day.isDayOff}
+                  className="me-2"
+                />
+                <CFormInput
+                  type="time"
+                  value={day.timeOut || ''}
+                  onChange={(e) => handleChangeSchedule(index, 'timeOut', e.target.value)}
+                  disabled={day.isDayOff}
+                  className="me-2"
+                />
+                <input
+                  type="checkbox"
+                  checked={day.isDayOff}
+                  onChange={(e) => handleChangeSchedule(index, 'isDayOff', e.target.checked)}
+                />
+                <label className="ms-2">Folga</label>
+              </div>
+            ))}
+          </CForm>
+        </CModalBody>
+        <CModalFooter>
+          <CButton color="secondary" onClick={() => setModalVisible(false)}>
+            Fechar
+          </CButton>
+          <CButton color="primary" onClick={handleSubmit}>
+            Salvar
+          </CButton>
+        </CModalFooter>
+      </CModal>
+
                 </div>
               </CCardBody>
             </CCollapse>
