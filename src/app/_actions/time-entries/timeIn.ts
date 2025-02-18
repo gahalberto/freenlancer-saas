@@ -3,6 +3,9 @@
 import { db } from "@/app/_lib/prisma"
 
 export const MashguiachEntrace = async (userId: string, latitude?: number, longitude?: number) => {
+  console.log('userId', userId);
+  console.log('latitude', latitude);
+  console.log('longitude', longitude);
   try {
     const store = await db.fixedJobs.findFirst({
       where: {
