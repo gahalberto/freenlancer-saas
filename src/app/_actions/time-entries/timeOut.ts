@@ -9,7 +9,7 @@ export const MashguiachExit = async (userId: string, latitude?: number, longitud
         user_id: userId,
       },
       select: {
-        id: true
+        store_id: true
       }
     });
     
@@ -41,7 +41,7 @@ export const MashguiachExit = async (userId: string, latitude?: number, longitud
     return await db.timeEntries.create({
       data: {
         user_id: userId,
-        store_id: store.id, // Certifique-se de usar o ID correto
+        store_id: store.store_id, // Certifique-se de usar o ID correto
         type: 'SAIDA',
         data_hora: new Date(),
         latitude: latitude || 999,
