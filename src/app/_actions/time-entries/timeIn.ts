@@ -26,34 +26,33 @@ export const MashguiachEntrace = async (userId: string, latitude?: number, longi
     const inicioDeAmanha = new Date(inicioDoDia);
     inicioDeAmanha.setDate(inicioDeAmanha.getDate() + 1);
     
-
     const alreadyExists = await db.timeEntries.findFirst({
         where: {
+            user_id: userId,  // Verifica apenas as entradas do usuário atual
             data_hora: {
-                gte: inicioDoDia,   // data_hora maior ou igual ao início de hoje
-                lt: inicioDeAmanha, // data_hora menor que o início de amanhã          
+                gte: inicioDoDia,  
+                lt: inicioDeAmanha,       
             },
             type: 'ENTRADA',
         }
-    })
+    });
 
-    if(alreadyExists){
+    if (alreadyExists) {
         throw new Error('Você já registrou uma entrada hoje!');
     }
     
     return await db.timeEntries.create({
       data: {
         user_id: userId,
-        store_id: store.id, // Certifique-se de usar o ID correto
+        store_id: store.id, 
         type: 'ENTRADA',
         data_hora: new Date(),
-        latitude: latitude || 999,
-        longitude: longitude || 999,
+        latitude: latitude ?? null,  // Usa null em vez de 999
+        longitude: longitude ?? null, 
       },
     });
   } catch (error: any) {
     console.error("Erro no server ao registrar entrada:", error);
-    // Lança um novo erro com uma mensagem mais amigável
-    throw new Error(error || "Não foi possível registrar sua entrada. Por favor, entre em contato com a administração.");
+    throw new Error(error.message || "Não foi possível registrar sua entrada. Por favor, entre em contato com a administração.");
   }
 }
