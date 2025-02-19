@@ -12,7 +12,7 @@ export const MashguiachEntrace = async (userId: string, latitude?: number, longi
         user_id: userId,
       },
       select: {
-        id: true
+        store_id: true
       }
     });
     
@@ -44,7 +44,7 @@ export const MashguiachEntrace = async (userId: string, latitude?: number, longi
     return await db.timeEntries.create({
       data: {
         user_id: userId,
-        store_id: store.id, 
+        store_id: store.store_id, 
         type: 'ENTRADA',
         data_hora: new Date(),
         latitude: latitude ?? null,  // Usa null em vez de 999
