@@ -108,7 +108,12 @@ const _nav = [
         href: '/app/admin/events/mashguiach',
         icon: <CIcon icon={cilCircle} customClassName="nav-icon" />,
       },
-
+      {
+        component: CNavItem,
+        name: 'Finalizar eventos',
+        href: '/app/services/finalizar',
+        icon: <CIcon icon={cilMoney} customClassName="nav-icon" />,
+      },
     ]
   },
   {
@@ -317,13 +322,7 @@ const _nav = [
     href: '/app/theme/colors',
     icon: <CIcon icon={cilSearch} customClassName="nav-icon" />,
   },
-  {
-    component: CNavItem,
-    name: 'Finalizar eventos',
-    roleId: [2, 3],
-    href: '/app/services/finalizar',
-    icon: <CIcon icon={cilMoney} customClassName="nav-icon" />,
-  },
+
 ]
 
 export default _nav

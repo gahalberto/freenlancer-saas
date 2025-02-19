@@ -3,45 +3,35 @@
 import { useSession } from 'next-auth/react'
 import { useEffect, useState } from 'react'
 import {
-  CButton,
   CCard,
   CCardBody,
-  CCardHeader,
-  CCardTitle,
   CMultiSelect,
   CTable,
   CTableBody,
   CTableDataCell,
-  CTableHead,
   CTableHeaderCell,
   CTableRow,
 } from '@coreui/react-pro'
-import Link from 'next/link'
-import { StoreEvents, Stores } from '@prisma/client'
-import { getAllEvents } from '@/app/_actions/events/getAllEvents'
-import { deleteEventById } from '@/app/_actions/events/deleteUserEvent'
-import { getPeddingEvent } from '@/app/_actions/events/getPendingEvents'
-import StoreListTable from '@/components/stores/StoreListTable'
-import { getAllStores } from '@/app/_actions/stores/getAllStores'
-import { getEventByEstabelecimento } from '@/app/_actions/events/getEventByEstabelecimento'
-import { getEventsByStoreId } from '@/app/_actions/events/getEventsByStoreId'
+import { Stores, TimeEntries, User } from '@prisma/client'
+import { getAllMashguichim } from '@/app/_actions/getAllMashguichim'
+import { getTimesByUser } from '@/app/_actions/time-entries/getTimesByUser'
 
-type StoresWithEvents = Stores & {
-  store: {
-    title: string
-  }
+type TimeEntriesTypes = TimeEntries & {
+  user: User
+  stores: Stores
 }
 
 const TimeEntriesPage = () => {
   const { data: session, status } = useSession()
-  const [storesList, setStoresList] = useState<Stores[]>([])
+  const [storesList, setStoresList] = useState<User []>([])
   const [selectedStoreId, setSelectedStoreId] = useState<string | null>(null);
-  const [events, setEvents] = useState<StoreEvents[]>([])
+  const [times, setTimes] = useState<TimeEntriesTypes []>([])
+  const [addresses, setAddresses] = useState<{ [key: string]: string }>({}) // Estado para armazenar os endereços
 
   useEffect(() => {
     const fetchStores = async () => {
       if (status === 'authenticated') {
-        const data = await getAllStores()
+        const data = await getAllMashguichim()
         setStoresList(data as any)
       }
     }
@@ -52,21 +42,9 @@ const TimeEntriesPage = () => {
   }, [session, status])
 
   const options = storesList.map(store => ({
-    label: store.title,
+    label: store.name,
     value: store.id
   }))
-
-
-
-  const handleDeleteEvent = async (eventId: string) => {
-    try {
-      await deleteEventById(eventId)
-
-      setStoresList((prev) => prev.filter((store) => store.id !== eventId))
-    } catch (error) {
-      console.error('Erro ao excluir evento:', error)
-    }
-  }
 
   if (status === 'loading') {
     return <p>Carregando...</p>
@@ -84,11 +62,39 @@ const TimeEntriesPage = () => {
   };
 
   const fetchEventsByStore = async (id: string) => {
-    const res = await getEventsByStoreId(id);
-    setEvents(res)
-    if(res) console.log(res)
+    const res = await getTimesByUser(id);
+    setTimes(res);
+
+    // Buscar endereços para todas as entradas
+    res.forEach((time) => {
+      if (time.latitude && time.longitude) {
+        fetchAddress(String(time.id), time.latitude, time.longitude);
+      }
+    });
   }
-  
+
+  // Função para buscar endereço usando a API do Google Maps
+  const fetchAddress = async (id: string, lat: number, lng: number) => {
+    if (addresses[id]) return; // Evita buscar duas vezes o mesmo endereço
+
+    const API_KEY = process.env.NEXT_PUBLIC_GOOGLE_API; // Substitua pela sua chave de API
+    const url = `https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${lng}&key=${API_KEY}`;
+
+    try {
+      const response = await fetch(url);
+      const data = await response.json();
+
+      if (data.status === 'OK' && data.results.length > 0) {
+        const formattedAddress = data.results[0].formatted_address;
+        setAddresses(prev => ({ ...prev, [id]: formattedAddress }));
+      } else {
+        setAddresses(prev => ({ ...prev, [id]: 'Endereço não encontrado' }));
+      }
+    } catch (error) {
+      console.error('Erro ao buscar endereço:', error);
+      setAddresses(prev => ({ ...prev, [id]: 'Erro ao buscar' }));
+    }
+  };
 
   return (
 <>
@@ -103,29 +109,52 @@ const TimeEntriesPage = () => {
       <CCardBody>
         <CTable>
           <CTableBody>
-            {events.map((store, index) => (
-              <CTableRow key={store.id}>
+            <CTableRow>
+              <CTableHeaderCell scope="col">#</CTableHeaderCell>
+              <CTableHeaderCell scope="col">ID</CTableHeaderCell>
+              <CTableHeaderCell scope="col">USUÁRIO</CTableHeaderCell>
+              <CTableHeaderCell scope="col">ESTABELECIMENTO</CTableHeaderCell>
+              <CTableHeaderCell scope="col">DIA/HORÁRIO</CTableHeaderCell>
+              <CTableHeaderCell scope="col">TIPO</CTableHeaderCell>
+              <CTableHeaderCell scope="col">LOCALIDADE</CTableHeaderCell>
+            </CTableRow>
+            {times.map((time, index) => (
+              <CTableRow key={time.id}>
                 <CTableHeaderCell scope="row">{index + 1}</CTableHeaderCell>
                 <CTableDataCell>
-                  <b> {store.title} </b> - {store.title}{' '}
+                  <b> {time.id} </b> {' '}
                 </CTableDataCell>
                 <CTableDataCell>
                   <div className="flex items-center">
-                    <Link
-                      href={`/app/admin/events/${store.id}`}
-                      className="text-blue-600 hover:underline"
-                    >
-                    <CButton size="sm" color="primary" variant='outline'>
-                      Editar
-                    </CButton>
-
-                    </Link>
-                    <span className="mx-4 h-5 w-px bg-gray-300"></span>
-                    <CButton size="sm" color="danger" variant='outline' onClick={() => handleDeleteEvent(store.id)}>
-                      Excluir
-                    </CButton>
+                  <span className="mx-4 h-5 w-px bg-gray-300">{time.user.name}</span>
                   </div>
                 </CTableDataCell>
+                <CTableDataCell>
+                  <div className="flex items-center">
+                  <span className="mx-4 h-5 w-px bg-gray-300">{time.stores.title}</span>
+                  </div>
+                </CTableDataCell>
+
+                <CTableDataCell>
+                  <div className="flex items-center">
+                  <span className="mx-4 h-5 w-px bg-gray-300">{time.data_hora.toLocaleDateString()} {time.data_hora.toLocaleTimeString()}</span>
+                  </div>
+                </CTableDataCell>
+                <CTableDataCell>
+                  <div className="flex items-center">
+                  <span className="mx-4 h-5 w-px bg-gray-300">{time.type}</span>
+                  </div>
+                </CTableDataCell>
+
+                {/* Exibir endereço */}
+                <CTableDataCell>
+                  <div className="flex items-center">
+                    <span className="mx-4 h-5 w-px bg-gray-300">
+                      {addresses[time.id] || 'Carregando...'}
+                    </span>
+                  </div>
+                </CTableDataCell>
+
               </CTableRow>
             ))}
           </CTableBody>
