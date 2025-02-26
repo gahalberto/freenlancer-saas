@@ -32,7 +32,7 @@ model User {
   password         String
   synagogueId      Int?
   roleId           Int
-  isAdminPreview   Boolean               @default(false)
+  isAdminPreview   Boolean?              @default(false)
   createdAt        DateTime              @default(now())
   updatedAt        DateTime              @updatedAt
   status           Boolean               @default(true)
