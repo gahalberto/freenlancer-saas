@@ -30,7 +30,7 @@ type StoresWithEvents = Stores & {
 }
 
 const AdminEvents = () => {
-  const session = useUserSession()
+  const {session} = useUserSession()
   const [storesList, setStoresList] = useState<StoresWithEvents[]>([])
   const [isMobile, setIsMobile] = useState<boolean>(false)
 

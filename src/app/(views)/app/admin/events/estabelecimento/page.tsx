@@ -36,7 +36,7 @@ type StoresWithEvents = Stores & {
 }
 
 const AdminEvents = () => {
-  const session = useUserSession()
+  const {session} = useUserSession()
   const [storesList, setStoresList] = useState<Stores[]>([])
   const [selectedStoreId, setSelectedStoreId] = useState<string | null>(null)
   const [events, setEvents] = useState<StoreEvents[]>([])

@@ -41,7 +41,7 @@ type PropsType = {
 }
 
 const AddServiceToEventModal = ({ fetchAll, visible, onClose, StoreEventsId }: PropsType) => {
-  const session = useUserSession()
+  const {session} = useUserSession()
   const [credits, setCredits] = useState(0)
   const [mashguiachOptions, setMashguiachOptions] = useState<User[]>([])
   const [productionOrEvent, setProductionOrEvent] = useState<string>('')

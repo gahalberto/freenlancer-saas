@@ -84,7 +84,7 @@ const schema = z.object({
 type FormData = z.infer<typeof schema>
 
 const EditEventPage = ({ params }: ParamsType) => {
-  const session = useUserSession()
+  const {session} = useUserSession()
   const [disabled, setDisabled] = useState(true)
   const [event, setEvent] = useState<EventWithOwner | null>(null)
   const [selectedDate, setSelectedDate] = useState<Date | null>(null)

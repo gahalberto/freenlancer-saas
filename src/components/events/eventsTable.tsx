@@ -37,7 +37,7 @@ interface ServiceType extends EventsServices {
 }
 
 export const EventsTableByEvent = ({ eventStoreId }: PropsType) => {
-  const session = useUserSession()
+  const {session} = useUserSession()
 
   const [eventServicesList, setEventServiceList] = useState<ServiceType[]>([])
   const [visible, setVisible] = useState(false)

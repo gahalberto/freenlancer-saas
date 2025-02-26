@@ -58,7 +58,7 @@ interface ServiceType extends EventsServices {
 }
 
 const AddServiceToEventModal = ({ createdEventId }: PropsType) => {
-  const session = useUserSession()
+  const {session} = useUserSession()
   const [credits, setCredits] = useState(0)
   const [mashguiachOptions, setMashguiachOptions] = useState<User[]>([])
   const [productionOrEvent, setProductionOrEvent] = useState<string>('')
