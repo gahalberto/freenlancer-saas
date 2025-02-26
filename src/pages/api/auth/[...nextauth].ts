@@ -42,7 +42,7 @@ export const authOptions: NextAuthOptions = {
           name: user.name,
           email: user.email,
           roleId: user.roleId,
-          isAdminPreview: user.isAdminPreview,
+          isAdminPreview: user.isAdminPreview ?? false, // 🔥 Garante que nunca seja null
           asweredQuestions: user.asweredQuestions ?? undefined,
         };
       },
