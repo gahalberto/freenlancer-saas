@@ -1,6 +1,7 @@
 import { logo } from '@/public/brand/logo'
 import CIcon from '@coreui/icons-react'
 import {
+  CBadge,
   CCollapse,
   CContainer,
   CNavbar,

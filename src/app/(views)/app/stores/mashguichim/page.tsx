@@ -83,7 +83,7 @@ const StoreMashguichimPage = () => {
         style={{ marginBottom: '20px' }}
         size="lg"
         color="primary"
-        onClick={() => setModalVisible(!modalVisible)}
+        onClick={() => alert("vasfg")}
       >
         Registrar Mashguiach ao estabelecimento
       </CButton>

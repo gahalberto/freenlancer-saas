@@ -40,6 +40,10 @@ import AddAddressModal from '../../../estabelecimento/events/[id]/AddAddressForm
 import { updateEvents } from '@/app/_actions/events/updateEvents'
 import { getStores } from '@/app/_actions/stores/getStores'
 import { getAllStores } from '@/app/_actions/stores/getAllStores'
+import { useUserSession } from '@/contexts/sessionContext'
+import CIcon from '@coreui/icons-react'
+import { cilArrowLeft } from '@coreui/icons'
+import { useRouter } from 'next/navigation'
 
 interface ParamsType {
   params: {
@@ -80,12 +84,11 @@ const schema = z.object({
 type FormData = z.infer<typeof schema>
 
 const EditEventPage = ({ params }: ParamsType) => {
-  const { data: session, status } = useSession()
+  const session = useUserSession()
   const [disabled, setDisabled] = useState(true)
   const [event, setEvent] = useState<EventWithOwner | null>(null)
   const [selectedDate, setSelectedDate] = useState<Date | null>(null)
   const [storeList, setStoreList] = useState<Stores[]>([])
-  const [toasts, setToasts] = useState([]) // Estado para controlar toasts
 
   const {
     register,
@@ -115,7 +118,7 @@ const EditEventPage = ({ params }: ParamsType) => {
       setSelectedDate(new Date(response.date))
 
       // Habilita os campos apenas se o usuário tiver o role necessário
-      if (session?.user.roleId === 3) {
+      if (session?.roleId === 3) {
         setDisabled(false)
       } else {
         setDisabled(true)
@@ -171,7 +174,7 @@ const EditEventPage = ({ params }: ParamsType) => {
   const onSubmit = async (data: FormData) => {
     try {
       // Corrige o deslocamento de fuso horário
-      const localDate = new Date(data.date + 'T00:00:00'); // Adiciona "T00:00:00" para tratar como local
+      const localDate = new Date(data.date + 'T00:00:00') // Adiciona "T00:00:00" para tratar como local
       const formattedData = {
         ...data,
         date: localDate, // Envia como objeto Date no fuso horário correto
@@ -179,43 +182,38 @@ const EditEventPage = ({ params }: ParamsType) => {
         store: {
           connect: { id: data.store },
         },
-      };
-      console.log('Dados formatados:', formattedData);
-      await updateEvents({ data: formattedData, eventId: params.id });
-      fetchEvent();
+      }
+      await updateEvents({ data: formattedData, eventId: params.id })
+      fetchEvent()
     } catch (error) {
-      console.error('Erro ao atualizar evento:', error);
+      console.error('Erro ao atualizar evento:', error)
     }
-  };
-  
+  }
+
+  const router = useRouter()
+
   return (
-    <CRow>
+    <>
+      <CButton color="light" size="sm" onClick={() => router.back()} className="flex items-left">
+        <CIcon icon={cilArrowLeft} size="lg" className="mr-2" /> Voltar
+      </CButton>
       <CCol xs={12}>
-        {!event?.isApproved && (
-          <CCardTitle className="text-center mb-4">
-            <CBadge color="danger">ATENÇÃO: Analise o evento e libere!</CBadge>
-          </CCardTitle>
-        )}
         <CCard className="mb-4">
           <CCardHeader className="d-flex justify-content-between align-items-center">
             <div>
               Evento criado por: <strong>{event?.eventOwner?.name} </strong>
             </div>
-            {session?.user.roleId === 3 && (
+            {(session?.roleId === 3 || session?.roleId === 4) && (
               <CButton
                 onClick={() => handleAproveEvent(event?.id as string, event?.isApproved as boolean)}
-                color="primary"
+                color="secondary" disabled={session?.roleId !== 3}
               >
-                {event?.isApproved ? 'Trancar evento' : 'Liberar evento'}
+                {event?.isApproved ? 'TRANCAR EVENTO' : 'APROVAR EVENTO'}
               </CButton>
             )}
           </CCardHeader>
           <CCardBody>
             <form className="row g-3" onSubmit={handleSubmit(onSubmit)}>
-              <p className="text-body-secondary small">
-                Confira todos os dados do evento. Após o cadastro, o evento será enviado para
-                aprovação.
-              </p>
               <CRow className="g-3">
                 {/* Nome do Evento e Responsável */}
                 <CCol md={6}>
@@ -293,9 +291,7 @@ const EditEventPage = ({ params }: ParamsType) => {
                       }
                     }}
                     placeholder={
-                      getValues('date')
-                        ? event?.date.toLocaleDateString()
-                        : 'Selecione a data'
+                      getValues('date') ? event?.date.toLocaleDateString() : 'Selecione a data'
                     }
                   />
                   {errors.date && <p className="text-danger small">{errors.date.message}</p>}
@@ -307,14 +303,19 @@ const EditEventPage = ({ params }: ParamsType) => {
                   {errors.nrPax && <p className="text-danger small">{errors.nrPax.message}</p>}
                 </CCol>
               </CRow>
-              <CButton type="submit" color="primary" className="mt-3">
+              <CButton
+                type="submit"
+                color="secondary"
+                className="mt-3"
+                disabled={session?.roleId !== 3}
+              >
                 Atualizar
               </CButton>
             </form>
           </CCardBody>
         </CCard>
         <CCard className="mb-4">
-          <CCardHeader>MENU PDF</CCardHeader>
+          <CCardHeader><strong>Cardápio</strong></CCardHeader>
           <CCardBody>
             {event?.menuUrl && (
               <iframe
@@ -340,7 +341,7 @@ const EditEventPage = ({ params }: ParamsType) => {
         {/* Renderiza o EventsTableByEvent apenas se o event.id estiver definido */}
         {event?.id && <EventsTableByEvent eventStoreId={event.id} />}
       </CCol>
-    </CRow>
+    </>
   )
 }
 

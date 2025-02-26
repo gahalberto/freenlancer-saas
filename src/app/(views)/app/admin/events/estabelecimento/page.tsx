@@ -25,6 +25,9 @@ import StoreListTable from '@/components/stores/StoreListTable'
 import { getAllStores } from '@/app/_actions/stores/getAllStores'
 import { getEventByEstabelecimento } from '@/app/_actions/events/getEventByEstabelecimento'
 import { getEventsByStoreId } from '@/app/_actions/events/getEventsByStoreId'
+import { useUserSession } from '@/contexts/sessionContext'
+import CIcon from '@coreui/icons-react'
+import { cilPen, cilTrash } from '@coreui/icons'
 
 type StoresWithEvents = Stores & {
   store: {
@@ -33,30 +36,26 @@ type StoresWithEvents = Stores & {
 }
 
 const AdminEvents = () => {
-  const { data: session, status } = useSession()
+  const session = useUserSession()
   const [storesList, setStoresList] = useState<Stores[]>([])
-  const [selectedStoreId, setSelectedStoreId] = useState<string | null>(null);
+  const [selectedStoreId, setSelectedStoreId] = useState<string | null>(null)
   const [events, setEvents] = useState<StoreEvents[]>([])
 
   useEffect(() => {
     const fetchStores = async () => {
-      if (status === 'authenticated') {
+      if (session) {
         const data = await getAllStores()
         setStoresList(data as any)
       }
     }
 
     fetchStores()
+  }, [session])
 
-    
-  }, [session, status])
-
-  const options = storesList.map(store => ({
+  const options = storesList.map((store) => ({
     label: store.title,
-    value: store.id
+    value: store.id,
   }))
-
-
 
   const handleDeleteEvent = async (eventId: string) => {
     try {
@@ -68,72 +67,79 @@ const AdminEvents = () => {
     }
   }
 
-  if (status === 'loading') {
-    return <p>Carregando...</p>
-  }
-
-  if (status === 'unauthenticated') {
-    return <p>Você precisa estar logado para acessar esta página.</p>
-  }
-  
   const filterEventsByStore = async (selected: any) => {
-    if (!selected || selected.length === 0) return;
-    setSelectedStoreId(selected.length > 0 ? String(selected[0]?.value) : null);
-    const storeId = String(selected[0]?.value);
+    if (!selected || selected.length === 0) return
+    setSelectedStoreId(selected.length > 0 ? String(selected[0]?.value) : null)
+    const storeId = String(selected[0]?.value)
     fetchEventsByStore(storeId)
-  };
+  }
 
   const fetchEventsByStore = async (id: string) => {
-    const res = await getEventsByStoreId(id);
+    const res = await getEventsByStoreId(id)
     setEvents(res)
-    if(res) console.log(res)
+    if (res) console.log(res)
   }
-  
 
   return (
-<>
-<CMultiSelect
-  multiple={false}
-  options={options}
-  placeholder="Filtre os eventos por estabelecimento"
-  className="mb-4"
-  onChange={filterEventsByStore} 
-/>
-<CCard>
-      <CCardBody>
-        <CTable>
-          <CTableBody>
-            {events.map((store, index) => (
-              <CTableRow key={store.id}>
-                <CTableHeaderCell scope="row">{index + 1}</CTableHeaderCell>
-                <CTableDataCell>
-                  <b> {store.title} </b> - {store.title}{' '}
-                </CTableDataCell>
-                <CTableDataCell>
-                  <div className="flex items-center">
-                    <Link
-                      href={`/app/admin/events/${store.id}`}
-                      className="text-blue-600 hover:underline"
-                    >
-                    <CButton size="sm" color="primary" variant='outline'>
-                      Editar
-                    </CButton>
+    <>
+      <CCard className="flex mb-3">
+        <CCardHeader>
+          <CCardTitle>
+            <b>Eventos por Estabelecimento</b>
+          </CCardTitle>
+          <span className="text-gray-400">
+            Filtre os todos eventos registrados em um estabelecimento.
+          </span>
+        </CCardHeader>
+      </CCard>
 
-                    </Link>
-                    <span className="mx-4 h-5 w-px bg-gray-300"></span>
-                    <CButton size="sm" color="danger" variant='outline' onClick={() => handleDeleteEvent(store.id)}>
-                      Excluir
-                    </CButton>
-                  </div>
-                </CTableDataCell>
-              </CTableRow>
-            ))}
-          </CTableBody>
-        </CTable>
-      </CCardBody>
-    </CCard>
-
-</>  )
+      <CMultiSelect
+        multiple={false}
+        options={options}
+        placeholder="Digite o nome do estabelecimento"
+        className="mb-4"
+        onChange={filterEventsByStore}
+      />
+      <CCard>
+        <CCardBody>
+          <CTable>
+            <CTableBody>
+              {events.map((store, index) => (
+                <CTableRow key={store.id}>
+                  <CTableHeaderCell scope="row">{index + 1}</CTableHeaderCell>
+                  <CTableDataCell>
+                    <b> {store.title} </b> - {store.title}{' '}
+                  </CTableDataCell>
+                  <CTableDataCell>
+                    <div className="d-flex items-center space-x-4">
+                      <Link
+                        href={`/app/admin/events/${store.id}`}
+                        className="text-blue-600 hover:underline"
+                      >
+                        <CButton size="sm" color="secondary">
+                          <CIcon icon={cilPen} size="sm" /> Editar
+                        </CButton>
+                      </Link>
+                      <span className="mx-2 h-2 w-px bg-gray-300"></span>
+                      {/* <CButton
+                          size="sm"
+                          color="danger"
+                          disabled={session?.roleId !== 3}
+                          onClick={() => handleDeleteEvent(store.id)}
+                          className="text-white"
+                        >
+                          <CIcon icon={cilTrash} size="sm" /> Excluir
+                        </CButton> */}
+                    </div>
+                  </CTableDataCell>
+                </CTableRow>
+              ))}
+            </CTableBody>
+          </CTable>
+        </CCardBody>
+      </CCard>
+    </>
+  )
 }
 
 export default AdminEvents

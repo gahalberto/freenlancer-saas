@@ -6,6 +6,7 @@ declare module "next-auth" {
     user: {
       id: string;
       roleId: number; // Adiciona o roleId na sessão
+      isAdminPreview: boolean; // Adiciona a sua propriedade aqui
       asweredQuestions?: boolean; // Adicione a sua propriedade aqui
     } & DefaultSession["user"];
   }
@@ -13,6 +14,7 @@ declare module "next-auth" {
   interface User {
     id: string;
     roleId: number; // Adiciona o roleId ao usuário
+    isAdminPreview: boolean; // Adiciona a sua propriedade aqui
     asweredQuestions?: boolean; // Adicione a sua propriedade aqui
   }
 }
@@ -21,6 +23,7 @@ declare module "next-auth/jwt" {
   interface JWT {
     id: string;
     roleId: number; // Adiciona o roleId no token JWT
+    isAdminPreview: boolean; // Adiciona a sua propriedade aqui
     asweredQuestions?: boolean; // Adicione a sua propriedade aqui
   }
 }

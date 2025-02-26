@@ -32,6 +32,7 @@ model User {
   password         String
   synagogueId      Int?
   roleId           Int
+  isAdminPreview   Boolean               @default(false)
   createdAt        DateTime              @default(now())
   updatedAt        DateTime              @updatedAt
   status           Boolean               @default(true)
@@ -320,6 +321,8 @@ model EventsServices {
   paymentStatus           TransactionStatus @default(Pending)
   reallyMashguiachArrive  DateTime?
   reallyMashguiachEndTime DateTime?
+  latitude                Float?
+  longitude               Float?
   mashguiachPricePerHour  Float             @default(0)
   transport_price         Float?            @default(0)
   address_zipcode         String?

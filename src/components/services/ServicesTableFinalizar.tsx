@@ -109,25 +109,9 @@ export default function ServicesTableFinalizar() {
                                 <CCardBody>
                                     <CCardText>
                                         <p><b>Evento:</b><small> {item.StoreEvents.title}</small></p>
-                                        <p><b>Pagamento:</b><small> R$ {item.mashguiachPrice} </small> </p>
-                                        <p><b>Horário previsto de check-in: </b> {new Date(item.arriveMashguiachTime).toLocaleString()}</p>
-                                        <p><b>Horário do Check-in:</b>
-                                            {item.reallyMashguiachArrive && (
-                                                <>
-                                                    {new Date(item.reallyMashguiachArrive).toLocaleString('pt-BR')}
-                                                </>
-                                            )}
-                                        </p>
-
-                                        <p><b>Horário previsto de check-out: </b> {new Date(item.endMashguiachTime).toLocaleString()}</p>
-
-                                        <p><b>Horário do Check-out:</b>
-                                            {item.reallyMashguiachEndTime && (
-                                                <>
-                                                    {new Date(item.reallyMashguiachEndTime).toLocaleString('pt-BR')}
-                                                </>
-                                            )}
-                                        </p>
+                                        <p><b>A Pagar:</b><small> R$ {item.mashguiachPrice} </small> </p>
+                                        <p><b>Horário previsto de entrada: </b> {new Date(item.arriveMashguiachTime).toLocaleString()}</p>
+                                        <p><b>Horário previsto de saída: </b> {new Date(item.endMashguiachTime).toLocaleString()}</p>
                                         <p><b>Total de horas: </b>
                                             {item.reallyMashguiachArrive && item.reallyMashguiachEndTime && (
                                                 <>
@@ -136,22 +120,13 @@ export default function ServicesTableFinalizar() {
                                             )}
                                         </p>
 
-                                        <p><b>Valor Reservado: </b> R$ {item.mashguiachPrice}</p>
                                         <p><b>Total a pagar: </b> R$ {totalToPay.toFixed(2)}</p>
                                         <p><b>Mashguiach:</b> <small>{item.Mashguiach?.name}</small> </p>
                                         <p><b>Data: </b><small>{new Date(item.arriveMashguiachTime).toLocaleDateString()}</small></p>
                                     </CCardText>
                                 </CCardBody>
                                 <CCardFooter>
-                                    {(totalToPay > credits ? (
-                                        <Link href={`/credits`}>
-                                            <CButton color="danger" size="sm">
-                                                <CIcon icon={cilDollar} /> Você não tem crédito suficiente, adicione créditos
-                                            </CButton>
-                                        </Link>
-                                    ) : (
                                         <CButton color="primary" onClick={() => handleFinishService(item.id, totalToPay)}> Finalizar Serviço</CButton>
-                                    ))}
                                 </CCardFooter>
                             </CCard>
                         </CCol>

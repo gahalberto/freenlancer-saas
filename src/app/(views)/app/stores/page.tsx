@@ -43,11 +43,24 @@ const StoresList = () => {
   }
 
   return (
+    <>
+    <CCard className="mb-3">
+          <CCardHeader>
+            <CCardTitle className='flex'>
+              <b>Meus estabelecimentos</b>
+            </CCardTitle>
+            <span className="text-gray-400">
+              Todos estabelecimentos cadastrados para essa conta
+            </span>
+            <div className='flex-row'>
+              <ButtonCompo link={'/app/stores/create'} title="Adicionar novo estabelecimento" />
+              </div>
+
+          </CCardHeader>
+        </CCard>
+
+
     <CCard>
-      <CCardHeader className="d-flex justify-content-between align-items-center">
-        <CCardTitle>Estabelecimentos cadastrado para essa conta</CCardTitle>
-        <ButtonCompo link={'/app/stores/create'} title="Adicionar" />
-      </CCardHeader>
       <CCardBody>
         <CTable>
           <CTableBody>
@@ -64,6 +77,7 @@ const StoresList = () => {
         </CTable>
       </CCardBody>
     </CCard>
+            </>
   )
 }
 

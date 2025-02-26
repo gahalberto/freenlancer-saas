@@ -1,9 +1,15 @@
 import { withAuth } from 'next-auth/middleware'
+import { NextResponse } from 'next/server';
 
 export default withAuth(
   function middleware(req) {
-    // Middleware customizado, pode adicionar logs ou outras verificações se necessário
-  },
+    const maintenanceMode = process.env.NEXT_PUBLIC_MAINTENANCE_MODE === 'true';
+
+    if (maintenanceMode && !req.nextUrl.pathname.startsWith('/maintenance')) {
+      return NextResponse.next(); // Permite que a página continue carregada
+    }
+    return NextResponse.next();
+    },
   {
     pages: {
       signIn: '/login', // Redireciona para a página de login se não autenticado

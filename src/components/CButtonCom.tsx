@@ -10,7 +10,7 @@ interface ButtonTypeProps {
 const ButtonCompo = ({ link, title }: ButtonTypeProps) => {
     return (
             <Link href={link}>
-                <CButton color="primary">{title}</CButton>
+                <CButton color="secondary" size="sm">{title}</CButton>
             </Link>
     )
 }

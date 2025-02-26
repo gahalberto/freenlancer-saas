@@ -12,6 +12,7 @@ export const getEventInfo = async (id: string) => {
     },
   })
   
+  console.log(event)
   
   return event;
 }

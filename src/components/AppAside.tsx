@@ -14,6 +14,7 @@ import {
   CProgress,
   CSidebar,
   CSidebarHeader,
+  CBadge,
 } from '@coreui/react-pro'
 import CIcon from '@coreui/icons-react'
 import {

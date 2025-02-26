@@ -23,16 +23,19 @@ const CertificateModal = ({ visible, setVisible, certificateId }: Props) => {
   const [certificate, setCertificate] = useState<certificationWithStores | null>(null)
 
   const handleDownload = async () => {
-    const element = document.getElementById('certificate')
+    const element = document.getElementById('certificate');
     if (element) {
-      const canvas = await html2canvas(element)
-      const pdf = new jsPDF('l', 'mm', 'a4') // Landscape
-      const imgData = canvas.toDataURL('image/png')
-      pdf.addImage(imgData, 'PNG', 0, 0, 297, 210) // Dimensões A4 em landscape
-      pdf.save('certificate.pdf')
+      const scale = window.devicePixelRatio || 1; // Captura a densidade de pixels do dispositivo
+      const canvas = await html2canvas(element, {
+        scale: scale, // Ajusta a escala conforme a densidade de pixels
+        useCORS: true, // Permite carregar imagens externas (se necessário)
+      });
+      const pdf = new jsPDF('l', 'mm', 'a4'); // Landscape
+      const imgData = canvas.toDataURL('image/png');
+      pdf.addImage(imgData, 'PNG', 0, 0, 297, 210); // Dimensões A4 em landscape
+      pdf.save('certificate.pdf');
     }
-  }
-
+  };
   const fetchCertification = async () => {
     if (certificateId) {
       try {
@@ -50,25 +53,25 @@ const CertificateModal = ({ visible, setVisible, certificateId }: Props) => {
   }, [certificateId]) // Atualiza sempre que certificateId mudar
 
   return (
-    <CModal size="xl" alignment="center" visible={visible} onClose={() => setVisible(false)}>
+    <CModal size="sm" alignment="center" visible={visible} onClose={() => setVisible(false)}>
       <CModalHeader>
         <CModalTitle>Certificado</CModalTitle>
       </CModalHeader>
       <CModalBody>
         {certificate ? (
           <div
-            id="certificate"
-            style={{
-              width: '100%', // Responsivo: ocupa 100% da largura do container
-              height: '210mm',
-              maxWidth: '297mm', // Limite para telas grandes
-              position: 'relative',
-              backgroundImage: `url('/images/certificado.png')`,
-              backgroundSize: 'cover',
-              backgroundPosition: 'center',
-              padding: '5%', // Padding proporcional para telas menores
-            }}
-          >
+  id="certificate"
+  style={{
+    width: '297mm', // Largura fixa para A4 landscape
+    height: '210mm', // Altura fixa para A4 landscape
+    position: 'relative',
+    backgroundImage: `url('/images/certificado.png')`,
+    backgroundSize: 'cover',
+    backgroundPosition: 'center',
+    padding: '5%', // Padding proporcional
+  }}
+>
+  {/* Conteúdo do certificado */}
             <div
               style={{
                 position: 'absolute',

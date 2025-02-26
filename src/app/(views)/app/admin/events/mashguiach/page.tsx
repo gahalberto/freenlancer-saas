@@ -3,6 +3,7 @@
 import { useSession } from 'next-auth/react'
 import { useEffect, useState } from 'react'
 import {
+  CBadge,
   CButton,
   CCard,
   CCardBody,
@@ -86,10 +87,22 @@ const EventByMashguiachPage = () => {
 
   return (
 <>
+<CCard className="mb-3">
+          <CCardHeader>
+            <CCardTitle>
+              <b>Eventos por Mashguiach</b>
+            </CCardTitle>
+            <span className="text-gray-400">
+              Pesquise todos eventos registrados de um Mashguiach.
+            </span>
+          </CCardHeader>
+        </CCard>
+
+
 <CMultiSelect
   multiple={false}
   options={options}
-  placeholder="Filtre os eventos por Mashguiach"
+  placeholder="Digite aqui o nome do Mashguiach"
   className="mb-4"
   onChange={filterEventsByStore} 
 />
@@ -109,7 +122,7 @@ const EventByMashguiachPage = () => {
                       href={`/app/admin/events/${store.StoreEvents.id}`}
                       className="text-blue-600 hover:underline"
                     >
-                    <CButton size="sm" color="primary" variant='outline'>
+                    <CButton size="sm" color="secondary">
                       Editar
                     </CButton>
 

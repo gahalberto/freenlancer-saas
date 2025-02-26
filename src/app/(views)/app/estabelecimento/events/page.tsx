@@ -45,10 +45,20 @@ const AdminEvents = () => {
   }
 
   return (
+    <>
+          <CCard className="mb-3">
+            <CCardHeader>
+              <CCardTitle className='flex'>
+                <b>Meus Eventos</b>
+              </CCardTitle>
+              <span className="text-gray-400">
+                Todos eventos cadastrados para essa conta
+              </span>
+
+            </CCardHeader>
+          </CCard>
+
     <CCard>
-      <CCardHeader className="d-flex justify-content-between align-items-center">
-        <CCardTitle>Lista de Eventos para {session?.user.name}</CCardTitle>
-      </CCardHeader>
       <CCardBody>
         <CTable>
           <CTableBody>
@@ -65,6 +75,7 @@ const AdminEvents = () => {
         </CTable>
       </CCardBody>
     </CCard>
+            </>
   )
 }
 

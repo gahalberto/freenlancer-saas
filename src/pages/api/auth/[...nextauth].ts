@@ -42,6 +42,7 @@ export const authOptions: NextAuthOptions = {
           name: user.name,
           email: user.email,
           roleId: user.roleId,
+          isAdminPreview: user.isAdminPreview,
           asweredQuestions: user.asweredQuestions ?? undefined,
         };
       },
@@ -54,31 +55,39 @@ export const authOptions: NextAuthOptions = {
     secret: process.env.JWT_SECRET || "default_jwt_secret",
   },
   callbacks: {
-    async jwt({ token, user }) {
-      // ⚠️ Garante que os dados do usuário sejam passados para o token JWT
+    async jwt({ token, user, trigger, session }) {
+      if (trigger === "update" && session?.roleId) {
+        token.roleId = session.roleId;
+      }
+
       if (user) {
-        token.id = user.id; // ✅ Adiciona o ID ao token
+        token.id = user.id;
         token.name = user.name;
         token.email = user.email;
-        token.roleId = user.roleId;
+        token.roleId = user.roleId; // 🔥 Permite alteração do roleId
+        token.isAdminPreview = user.isAdminPreview;
         token.asweredQuestions = user.asweredQuestions ?? undefined;
       }
       return token;
     },
-    async session({ session, token }) {
-      // ⚠️ Garante que a sessão está recebendo o ID corretamente
+    async session({ session, token, trigger, newSession }) {
       if (token) {
+        if (trigger === "update" && newSession?.roleId) {
+          session.user.roleId = newSession.roleId;
+        }
         session.user = {
-          id: token.id as string, // ✅ Certifica que o ID é uma string
+          id: token.id as string,
           name: token.name,
           email: token.email,
-          roleId: token.roleId,
+          roleId: token.roleId, // 🔄 Atualiza roleId na sessão
+          isAdminPreview: token.isAdminPreview,
           asweredQuestions: token.asweredQuestions,
         };
       }
       return session;
     },
   },
+      
   pages: {
     signIn: "/login",
   },

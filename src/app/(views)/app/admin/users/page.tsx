@@ -1,7 +1,7 @@
 "use client"
 import { makeAdmin } from "@/app/_actions/admin/makeAdmin"
 import { getUsers } from "@/app/_actions/getUsers"
-import { CAvatar, CBadge, CButton, CCardBody, CCollapse, CSmartTable } from "@coreui/react-pro"
+import { CAvatar, CBadge, CButton, CCardBody, CCloseButton, CCollapse, COffcanvas, COffcanvasBody, COffcanvasHeader, COffcanvasTitle, CSmartTable } from "@coreui/react-pro"
 import { MashguiachQuestions, User } from "@prisma/client"
 import Link from "next/link"
 import { useEffect, useState } from "react"
@@ -9,6 +9,7 @@ import { useEffect, useState } from "react"
 const Users = () => {
   const [details, setDetails] = useState<MashguiachQuestions[]>([])
   const [usersData, setUsersData] = useState<User[]>([]);
+  const [visible, setVisible] = useState(false)
 
   const fetchUsers = async () => {
     const users = await getUsers();
@@ -124,15 +125,27 @@ const Users = () => {
             <CCollapse visible={details.includes(item.id)}>
               <CCardBody className="p-3">
                 <h4>{item.name}</h4>
-                <p className="text-muted">Endereço: {item.address}</p>
-                <CButton className="m-1" size="sm" color="info" href={`./users/${item.id}`}>
+                <CButton size="sm" color="secondary" onClick={() => setVisible(true)}>
+        Ver detalhes
+      </CButton>
+      <COffcanvas placement="start" visible={visible} onHide={() => setVisible(false)}>
+        <COffcanvasHeader>
+          <COffcanvasTitle>{item.name}</COffcanvasTitle>
+          <CCloseButton className="text-reset" onClick={() => setVisible(false)} />
+        </COffcanvasHeader>
+        <COffcanvasBody>
+        <p><b>Endereço:</b> {item.address_street} {item.address_city} {item.address_number} {item.address_neighbor}</p>
+        <p><b>Nome Judaico:</b> {item.jewishName}</p>
+\        </COffcanvasBody>
+      </COffcanvas>
+
+                <CButton className="m-1" size="sm" color="secondary" href={`./users/${item.id}`}>
                   Editar Usuário
                 </CButton>
-                <CButton size="sm" color="success" className="m-1">
+                <CButton size="sm" color="secondary" className="m-1">
                   <Link className="text-white no-underline !underline-none" href={`https://wa.me/${item.phone}`}>
                     Chamar no Whatsapp
                   </Link>
-
                 </CButton>
 
                 {/* <CButton size="sm" color="danger" onClick={() => desativarUser(item.id)} className="m-1">

@@ -31,6 +31,7 @@ import CIcon from '@coreui/icons-react'
 import { cilMap, cilSearch } from '@coreui/icons'
 import { User } from '@prisma/client'
 import { findStoreAddress } from '@/app/_actions/users/getUserAddress'
+import { useUserSession } from '@/contexts/sessionContext'
 
 type PropsType = {
   visible: boolean
@@ -40,7 +41,7 @@ type PropsType = {
 }
 
 const AddServiceToEventModal = ({ fetchAll, visible, onClose, StoreEventsId }: PropsType) => {
-  const { data: session } = useSession()
+  const session = useUserSession()
   const [credits, setCredits] = useState(0)
   const [mashguiachOptions, setMashguiachOptions] = useState<User[]>([])
   const [productionOrEvent, setProductionOrEvent] = useState<string>('')
@@ -359,8 +360,8 @@ const AddServiceToEventModal = ({ fetchAll, visible, onClose, StoreEventsId }: P
           </CCol>
         </CModalBody>
         <CModalFooter>
-          <CButton color="primary" onClick={handleSubmit}>
-            Solicitar Mashguiach
+          <CButton color="primary" disabled={session?.roleId !== 3} onClick={handleSubmit}>
+            Solicitar
           </CButton>
           <CButton color="secondary" onClick={onClose}>
             Cancelar

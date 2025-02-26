@@ -45,6 +45,7 @@ import { findStoreAddress } from '@/app/_actions/users/getUserAddress'
 import { getEventServices } from '@/app/_actions/events/getEventsServices'
 import { deleteEvent } from '@/app/_actions/events/deleteEvent'
 import ChangeMashguiachModal from '@/components/events/ChangeMashguiachModal'
+import { useUserSession } from '@/contexts/sessionContext'
 
 type PropsType = {
   createdEventId: string
@@ -57,7 +58,7 @@ interface ServiceType extends EventsServices {
 }
 
 const AddServiceToEventModal = ({ createdEventId }: PropsType) => {
-  const { data: session } = useSession()
+  const session = useUserSession()
   const [credits, setCredits] = useState(0)
   const [mashguiachOptions, setMashguiachOptions] = useState<User[]>([])
   const [productionOrEvent, setProductionOrEvent] = useState<string>('')
@@ -514,7 +515,7 @@ const AddServiceToEventModal = ({ createdEventId }: PropsType) => {
         )}{' '}
       </>
       <CRow className='mt-4'>
-      <CButton color='secondary' className='w-full' onClick={finalizarFuction}>Finalizar</CButton>
+      <CButton color='secondary' disabled={session?.roleId !== 3} className='w-full' onClick={finalizarFuction}>Finalizar</CButton>
 
       </CRow>
     </>

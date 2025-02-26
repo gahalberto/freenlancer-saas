@@ -4,6 +4,8 @@ import {
   CButton,
   CCard,
   CCardBody,
+  CCardHeader,
+  CCardTitle,
   CCol,
   CDatePicker,
   CFormInput,
@@ -172,9 +174,24 @@ const AddEventFormPage = () => {
 
   return (
     <>
-      <>
-        {modal === MODAL.EVENT ? (<h3>1/2 - CRIAR NOVO EVENTO</h3>) : (<h3>2/2 ADICIONAR ENDEREÇOS E SOLICITAR MASHGUIACH</h3>) }
-        <CProgress color="secondary" value={progress} className="mb-2">
+      <CCard className="mb-3">
+          <CCardHeader>
+            <CCardTitle className='flex'>
+            {modal === MODAL.EVENT ? (<strong>Criar Evento</strong>) : (<strong>Solicitar Mashguiach</strong>) }
+
+            </CCardTitle>
+            <span className="text-gray-400">
+              {modal === MODAL.EVENT ? (
+                'Preencha os dados do evento'
+              ) : (
+                'Adicione os serviços ao evento com endereços.'
+              )}
+            </span>
+
+          </CCardHeader>
+        </CCard>
+
+        <CProgress color="success" value={progress} className="mb-2">
           <CProgressBar className="text-white">{progress}%</CProgressBar>
         </CProgress>
         <CCard>
@@ -316,7 +333,7 @@ const AddEventFormPage = () => {
                   </CCol>
                 </CRow>
                 <CRow>
-                  <CButton type="submit" color="primary" className="mt-3" disabled={disabled}>
+                  <CButton type="submit" color="secondary" className="mt-3" disabled={disabled}>
                     {disabled ? 'Aguarde...' : 'Próximo passo 2/2'}
                   </CButton>
                   <label>Atenção: Após clicar acima, não poderá voltar! Verifique os dados!</label>
@@ -329,7 +346,6 @@ const AddEventFormPage = () => {
         </CCard>
       </>
 
-    </>
   )
 }
 

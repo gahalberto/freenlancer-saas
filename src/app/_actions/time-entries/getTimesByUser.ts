@@ -10,6 +10,9 @@ export const getTimesByUser = async (userId: string) => {
         include: {
             user: true,
             stores: true,
+        },
+        orderBy: {
+            data_hora: 'desc'
         }
     })
 }
