@@ -4,7 +4,7 @@ import { getStoreCount } from '@/app/_actions/dashboards/getStoreCount'
 import { getEventsToAproveCount } from '@/app/_actions/events/getEventsToAproveCount'
 import { cilBurger, cilUser, cilWarning } from '@coreui/icons'
 import CIcon from '@coreui/icons-react'
-import { CCol, CRow, CWidgetStatsC } from '@coreui/react-pro'
+import { CBadge, CCard, CCardHeader, CCardTitle, CCol, CRow, CWidgetStatsC } from '@coreui/react-pro'
 import Link from 'next/link'
 import { useState, useEffect } from 'react'
 
@@ -50,76 +50,85 @@ const AdminFirstSection = () => {
 
   return (
     <>
-      <CRow>
-        <CCol xs={4} md={4} lg={4}>
+            <CCard className="mb-3">
+          <CCardHeader>
+            <CCardTitle>
+              <b>Dashboard</b>
+            </CCardTitle>
+          </CCardHeader>
+        </CCard>
+
+      <CRow className="g-3">
+        {/* Widget 1: QTD. MASHGUIACHIM */}
+        <CCol xs={12} sm={6} md={4} lg={4}>
           <Link href={`/app/admin/users`}>
             <CWidgetStatsC
-              className="mb-3"
+              className="mb-3 h-100"
               icon={<CIcon icon={cilUser} height={36} />}
               color="secondary"
               inverse
-              progress={{ value: qtdMashguiach !== null ? (qtdMashguiach / 100) * 100 : 0 }} // Progresso baseado em qtdMashguiach
+              progress={{ value: qtdMashguiach !== null ? (qtdMashguiach / 100) * 100 : 0 }}
               title="QTD. MASHGUIACHIM"
               value={qtdMashguiach !== null ? qtdMashguiach : '0'}
             />
           </Link>
         </CCol>
-        <CCol xs={4} md={4} lg={4}>
+
+        {/* Widget 2: QTD. ESTABELECIMENTOS */}
+        <CCol xs={12} sm={6} md={4} lg={4}>
           <Link href={`/app/admin/estabelecimentos`}>
             <CWidgetStatsC
-              className="mb-3"
+              className="mb-3 h-100"
               icon={<CIcon icon={cilBurger} height={36} />}
               color="secondary"
               inverse
-              progress={{
-                value: qtdEstabelecimentos !== null ? (qtdEstabelecimentos / 100) * 100 : 0,
-              }} // Progresso baseado em qtdEstabelecimentos
+              progress={{ value: qtdEstabelecimentos !== null ? (qtdEstabelecimentos / 100) * 100 : 0 }}
               title="QTD. ESTABELECIMENTOS"
               value={qtdEstabelecimentos !== null ? qtdEstabelecimentos : '0'}
             />
           </Link>
         </CCol>
 
-        <CCol xs={4} md={4} lg={4}>
+        {/* Widget 3: EVENTOS PENDENTES */}
+        <CCol xs={12} sm={6} md={4} lg={4}>
           <Link href={`/app/admin/events`}>
             <CWidgetStatsC
-              className="mb-3"
+              className="mb-3 h-100"
               icon={<CIcon icon={cilWarning} height={36} />}
               color={`${eventToAprove ? `danger` : 'primary'}`}
               inverse
-              progress={{ value: eventToAprove !== null ? (eventToAprove / 100) * 100 : 0 }} // Progresso baseado em qtdEstabelecimentos
+              progress={{ value: eventToAprove !== null ? (eventToAprove / 100) * 100 : 0 }}
               title="EVENTOS PENDENTES"
               value={eventToAprove !== null ? eventToAprove : '0'}
             />
           </Link>
         </CCol>
 
-
-        <CCol xs={4} md={4} lg={4}>
-            <CWidgetStatsC
-              className="mb-3"
-              icon={<CIcon icon={cilWarning} height={36} />}
-              color={`${eventToAprove ? `secondary` : 'primary'}`}
-              inverse
-              progress={{ value: eventToAprove !== null ? (eventToAprove / 100) * 100 : 0 }} // Progresso baseado em qtdEstabelecimentos
-              title="ENTRADAS"
-              value={entriesCount !== null ? entriesCount : '0'}
-            />
+        {/* Widget 4: ENTRADAS */}
+        <CCol xs={12} sm={6} md={4} lg={4}>
+          <CWidgetStatsC
+            className="mb-3 h-100"
+            icon={<CIcon icon={cilWarning} height={36} />}
+            color={`${eventToAprove ? `secondary` : 'primary'}`}
+            inverse
+            progress={{ value: eventToAprove !== null ? (eventToAprove / 100) * 100 : 0 }}
+            title="ENTRADAS"
+            value={entriesCount !== null ? entriesCount : '0'}
+          />
         </CCol>
 
-        <CCol xs={4} md={4} lg={4}>
-            <CWidgetStatsC
-              className="mb-3"
-              icon={<CIcon icon={cilWarning} height={36} />}
-              color={`${eventToAprove ? `secondary` : 'primary'}`}
-              inverse
-              progress={{ value: eventToAprove !== null ? (eventToAprove / 100) * 100 : 0 }} // Progresso baseado em qtdEstabelecimentos
-              title="Saídas Registradas"
-              value={entriesCount !== null ? entriesCount : '0'}
-            />
+        {/* Widget 5: SAÍDAS REGISTRADAS */}
+        <CCol xs={12} sm={6} md={4} lg={4}>
+          <CWidgetStatsC
+            className="mb-3 h-100"
+            icon={<CIcon icon={cilWarning} height={36} />}
+            color={`${eventToAprove ? `secondary` : 'primary'}`}
+            inverse
+            progress={{ value: eventToAprove !== null ? (eventToAprove / 100) * 100 : 0 }}
+            title="SAÍDAS REGISTRADAS"
+            value={exitCount !== null ? exitCount : '0'}
+          />
         </CCol>
-
-
       </CRow>
     </>
   )

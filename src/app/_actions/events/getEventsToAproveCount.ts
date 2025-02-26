@@ -3,11 +3,15 @@
 import { db } from "@/app/_lib/prisma"
 
 export const getEventsToAproveCount = async () => {
+    const today = new Date();
     try {
         const count = await db.storeEvents.count({ 
             where: { 
                 isApproved: false, 
-                deletedAt: null
+                deletedAt: null,
+                date: {
+                    gte: new Date(today.getFullYear(), today.getMonth(), today.getDate())
+                }
             } 
         });
         return count;

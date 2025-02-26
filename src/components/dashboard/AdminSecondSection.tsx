@@ -15,6 +15,7 @@ import {
   CCardHeader,
   CRow,
   CCol,
+  CCardTitle,
 } from '@coreui/react-pro'
 import { EventsServices, StoreEvents, Stores } from '@prisma/client'
 import { EditIcon, EyeIcon, KeyIcon } from 'lucide-react'
@@ -76,7 +77,18 @@ const AdminSecondSection = () => {
   }
 
   return (
-    <div className="">
+    <div className="mt-2">
+                  <CCard className="mb-3">
+          <CCardHeader>
+            <CCardTitle>
+              <b>Todos Eventos</b>
+            </CCardTitle>
+            <span className="text-gray-400">
+               Todos os eventos registrados no sistema
+            </span>
+          </CCardHeader>
+        </CCard>
+
       <CRow className="g-4">
         {events.map((event) => (
           <CCol key={event.id} xs={12} sm={6} md={4} lg={6}>
