@@ -44,10 +44,9 @@ const AdminSecondSection = () => {
   
   // Fetch events data from your API
   useEffect(() => {
-
     fetchEvents()
   }, [])
-
+  
   const getDayOfWeek = (dateString: string) => {
     const days = ['DOMINGO', 'SEGUNDA', 'TERÇA', 'QUARTA', 'QUINTA', 'SEXTA', 'SÁBADO']
     const date = new Date(dateString)

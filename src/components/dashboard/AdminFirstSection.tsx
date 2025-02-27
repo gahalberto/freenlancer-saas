@@ -25,13 +25,13 @@ const AdminFirstSection = () => {
         
         const entryCount = await getEntriesByDay();
         setEntriesCount(entryCount);
-
+  
         const exitCount = await getExitByDay();
         setExitCount(exitCount);
-
+  
         const estabelecimentosCount = await getStoreCount()
         setQtdEstabelecimentos(estabelecimentosCount)
-
+  
         const eventsToAprove = await getEventsToAproveCount()
         setEventToAprove(eventsToAprove)
       } catch (error) {
@@ -40,10 +40,10 @@ const AdminFirstSection = () => {
         setLoading(false) // Finaliza o estado de carregamento
       }
     }
-
+  
     fetchCounts()
-  }, [])
-
+  }, []) // O array vazio [] faz com que isso rode apenas uma vez
+  
   if (loading) {
     return <p>Carregando...</p> // Indica que os dados estão carregando
   }

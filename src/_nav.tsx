@@ -17,6 +17,7 @@ import {
   cilClearAll,
   cilCircle,
   cilClock,
+  cilUserPlus,
 } from '@coreui/icons'
 import CIcon from '@coreui/icons-react'
 import { CNavGroup, CNavItem, CNavTitle } from '@coreui/react-pro'
@@ -134,6 +135,14 @@ const _nav = [
         href: '/app/admin/questionarios',
         icon: <CIcon icon={cilFile} customClassName="nav-icon" />,
       },
+
+      {
+        component: CNavItem,
+        name: 'Cadastrar User Demo',
+        href: '/app/admin/users/create-demo',
+        icon: <CIcon icon={cilUserPlus} customClassName="nav-icon" />,
+      },
+
     ],
   },
   {

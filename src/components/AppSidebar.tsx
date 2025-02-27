@@ -20,6 +20,7 @@ import { sygnet } from '@/public/brand/sygnet'
 // sidebar nav config
 import navigation from '../_nav'
 import { useSession } from 'next-auth/react'
+import Image from 'next/image'
 
 const AppSidebar = (): JSX.Element => {
   const dispatch = useDispatch()
@@ -36,7 +37,7 @@ const AppSidebar = (): JSX.Element => {
   return (
     <CSidebar
       className="border-end"
-      colorScheme="dark"
+      colorScheme="light"
       position="fixed"
       unfoldable={unfoldable}
       visible={sidebarShow}
@@ -46,7 +47,7 @@ const AppSidebar = (): JSX.Element => {
     >
       <CSidebarHeader className="border-bottom">
         <CSidebarBrand as={Link} href="/">
-          <CIcon customClassName="sidebar-brand-full" icon={logo} height={32} />
+          <Image src="/brand/logobyk2.png" alt="Logo" height={100} width={200} />
           <CIcon customClassName="sidebar-brand-narrow" icon={sygnet} height={32} />
         </CSidebarBrand>
         <CCloseButton
