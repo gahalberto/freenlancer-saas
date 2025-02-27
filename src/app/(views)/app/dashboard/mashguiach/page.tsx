@@ -1,6 +1,8 @@
 'use client'
 
 import { useSession } from 'next-auth/react'
+import { useRouter } from 'next/navigation'
+import { useEffect, useRef, useState } from 'react'
 import {
   cilAvTimer,
   cilBadge,
@@ -37,7 +39,6 @@ import {
 } from '@coreui/react-pro'
 import CIcon from '@coreui/icons-react'
 import { getServicesByDate } from '@/app/_actions/services/getServicesdByDate'
-import { useEffect, useRef, useState } from 'react'
 import { EventsServices, StoreEvents } from '@prisma/client'
 import { confirmExit } from '@/app/_actions/events/confirmExitTime'
 import { confirmEntrance } from '@/app/_actions/events/confirmHours'
@@ -48,8 +49,9 @@ import { getNextEventsMashguiach } from '@/app/_actions/events/getNextEventsByMa
 import { db } from '@/app/_lib/prisma'
 import { MashguiachEntrace } from '@/app/_actions/time-entries/timeIn'
 import { MashguiachExit } from '@/app/_actions/time-entries/timeOut'
+import { checkTodayEntrace } from '@/app/_actions/time-entries/checkTodayEntrace'
+import { checkTodayExit } from '@/app/_actions/time-entries/checkTodayExit'
 
-// Extendendo o tipo EventsServices para incluir StoreEvents
 interface EventsServicesWithStoreEvents extends EventsServices {
   StoreEvents: StoreEvents
 }
@@ -59,10 +61,13 @@ type ServicesWithEvents = EventsServices & {
 }
 
 export default function MashguiachDashboard() {
-  // Obtém a sessão do usuário
   const { data: session, status } = useSession()
+  const router = useRouter()
 
-  // Estados da aplicação
+  // Definindo o ID do usuário com base na sessão
+  const userId = session?.user?.id
+
+  // Estados do componente
   const [serviceData, setServiceData] = useState<EventsServicesWithStoreEvents[] | null>(null)
   const [selectedEvent, setSelectedEvent] = useState<EventsServicesWithStoreEvents | null>(null)
   const [error, setError] = useState('')
@@ -75,15 +80,12 @@ export default function MashguiachDashboard() {
   const [futuresEvents, setFuturesEvents] = useState<ServicesWithEvents[]>([])
   const [latitude, setLatidude] = useState(0)
   const [longitude, setLongitude] = useState(0)
+  const [hasEnteredToday, setHasEnteredToday] = useState(false)
+  const [hasExitedToday, setHasExitedToday] = useState(false)
 
-  // Toast de exemplo para confirmação
+  // Toast de confirmação de registro
   const exampleToast = (
-    <CToast
-      autohide={false}
-      visible={true}
-      color="primary"
-      className="text-white align-items-center"
-    >
+    <CToast autohide={false} visible={true} color="primary" className="text-white align-items-center">
       <div className="d-flex">
         <CToastBody>✅ Entrada/Saída registrado com sucesso!</CToastBody>
         <CToastClose className="me-2 m-auto" white />
@@ -91,7 +93,21 @@ export default function MashguiachDashboard() {
     </CToast>
   )
 
-  const userId = session?.user?.id
+  // Função para buscar status de entrada do dia
+  const fetchEntranceStatus = async () => {
+    if (userId) {
+      const entry = await checkTodayEntrace(userId)
+      setHasEnteredToday(!!entry)
+    }
+  }
+
+  // Função para buscar status de saída do dia
+  const fetchExitStatus = async () => {
+    if (userId) {
+      const exit = await checkTodayExit(userId)
+      setHasExitedToday(!!exit)
+    }
+  }
 
   // Função para buscar se o usuário possui chave Pix cadastrada
   const fetchHasPix = async () => {
@@ -123,36 +139,18 @@ export default function MashguiachDashboard() {
     }
   }
 
-  // Busca os dados assim que a sessão estiver disponível
+  // Efeito para buscar dados assim que a sessão estiver disponível
   useEffect(() => {
     if (session?.user?.id) {
+      fetchEntranceStatus()
+      fetchExitStatus()
       fetchHasPix()
       fetchEvents()
       fetchFuturesEvents()
     }
   }, [session?.user?.id])
 
-  if (status === 'loading') {
-    return <p>Carregando...</p>
-  }
-
-  if (status === 'unauthenticated') {
-    return <p>Usuário não autenticado</p>
-  }
-
-  const userName = session?.user?.name || 'Usuário'
-  const hasAnsweredQuestions = session?.user?.asweredQuestions || false
-
-  const handleInfoModal = (event: EventsServicesWithStoreEvents) => {
-    setVisibleInfoModal(true)
-    setSelectedEvent(event)
-  }
-
-  const onPixSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    await updateUserPix(session?.user?.id as string, pixKey)
-  }
-
+  // Função para obter a localização do usuário
   const getUserLocation = (): Promise<GeolocationPosition> => {
     return new Promise((resolve, reject) => {
       if (navigator.geolocation) {
@@ -163,7 +161,7 @@ export default function MashguiachDashboard() {
     })
   }
 
-  // Função para registrar a entrada após obter a localização
+  // Função para registrar a entrada
   const handleConfirmEntrace = async () => {
     if (!userId) {
       alert('Não foi possível salvar seu usuário! Por favor entre em contato com a administração')
@@ -173,28 +171,30 @@ export default function MashguiachDashboard() {
     const now = new Date()
     if (
       !confirm(
-        `Você está registrando entrada ao serviço no dia ${now.toLocaleDateString()} às ${now.toTimeString()}`,
+        `Você está registrando entrada ao serviço no dia ${now.toLocaleDateString()} às ${now.toLocaleTimeString()}`
       )
     ) {
       return
     }
 
     try {
-      // Tenta obter a localização do usuário
+      // Obtém a localização do usuário
       const position = await getUserLocation()
       const { latitude, longitude } = position.coords
       setLatidude(latitude)
       setLongitude(longitude)
 
-      // Registra a entrada com a localização obtida
+      // Registra a entrada e atualiza o estado
       await MashguiachEntrace(userId, latitude, longitude)
       addToast(exampleToast as any)
+      setHasEnteredToday(true)
     } catch (error: any) {
       console.error('Erro ao registrar entrada:', error.message)
       alert(error.message)
     }
   }
 
+  // Função para registrar a saída
   const handleRegisterExit = async () => {
     if (!userId) {
       alert('Não foi possível salvar seu usuário! Por favor entre em contato com a administração')
@@ -204,38 +204,59 @@ export default function MashguiachDashboard() {
     const now = new Date()
     if (
       !confirm(
-        `Você está registrando saída ao serviço no dia ${now.toLocaleDateString()} às ${now.toTimeString()}`,
+        `Você está registrando saída ao serviço no dia ${now.toLocaleDateString()} às ${now.toLocaleTimeString()}`
       )
     ) {
       return
     }
 
     try {
-      // Tenta obter a localização do usuário
+      // Obtém a localização do usuário
       const position = await getUserLocation()
       const { latitude, longitude } = position.coords
       setLatidude(latitude)
       setLongitude(longitude)
 
-      // Registra a entrada com a localização obtida
+      // Registra a saída e atualiza o estado
       await MashguiachExit(userId, latitude, longitude)
       addToast(exampleToast as any)
+      setHasExitedToday(true)
     } catch (error: any) {
-      console.error('Erro ao registrar entrada:', error.message)
+      console.error('Erro ao registrar saída:', error.message)
       alert(error.message)
     }
   }
 
+  // Função para lidar com o envio da chave Pix
+  const onPixSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    await updateUserPix(userId as string, pixKey)
+  }
+
+  if (status === 'loading') {
+    return <p>Carregando...</p>
+  }
+
+  if (status === 'unauthenticated') {
+    return <p>Usuário não autenticado</p>
+  }
+
+  const hasAnsweredQuestions = session?.user?.asweredQuestions || false
 
   return (
     <>
       <div className="d-flex flex-column mb-10" style={{ marginBottom: '10px' }}>
-        <CButton color="primary" size="lg" className="mb-2" onClick={handleConfirmEntrace}>
-          Registrar Entrada
-        </CButton>
-        <CButton color="warning" size="lg" onClick={handleRegisterExit}>
-          Registrar Saída
-        </CButton>
+        {!hasEnteredToday && (
+          <CButton color="primary" size="lg" className="mb-2" onClick={handleConfirmEntrace}>
+            Registrar Entrada
+          </CButton>
+        )}
+
+        {!hasExitedToday && (
+          <CButton color="warning" size="lg" onClick={handleRegisterExit}>
+            Registrar Saída
+          </CButton>
+        )}
       </div>
       {!hasAnsweredQuestions && <DangerAlert />}
       {hasPix.length === 0 && visiblePix && (

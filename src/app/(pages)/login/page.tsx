@@ -23,6 +23,7 @@ import { z } from 'zod'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
 import { Metadata } from 'next'
+import Image from 'next/image'
 
 const loginSchema = z.object({
   email: z.string().nonempty('Digite o seu e-mail'),
@@ -68,7 +69,7 @@ const Login = () => {
   }
 
   return (
-    <div className="bg-body-tertiary min-vh-100 d-flex flex-row align-items-center">
+    <div className="bg-body-tertiary min-vh-100 d-flex flex-row justify-center align-items-center">
       <title>Beit Yaacov - Login</title>
       <CContainer>
         <CRow className="justify-content-center">
@@ -77,10 +78,7 @@ const Login = () => {
               <CCard className="p-4">
                 <CCardBody>
                   <CForm onSubmit={handleSubmit(onSubmit)}>
-                    <h1>Beit Yaakov</h1>
-                    <h3>Dept. de Kashrut</h3>
-                    <p className="text-medium-emphasis">Entre na sua conta ou registre-se!</p>
-
+          <Image src="/brand/logobyk2.png" alt="Beit Yaacov" width={250} height={160} />
                     {/* Exibe a mensagem de erro se existir */}
                     {error && (
                       <div className="text-danger mb-10">
@@ -140,7 +138,7 @@ const Login = () => {
                   </CForm>
                 </CCardBody>
               </CCard>
-              <CCard className="text-white bg-primary py-5">
+              <CCard className="text-white bg-   py-5">
                 <CCardBody className="text-center">
                   <div>
                     <h2>Registre-se</h2>
