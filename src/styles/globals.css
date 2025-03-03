@@ -1,0 +1,46 @@
+/* Estilos para impressão */
+@media print {
+  .print\:hidden {
+    display: none !important;
+  }
+  
+  body {
+    background-color: white;
+    font-size: 12pt;
+  }
+  
+  .card {
+    border: none !important;
+    box-shadow: none !important;
+  }
+  
+  .card-header {
+    background-color: white !important;
+    border-bottom: 1px solid #ddd !important;
+    padding: 10px 0 !important;
+  }
+  
+  .card-body {
+    padding: 10px 0 !important;
+  }
+  
+  table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  
+  table th, table td {
+    border: 1px solid #ddd;
+    padding: 8px;
+  }
+  
+  table th {
+    background-color: #f2f2f2 !important;
+    color: black !important;
+  }
+  
+  .table-primary th {
+    background-color: #cfe2ff !important;
+    color: black !important;
+  }
+} 

@@ -18,6 +18,7 @@ import {
   cilCircle,
   cilClock,
   cilUserPlus,
+  cilPeople,
 } from '@coreui/icons'
 import CIcon from '@coreui/icons-react'
 import { CNavGroup, CNavItem, CNavTitle } from '@coreui/react-pro'
@@ -156,6 +157,24 @@ const _nav = [
         name: 'Por Usuário',
         href: '/app/admin/banco-de-horas/user',
         icon: <CIcon icon={cilCircle} customClassName="nav-icon" />,
+      },
+      {
+        component: CNavItem,
+        name: 'Relatórios',
+        href: '/app/admin/banco-de-horas/relatorios',
+        icon: <CIcon icon={cilFile} customClassName="nav-icon" />,
+      },
+      {
+        component: CNavItem,
+        name: 'Relatório Individual',
+        href: '/app/admin/banco-de-horas/relatorios/individual',
+        icon: <CIcon icon={cilUser} customClassName="nav-icon" />,
+      },
+      {
+        component: CNavItem,
+        name: 'Relatório Mensal',
+        href: '/app/admin/banco-de-horas/relatorios/mensal',
+        icon: <CIcon icon={cilPeople} customClassName="nav-icon" />,
       },
       {
         component: CNavItem,
