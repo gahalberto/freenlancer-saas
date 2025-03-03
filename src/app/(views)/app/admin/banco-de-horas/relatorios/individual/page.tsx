@@ -223,9 +223,18 @@ const IndividualReportPage = () => {
               <strong>
                 Relatório de Horas - {mashguichimList.find(m => m.id === selectedUserId)?.name} - {getMonthName(selectedMonth)}/{selectedYear}
               </strong>
-              <CButton color="secondary" onClick={handlePrint}>
-                Imprimir Relatório
-              </CButton>
+              <div>
+                <CButton 
+                  color="warning" 
+                  className="me-2"
+                  href={`/app/admin/banco-de-horas/editar?userId=${selectedUserId}&month=${selectedMonth}&year=${selectedYear}`}
+                >
+                  Editar Registros
+                </CButton>
+                <CButton color="secondary" onClick={handlePrint}>
+                  Imprimir Relatório
+                </CButton>
+              </div>
             </CCardHeader>
             <CCardBody>
               {/* Conteúdo que será impresso */}
