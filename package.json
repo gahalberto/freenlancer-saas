@@ -89,6 +89,7 @@
     "react-hook-form": "^7.54.1",
     "react-quill": "^2.0.0",
     "react-redux": "^9.1.2",
+    "react-to-print": "^3.0.5",
     "simplebar-react": "^3.2.5",
     "stripe": "^17.3.1",
     "tailwind-merge": "^2.5.5",

@@ -1,7 +1,7 @@
 'use client'
 
 import { useSession } from 'next-auth/react'
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import {
   CButton,
   CCard,
@@ -34,6 +34,15 @@ const IndividualReportPage = () => {
   const [selectedYear, setSelectedYear] = useState<number>(new Date().getFullYear())
   const [reportData, setReportData] = useState<any>(null)
   const [loading, setLoading] = useState<boolean>(false)
+  
+  // Referência para o componente que será impresso
+  const reportRef = useRef<HTMLDivElement>(null)
+
+  // Função para obter o nome do mês
+  const getMonthName = (month: number) => {
+    const date = new Date(2000, month - 1, 1)
+    return format(date, 'MMMM', { locale: ptBR })
+  }
 
   useEffect(() => {
     const fetchMashguichim = async () => {
@@ -65,13 +74,64 @@ const IndividualReportPage = () => {
   }
 
   const handlePrint = () => {
-    window.print()
-  }
-
-  const getMonthName = (month: number) => {
-    const date = new Date(2000, month - 1, 1)
-    return format(date, 'MMMM', { locale: ptBR })
-  }
+    const printContents = reportRef.current?.innerHTML || '';
+    const originalContents = document.body.innerHTML;
+    
+    // Criar uma nova janela para impressão
+    const printWindow = window.open('', '_blank');
+    if (!printWindow) {
+      alert('Por favor, permita pop-ups para imprimir o relatório');
+      return;
+    }
+    
+    // Adicionar estilos e conteúdo à nova janela
+    printWindow.document.write(`
+      <html>
+        <head>
+          <title>Relatório de Horas - ${mashguichimList.find(m => m.id === selectedUserId)?.name} - ${getMonthName(selectedMonth)}/${selectedYear}</title>
+          <style>
+            body {
+              font-family: Arial, sans-serif;
+              padding: 20mm;
+            }
+            .report-header {
+              text-align: center;
+              margin-bottom: 20px;
+            }
+            table {
+              width: 100%;
+              border-collapse: collapse;
+              margin-bottom: 20px;
+            }
+            table, th, td {
+              border: 1px solid #ddd;
+            }
+            th, td {
+              padding: 8px;
+              text-align: left;
+            }
+            th {
+              background-color: #f2f2f2;
+            }
+            .table-primary th {
+              background-color: #cfe2ff;
+            }
+          </style>
+        </head>
+        <body>
+          ${printContents}
+        </body>
+      </html>
+    `);
+    
+    // Imprimir e fechar a janela
+    printWindow.document.close();
+    printWindow.focus();
+    printWindow.print();
+    printWindow.onafterprint = () => {
+      printWindow.close();
+    };
+  };
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString)
@@ -95,7 +155,7 @@ const IndividualReportPage = () => {
 
   return (
     <>
-      <CCard className="mb-4 print:hidden">
+      <CCard className="mb-4">
         <CCardHeader>
           <strong>Relatório Individual de Horas Trabalhadas</strong>
         </CCardHeader>
@@ -163,64 +223,72 @@ const IndividualReportPage = () => {
               <strong>
                 Relatório de Horas - {mashguichimList.find(m => m.id === selectedUserId)?.name} - {getMonthName(selectedMonth)}/{selectedYear}
               </strong>
-              <CButton color="secondary" onClick={handlePrint} className="print:hidden">
-                Imprimir
+              <CButton color="secondary" onClick={handlePrint}>
+                Imprimir Relatório
               </CButton>
             </CCardHeader>
             <CCardBody>
-              <CRow className="mb-4">
-                <CCol>
-                  <h4>Resumo</h4>
-                  <p><strong>Mashguiach:</strong> {mashguichimList.find(m => m.id === selectedUserId)?.name}</p>
-                  <p><strong>Período:</strong> {getMonthName(selectedMonth)}/{selectedYear}</p>
-                  <p><strong>Total de Horas Trabalhadas:</strong> {reportData.totalHoursWorked} horas</p>
-                  <p><strong>Valor por Hora:</strong> {formatCurrency(reportData.hourlyRate)}</p>
-                  <p><strong>Valor Total a Pagar:</strong> {formatCurrency(reportData.totalAmount)}</p>
-                </CCol>
-              </CRow>
+              {/* Conteúdo que será impresso */}
+              <div ref={reportRef} className="report-content">
+                <div className="report-header mb-4">
+                  <h2 className="text-center">Relatório de Horas Trabalhadas</h2>
+                  <h3 className="text-center mb-4">{mashguichimList.find(m => m.id === selectedUserId)?.name} - {getMonthName(selectedMonth)}/{selectedYear}</h3>
+                </div>
+                
+                <CRow className="mb-4">
+                  <CCol>
+                    <h4>Resumo</h4>
+                    <p><strong>Mashguiach:</strong> {mashguichimList.find(m => m.id === selectedUserId)?.name}</p>
+                    <p><strong>Período:</strong> {getMonthName(selectedMonth)}/{selectedYear}</p>
+                    <p><strong>Total de Horas Trabalhadas:</strong> {reportData.totalHoursWorked} horas</p>
+                    <p><strong>Valor por Hora:</strong> {formatCurrency(reportData.hourlyRate)}</p>
+                    <p><strong>Valor Total a Pagar:</strong> {formatCurrency(reportData.totalAmount)}</p>
+                  </CCol>
+                </CRow>
 
-              <CRow>
-                <CCol>
-                  <h4>Detalhamento por Dia</h4>
-                  <CTable bordered>
-                    <CTableHead>
-                      <CTableRow>
-                        <CTableHeaderCell scope="col">Data</CTableHeaderCell>
-                        <CTableHeaderCell scope="col">Entrada</CTableHeaderCell>
-                        <CTableHeaderCell scope="col">Saída</CTableHeaderCell>
-                        <CTableHeaderCell scope="col">Horas Trabalhadas</CTableHeaderCell>
-                        <CTableHeaderCell scope="col">Valor</CTableHeaderCell>
-                      </CTableRow>
-                    </CTableHead>
-                    <CTableBody>
-                      {Object.entries(reportData.entriesByDay).map(([day, times]: [string, any]) => (
-                        <CTableRow key={day}>
-                          <CTableDataCell>{formatDate(day)}</CTableDataCell>
-                          <CTableDataCell>
-                            {times.entrada ? format(new Date(times.entrada), 'HH:mm', { locale: ptBR }) : '-'}
-                          </CTableDataCell>
-                          <CTableDataCell>
-                            {times.saida ? format(new Date(times.saida), 'HH:mm', { locale: ptBR }) : '-'}
-                          </CTableDataCell>
-                          <CTableDataCell>
-                            {reportData.hoursWorkedByDay[day] ? `${reportData.hoursWorkedByDay[day]} horas` : '-'}
-                          </CTableDataCell>
-                          <CTableDataCell>
-                            {reportData.hoursWorkedByDay[day] 
-                              ? formatCurrency(reportData.hoursWorkedByDay[day] * reportData.hourlyRate) 
-                              : '-'}
-                          </CTableDataCell>
+                <CRow>
+                  <CCol>
+                    <h4>Detalhamento por Dia</h4>
+                    <CTable bordered>
+                      <CTableHead>
+                        <CTableRow>
+                          <CTableHeaderCell scope="col">Data</CTableHeaderCell>
+                          <CTableHeaderCell scope="col">Entrada</CTableHeaderCell>
+                          <CTableHeaderCell scope="col">Saída</CTableHeaderCell>
+                          <CTableHeaderCell scope="col">Horas Trabalhadas</CTableHeaderCell>
+                          <CTableHeaderCell scope="col">Valor</CTableHeaderCell>
                         </CTableRow>
-                      ))}
-                      <CTableRow className="table-primary">
-                        <CTableHeaderCell colSpan={3}>Total</CTableHeaderCell>
-                        <CTableHeaderCell>{reportData.totalHoursWorked} horas</CTableHeaderCell>
-                        <CTableHeaderCell>{formatCurrency(reportData.totalAmount)}</CTableHeaderCell>
-                      </CTableRow>
-                    </CTableBody>
-                  </CTable>
-                </CCol>
-              </CRow>
+                      </CTableHead>
+                      <CTableBody>
+                        {Object.entries(reportData.entriesByDay).map(([day, times]: [string, any]) => (
+                          <CTableRow key={day}>
+                            <CTableDataCell>{formatDate(day)}</CTableDataCell>
+                            <CTableDataCell>
+                              {times.entrada ? format(new Date(times.entrada), 'HH:mm', { locale: ptBR }) : '-'}
+                            </CTableDataCell>
+                            <CTableDataCell>
+                              {times.saida ? format(new Date(times.saida), 'HH:mm', { locale: ptBR }) : '-'}
+                            </CTableDataCell>
+                            <CTableDataCell>
+                              {reportData.hoursWorkedByDay[day] ? `${reportData.hoursWorkedByDay[day]} horas` : '-'}
+                            </CTableDataCell>
+                            <CTableDataCell>
+                              {reportData.hoursWorkedByDay[day] 
+                                ? formatCurrency(reportData.hoursWorkedByDay[day] * reportData.hourlyRate) 
+                                : '-'}
+                            </CTableDataCell>
+                          </CTableRow>
+                        ))}
+                        <CTableRow className="table-primary">
+                          <CTableHeaderCell colSpan={3}>Total</CTableHeaderCell>
+                          <CTableHeaderCell>{reportData.totalHoursWorked} horas</CTableHeaderCell>
+                          <CTableHeaderCell>{formatCurrency(reportData.totalAmount)}</CTableHeaderCell>
+                        </CTableRow>
+                      </CTableBody>
+                    </CTable>
+                  </CCol>
+                </CRow>
+              </div>
             </CCardBody>
           </CCard>
         </>
