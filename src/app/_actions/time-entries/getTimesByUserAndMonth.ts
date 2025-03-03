@@ -50,8 +50,25 @@ export const getTimesByUserAndMonth = async (userId: string, month: number, year
     
     Object.entries(entriesByDay).forEach(([day, times]) => {
         if (times.entrada && times.saida) {
-            const hoursWorked = (times.saida.getTime() - times.entrada.getTime()) / (1000 * 60 * 60);
-            hoursWorkedByDay[day] = parseFloat(hoursWorked.toFixed(2));
+            const entrada = new Date(times.entrada);
+            const saida = new Date(times.saida);
+            
+            // Se a saída for menor que a entrada, significa que passou da meia-noite
+            // Nesse caso, adicionamos 24 horas à saída
+            let hoursWorked = (saida.getTime() - entrada.getTime()) / (1000 * 60 * 60);
+            
+            // Se o resultado for negativo, significa que a saída foi no dia seguinte
+            if (hoursWorked < 0) {
+                hoursWorked = (saida.getTime() - entrada.getTime() + 24 * 60 * 60 * 1000) / (1000 * 60 * 60);
+            }
+            
+            // Limita o máximo de horas por dia a 24
+            hoursWorked = Math.min(hoursWorked, 24);
+            
+            // Arredonda para 2 casas decimais
+            hoursWorked = parseFloat(hoursWorked.toFixed(2));
+            
+            hoursWorkedByDay[day] = hoursWorked;
             totalHoursWorked += hoursWorked;
         }
     });
