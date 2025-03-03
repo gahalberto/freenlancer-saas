@@ -29,6 +29,7 @@ import { User } from '@prisma/client'
 import { getAllMashguichim } from '@/app/_actions/getAllMashguichim'
 import { getTimesByUserAndMonth } from '@/app/_actions/time-entries/getTimesByUserAndMonth'
 import { editTimeEntry } from '@/app/_actions/time-entries/editTimeEntry'
+import { adjustSingleTimeEntry, adjustAllTimeEntries } from '@/app/_actions/time-entries/adjustTimeEntries'
 import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 import { useSearchParams } from 'next/navigation'
@@ -112,6 +113,30 @@ const EditTimeEntriesPage = () => {
     }
   }
 
+  const handleAdjustSingle = async (entryId: number, adjustType: 'up' | 'down') => {
+    try {
+      await adjustSingleTimeEntry(entryId, adjustType)
+      fetchTimeEntries() // Recarrega os dados
+      alert('Registro ajustado com sucesso!')
+    } catch (error) {
+      console.error('Erro ao ajustar registro:', error)
+      alert('Erro ao ajustar registro')
+    }
+  }
+
+  const handleAdjustAll = async (adjustType: 'up' | 'down') => {
+    if (!selectedUserId) return
+
+    try {
+      await adjustAllTimeEntries(selectedUserId, selectedMonth, selectedYear, adjustType)
+      fetchTimeEntries() // Recarrega os dados
+      alert('Todos os registros foram ajustados com sucesso!')
+    } catch (error) {
+      console.error('Erro ao ajustar registros:', error)
+      alert('Erro ao ajustar registros')
+    }
+  }
+
   const formatDateTime = (dateString: string) => {
     const date = new Date(dateString)
     return format(date, 'dd/MM/yyyy HH:mm', { locale: ptBR })
@@ -179,9 +204,29 @@ const EditTimeEntriesPage = () => {
                   color="primary"
                   onClick={fetchTimeEntries}
                   disabled={loading}
+                  className="me-2"
                 >
                   {loading ? 'Buscando...' : 'Buscar Registros'}
                 </CButton>
+                {timeEntries && (
+                  <>
+                    <CButton
+                      color="warning"
+                      onClick={() => handleAdjustAll('up')}
+                      disabled={loading}
+                      className="me-2"
+                    >
+                      Ajustar Todos para Cima
+                    </CButton>
+                    <CButton
+                      color="warning"
+                      onClick={() => handleAdjustAll('down')}
+                      disabled={loading}
+                    >
+                      Ajustar Todos para Baixo
+                    </CButton>
+                  </>
+                )}
               </CCol>
             </CRow>
           </CForm>
@@ -220,8 +265,24 @@ const EditTimeEntriesPage = () => {
                               type: 'ENTRADA',
                               data_hora: new Date(times.entrada)
                             })}
+                            className="me-2"
                           >
                             Editar
+                          </CButton>
+                          <CButton
+                            color="warning"
+                            size="sm"
+                            onClick={() => handleAdjustSingle(times.entradaId, 'up')}
+                            className="me-2"
+                          >
+                            ↑ Próxima Hora
+                          </CButton>
+                          <CButton
+                            color="warning"
+                            size="sm"
+                            onClick={() => handleAdjustSingle(times.entradaId, 'down')}
+                          >
+                            ↓ Hora Atual
                           </CButton>
                         </CTableDataCell>
                       </CTableRow>
@@ -239,8 +300,24 @@ const EditTimeEntriesPage = () => {
                               type: 'SAIDA',
                               data_hora: new Date(times.saida)
                             })}
+                            className="me-2"
                           >
                             Editar
+                          </CButton>
+                          <CButton
+                            color="warning"
+                            size="sm"
+                            onClick={() => handleAdjustSingle(times.saidaId, 'up')}
+                            className="me-2"
+                          >
+                            ↑ Próxima Hora
+                          </CButton>
+                          <CButton
+                            color="warning"
+                            size="sm"
+                            onClick={() => handleAdjustSingle(times.saidaId, 'down')}
+                          >
+                            ↓ Hora Atual
                           </CButton>
                         </CTableDataCell>
                       </CTableRow>
