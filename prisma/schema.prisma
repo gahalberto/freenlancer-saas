@@ -52,6 +52,7 @@ model User {
   address_lng      String?
   pixKey           String?               @default("")
   deleteAt         DateTime?
+  avatar_url       String?               @default("")
   Certifications   Certifications[]
   EventsServices   EventsServices[]
   mashguiachJobs   FixedJobs[]

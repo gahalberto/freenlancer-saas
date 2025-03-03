@@ -22,8 +22,6 @@ import {
   cilUser,
 } from '@coreui/icons'
 import CIcon from '@coreui/icons-react'
-
-import avatar8 from '@/public/images/avatars/8.jpg'
 import { signOut, useSession } from 'next-auth/react'
 
 const AppHeaderDropdown = () => {
@@ -31,13 +29,24 @@ const AppHeaderDropdown = () => {
   return (
     <CDropdown variant="nav-item" alignment="end">
       <CDropdownToggle className="py-0" caret={false}>
-        <CAvatar src="/images/avatars/avatar.jpg" size="md" />
+        <div style={{ width: '40px', height: '40px', position: 'relative' }}>
+          <CAvatar 
+            src={session?.user?.image || '/images/avatars/avatar.jpg'} 
+            size="md"
+            style={{ 
+              width: '100%', 
+              height: '100%', 
+              objectFit: 'cover',
+              borderRadius: '50%'
+            }}
+          />
+        </div>
       </CDropdownToggle>
       <CDropdownMenu className="pt-0">
         <CDropdownHeader className="bg-body-secondary text-body-secondary fw-semibold my-2">
           Configurações
         </CDropdownHeader>
-        <CDropdownItem href={`/profile/${session?.user.id}`}>
+        <CDropdownItem href="/app/profile">
           <CIcon icon={cilUser} className="me-2" />
           Perfil
         </CDropdownItem>
@@ -49,7 +58,7 @@ const AppHeaderDropdown = () => {
           <CIcon icon={cilCreditCard} className="me-2" />
           Pagamentos
         </CDropdownItem>
-        \ <CDropdownDivider />
+        <CDropdownDivider />
         <CDropdownItem onClick={() => signOut({ callbackUrl: '/' })}>
           <CIcon icon={cilAccountLogout} className="me-2" />
           Sair

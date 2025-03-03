@@ -36,14 +36,14 @@ export const authOptions: NextAuthOptions = {
           return null;
         }
 
-
         return {
           id: user.id.toString(),
           name: user.name,
           email: user.email,
           roleId: user.roleId,
-          isAdminPreview: user.isAdminPreview ?? false, // 🔥 Garante que nunca seja null
+          isAdminPreview: user.isAdminPreview ?? false,
           asweredQuestions: user.asweredQuestions ?? undefined,
+          image: user.avatar_url || null,
         };
       },
     }),
@@ -64,9 +64,10 @@ export const authOptions: NextAuthOptions = {
         token.id = user.id;
         token.name = user.name;
         token.email = user.email;
-        token.roleId = user.roleId; // 🔥 Permite alteração do roleId
+        token.roleId = user.roleId;
         token.isAdminPreview = user.isAdminPreview;
         token.asweredQuestions = user.asweredQuestions ?? undefined;
+        token.image = user.image;
       }
       return token;
     },
@@ -79,9 +80,10 @@ export const authOptions: NextAuthOptions = {
           id: token.id as string,
           name: token.name,
           email: token.email,
-          roleId: token.roleId, // 🔄 Atualiza roleId na sessão
+          roleId: token.roleId,
           isAdminPreview: token.isAdminPreview,
           asweredQuestions: token.asweredQuestions,
+          image: token.image,
         };
       }
       return session;
