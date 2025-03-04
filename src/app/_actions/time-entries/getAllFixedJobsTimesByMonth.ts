@@ -36,10 +36,12 @@ export const getAllFixedJobsTimesByMonth = async (month: number, year: number) =
 
             // Organiza as entradas por dia
             const entriesByDay: Record<string, any> = {};
-            const hoursWorkedByDay: Record<string, number> = {};
             let totalHoursWorked = 0;
             
             timeEntries.forEach(entry => {
+                // Ignora entradas sem horário de entrada
+                if (!entry.entrace) return;
+
                 const day = entry.entrace.toISOString().split('T')[0];
                 
                 entriesByDay[day] = {
@@ -67,7 +69,7 @@ export const getAllFixedJobsTimesByMonth = async (month: number, year: number) =
                     // Limita o máximo de horas por dia a 24
                     hoursWorked = Math.min(hoursWorked, 24);
                     
-                    hoursWorkedByDay[day] = hoursWorked;
+                    entriesByDay[day].horasTrabalhadasNoDia = hoursWorked;
                     totalHoursWorked += hoursWorked;
                 }
             });
@@ -80,7 +82,6 @@ export const getAllFixedJobsTimesByMonth = async (month: number, year: number) =
                 job,
                 timeEntries,
                 entriesByDay,
-                hoursWorkedByDay,
                 totalHoursWorked: parseFloat(totalHoursWorked.toFixed(2)),
                 hourlyRate,
                 totalAmount

@@ -47,10 +47,12 @@ import { updateUserPix, userHasPix } from '@/app/_actions/users/hasPix'
 import NextEventsDashboard from './NextEvents'
 import { getNextEventsMashguiach } from '@/app/_actions/events/getNextEventsByMashguiach'
 import { db } from '@/app/_lib/prisma'
-import { MashguiachEntrace } from '@/app/_actions/time-entries/timeIn'
-import { MashguiachExit } from '@/app/_actions/time-entries/timeOut'
+import { timeIn } from '@/app/_actions/time-entries/timeIn'
+import { timeOut } from '@/app/_actions/time-entries/timeOut'
 import { checkTodayEntrace } from '@/app/_actions/time-entries/checkTodayEntrace'
 import { checkTodayExit } from '@/app/_actions/time-entries/checkTodayExit'
+import { format } from 'date-fns'
+import { ptBR } from 'date-fns/locale'
 
 interface EventsServicesWithStoreEvents extends EventsServices {
   StoreEvents: StoreEvents
@@ -82,6 +84,7 @@ export default function MashguiachDashboard() {
   const [longitude, setLongitude] = useState(0)
   const [hasEnteredToday, setHasEnteredToday] = useState(false)
   const [hasExitedToday, setHasExitedToday] = useState(false)
+  const [loading, setLoading] = useState(false)
 
   // Toast de confirmação de registro
   const exampleToast = (
@@ -162,68 +165,76 @@ export default function MashguiachDashboard() {
   }
 
   // Função para registrar a entrada
-  const handleConfirmEntrace = async () => {
-    if (!userId) {
-      alert('Não foi possível salvar seu usuário! Por favor entre em contato com a administração')
-      return
-    }
+  const handleTimeEntry = async () => {
+    if (!userId) return
 
-    const now = new Date()
-    if (
-      !confirm(
-        `Você está registrando entrada ao serviço no dia ${now.toLocaleDateString()} às ${now.toLocaleTimeString()}`
-      )
-    ) {
-      return
-    }
-
+    setLoading(true)
     try {
-      // Obtém a localização do usuário
+      // Obter a localização atual
       const position = await getUserLocation()
       const { latitude, longitude } = position.coords
       setLatidude(latitude)
       setLongitude(longitude)
 
+      // Buscar o store_id do usuário
+      const fixedJob = await db.fixedJobs.findFirst({
+        where: {
+          user_id: userId,
+          deletedAt: null
+        },
+        select: { store_id: true }
+      })
+
+      if (!fixedJob) {
+        throw new Error('Você não está registrado em nenhuma loja!')
+      }
+
       // Registra a entrada e atualiza o estado
-      await MashguiachEntrace(userId, latitude, longitude)
+      await timeIn(userId, fixedJob.store_id, latitude, longitude)
       addToast(exampleToast as any)
       setHasEnteredToday(true)
     } catch (error: any) {
-      console.error('Erro ao registrar entrada:', error.message)
-      alert(error.message)
+      console.error('Erro ao registrar entrada:', error)
+      alert(error.message || 'Erro ao registrar entrada')
+    } finally {
+      setLoading(false)
     }
   }
 
   // Função para registrar a saída
-  const handleRegisterExit = async () => {
-    if (!userId) {
-      alert('Não foi possível salvar seu usuário! Por favor entre em contato com a administração')
-      return
-    }
+  const handleTimeExit = async () => {
+    if (!userId) return
 
-    const now = new Date()
-    if (
-      !confirm(
-        `Você está registrando saída ao serviço no dia ${now.toLocaleDateString()} às ${now.toLocaleTimeString()}`
-      )
-    ) {
-      return
-    }
-
+    setLoading(true)
     try {
-      // Obtém a localização do usuário
+      // Obter a localização atual
       const position = await getUserLocation()
       const { latitude, longitude } = position.coords
       setLatidude(latitude)
       setLongitude(longitude)
 
+      // Buscar o store_id do usuário
+      const fixedJob = await db.fixedJobs.findFirst({
+        where: {
+          user_id: userId,
+          deletedAt: null
+        },
+        select: { store_id: true }
+      })
+
+      if (!fixedJob) {
+        throw new Error('Você não está registrado em nenhuma loja!')
+      }
+
       // Registra a saída e atualiza o estado
-      await MashguiachExit(userId, latitude, longitude)
+      await timeOut(userId, fixedJob.store_id, latitude, longitude)
       addToast(exampleToast as any)
       setHasExitedToday(true)
     } catch (error: any) {
-      console.error('Erro ao registrar saída:', error.message)
-      alert(error.message)
+      console.error('Erro ao registrar saída:', error)
+      alert(error.message || 'Erro ao registrar saída')
+    } finally {
+      setLoading(false)
     }
   }
 
@@ -247,14 +258,14 @@ export default function MashguiachDashboard() {
     <>
       <div className="d-flex flex-column mb-10" style={{ marginBottom: '10px' }}>
         {!hasEnteredToday && (
-          <CButton color="primary" size="lg" className="mb-2" onClick={handleConfirmEntrace}>
-            Registrar Entrada
+          <CButton color="primary" size="lg" className="mb-2" onClick={handleTimeEntry} disabled={loading}>
+            {loading ? 'Registrando...' : 'Registrar Entrada'}
           </CButton>
         )}
 
         {!hasExitedToday && (
-          <CButton color="warning" size="lg" onClick={handleRegisterExit}>
-            Registrar Saída
+          <CButton color="warning" size="lg" onClick={handleTimeExit} disabled={loading || !hasEnteredToday}>
+            {loading ? 'Registrando...' : 'Registrar Saída'}
           </CButton>
         )}
       </div>

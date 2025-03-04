@@ -3,7 +3,8 @@
 import { db } from "@/app/_lib/prisma"
 
 // Função para ajustar um horário para cima (próxima hora)
-const adjustUp = (date: Date): Date => {
+const adjustUp = (date: Date | null): Date | null => {
+  if (!date) return null;
   const newDate = new Date(date);
   const minutes = date.getMinutes();
   
@@ -15,7 +16,8 @@ const adjustUp = (date: Date): Date => {
 }
 
 // Função para ajustar um horário para baixo (hora atual)
-const adjustDown = (date: Date): Date => {
+const adjustDown = (date: Date | null): Date | null => {
+  if (!date) return null;
   const newDate = new Date(date);
   newDate.setHours(date.getHours(), 0, 0, 0);
   return newDate;
@@ -32,13 +34,30 @@ export const adjustSingleTimeEntry = async (entryId: number, adjustType: 'up' | 
       throw new Error("Registro não encontrado");
     }
 
-    const adjustedDate = adjustType === 'up' 
-      ? adjustUp(entry.data_hora)
-      : adjustDown(entry.data_hora);
+    const adjustedEntrace = adjustType === 'up' 
+      ? adjustUp(entry.entrace)
+      : adjustDown(entry.entrace);
+
+    const adjustedExit = adjustType === 'up'
+      ? adjustUp(entry.exit)
+      : adjustDown(entry.exit);
+
+    const adjustedLunchEntrace = adjustType === 'up'
+      ? adjustUp(entry.lunchEntrace)
+      : adjustDown(entry.lunchEntrace);
+
+    const adjustedLunchExit = adjustType === 'up'
+      ? adjustUp(entry.lunchExit)
+      : adjustDown(entry.lunchExit);
 
     const updatedEntry = await db.timeEntries.update({
       where: { id: entryId },
-      data: { data_hora: adjustedDate }
+      data: { 
+        entrace: adjustedEntrace,
+        exit: adjustedExit,
+        lunchEntrace: adjustedLunchEntrace,
+        lunchExit: adjustedLunchExit
+      }
     });
 
     return updatedEntry;
@@ -57,7 +76,7 @@ export const adjustAllTimeEntries = async (userId: string, month: number, year: 
     const entries = await db.timeEntries.findMany({
       where: {
         user_id: userId,
-        data_hora: {
+        entrace: {
           gte: startDate,
           lte: endDate
         }
@@ -68,9 +87,10 @@ export const adjustAllTimeEntries = async (userId: string, month: number, year: 
       db.timeEntries.update({
         where: { id: entry.id },
         data: { 
-          data_hora: adjustType === 'up' 
-            ? adjustUp(entry.data_hora)
-            : adjustDown(entry.data_hora)
+          entrace: adjustType === 'up' ? adjustUp(entry.entrace) : adjustDown(entry.entrace),
+          exit: adjustType === 'up' ? adjustUp(entry.exit) : adjustDown(entry.exit),
+          lunchEntrace: adjustType === 'up' ? adjustUp(entry.lunchEntrace) : adjustDown(entry.lunchEntrace),
+          lunchExit: adjustType === 'up' ? adjustUp(entry.lunchExit) : adjustDown(entry.lunchExit)
         }
       })
     );

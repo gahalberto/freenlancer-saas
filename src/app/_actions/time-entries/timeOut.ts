@@ -2,22 +2,19 @@
 
 import { db } from "@/app/_lib/prisma"
 
-export const MashguiachExit = async (
-  userId: string,
-  latitude?: number,
-  longitude?: number
-) => {
+export const timeOut = async (userId: string, storeId: string, latitude: number | null = null, longitude: number | null = null) => {
   try {
     // Verifica se o usuário está vinculado a alguma loja
     const store = await db.fixedJobs.findFirst({
-      where: { user_id: userId },
-      select: { store_id: true },
+      where: { 
+        user_id: userId,
+        deletedAt: null
+      },
+      select: { store_id: true }
     })
 
     if (!store) {
-      throw new Error(
-        "Você não está registrado em nenhuma loja! Entre em contato com a administração."
-      )
+      throw new Error('Você não está registrado em nenhuma loja! Entre em contato com a administração.')
     }
 
     // Define o intervalo das últimas 2 horas
@@ -25,38 +22,53 @@ export const MashguiachExit = async (
     const twoHoursAgo = new Date(now)
     twoHoursAgo.setHours(now.getHours() - 2)
 
-    // Verifica se já houve uma saída nas últimas 2 horas
-    const alreadyExists = await db.timeEntries.findFirst({
+    // Verifica se já existe uma saída nas últimas 2 horas
+    const recentExit = await db.timeEntries.findFirst({
       where: {
         user_id: userId,
-        data_hora: {
+        exit: {
           gte: twoHoursAgo,
-          lt: now,
-        },
-        type: "SAIDA",
-      },
+          lt: now
+        }
+      }
     })
 
-    if (alreadyExists) {
-      throw new Error("Você já registrou uma saída nas últimas 2 horas!")
+    if (recentExit) {
+      throw new Error('Você já registrou saída nas últimas 2 horas!')
     }
 
-    // Cria o registro de saída
-    return await db.timeEntries.create({
-      data: {
+    // Busca a entrada mais recente sem saída
+    const openEntry = await db.timeEntries.findFirst({
+      where: {
         user_id: userId,
-        store_id: store.store_id,
-        type: "SAIDA",
-        data_hora: new Date(),
-        latitude: latitude ?? null,
-        longitude: longitude ?? null,
+        entrace: { not: null },
+        exit: null
       },
+      orderBy: {
+        entrace: 'desc'
+      }
+    })
+
+    if (!openEntry) {
+      throw new Error('Não foi encontrada uma entrada em aberto para registrar saída!')
+    }
+
+    // Atualiza o registro com a saída
+    return await db.timeEntries.update({
+      where: {
+        id: openEntry.id
+      },
+      data: {
+        exit: now,
+        latitude,
+        longitude
+      }
     })
   } catch (error: any) {
     console.error("Erro no server ao registrar saída:", error)
     throw new Error(
-      error.message ||
-        "Não foi possível registrar sua saída. Por favor, entre em contato com a administração."
+      error.message || 
+      "Não foi possível registrar sua saída. Por favor, entre em contato com a administração."
     )
   }
 }

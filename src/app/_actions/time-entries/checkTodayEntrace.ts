@@ -6,7 +6,10 @@ export const checkTodayEntrace = async (userId: string) => {
   try {
     // Verifica se o usuário está vinculado a alguma loja
     const store = await db.fixedJobs.findFirst({
-      where: { user_id: userId },
+      where: { 
+        user_id: userId,
+        deletedAt: null
+      },
       select: { store_id: true }
     });
     
@@ -23,18 +26,21 @@ export const checkTodayEntrace = async (userId: string) => {
     return await db.timeEntries.findFirst({
       where: {
         user_id: userId,
-        data_hora: {
+        entrace: {
           gte: twoHoursAgo,
           lt: now
         },
-        type: 'ENTRADA'
+        exit: null // Garante que é uma entrada sem saída registrada
+      },
+      orderBy: {
+        entrace: 'desc'
       }
     });
   } catch (error: any) {
-    console.error("Erro no server ao registrar entrada:", error);
+    console.error("Erro no server ao verificar entrada:", error);
     throw new Error(
       error.message || 
-      "Não foi possível registrar sua entrada. Por favor, entre em contato com a administração."
+      "Não foi possível verificar sua entrada. Por favor, entre em contato com a administração."
     );
   }
 };

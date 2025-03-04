@@ -13,11 +13,13 @@ export const checkTodayExit = async (userId: string) => {
     return await db.timeEntries.findFirst({
       where: {
         user_id: userId,
-        data_hora: {
+        exit: {
           gte: twoHoursAgo,
           lt: now
-        },
-        type: 'SAIDA'
+        }
+      },
+      orderBy: {
+        exit: 'desc'
       }
     });
   } catch (error: any) {
