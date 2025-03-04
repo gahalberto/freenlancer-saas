@@ -86,6 +86,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const hourlyRate = fixedJob?.price_per_hour || 39.40;
     const totalAmount = parseFloat((totalHoursWorked * hourlyRate).toFixed(2));
 
+    const data = {
+      user_id,
+      month: selectedMonth,
+      year: selectedYear,
+      entriesByDay,
+      totalHoursWorked: parseFloat(totalHoursWorked.toFixed(2)),
+      hourlyRate,
+      totalAmount
+    }
+
+    console.log(data) 
+
     return res.status(200).json({
       user_id,
       month: selectedMonth,
