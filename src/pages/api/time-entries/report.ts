@@ -1,5 +1,5 @@
 import { NextApiRequest, NextApiResponse } from 'next';
-import { getTimesByUserAndMonth } from '@/app/_actions/time-entries/getTimesByUserAndMonth';
+import { db } from '@/app/_lib/prisma';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'GET') {
@@ -15,7 +15,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     // Obter mês e ano da query ou usar o mês e ano atual
     const currentDate = new Date();
-    let month = parseInt(req.query.month as string) || currentDate.getMonth() + 1; // getMonth() retorna 0-11
+    let month = parseInt(req.query.month as string) || currentDate.getMonth() + 1;
     let year = parseInt(req.query.year as string) || currentDate.getFullYear();
 
     // Validar mês e ano
@@ -27,89 +27,88 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(400).json({ error: 'Ano inválido. Deve estar entre 2000 e 2100.' });
     }
 
-    // Buscar os registros de tempo do usuário para o mês e ano especificados
-    const timeEntries = await getTimesByUserAndMonth(userId, month, year);
+    // Criar datas de início e fim do mês
+    const startDate = new Date(year, month - 1, 1);
+    const endDate = new Date(year, month, 0, 23, 59, 59);
 
-    // Corrigir o problema de saídas após meia-noite
-    const correctedEntries = { ...timeEntries };
-    
-    if (correctedEntries.entriesByDay) {
-      const days = Object.keys(correctedEntries.entriesByDay).sort();
-      
-      for (let i = 0; i < days.length; i++) {
-        const currentDay = days[i];
-        const currentDayData = correctedEntries.entriesByDay[currentDay];
-        
-        // Se temos uma entrada mas não uma saída, e o próximo dia tem uma saída sem entrada
-        if (i < days.length - 1) {
-          const nextDay = days[i + 1];
-          const nextDayData = correctedEntries.entriesByDay[nextDay];
-          
-          if (currentDayData.entrada && !currentDayData.saida && 
-              nextDayData.saida && !nextDayData.entrada) {
-            // A saída do próximo dia pertence a este dia
-            currentDayData.saida = nextDayData.saida;
-            currentDayData.saidaId = nextDayData.saidaId;
-            
-            // Remover a saída do próximo dia
-            delete nextDayData.saida;
-            delete nextDayData.saidaId;
-            
-            // Se o próximo dia ficou vazio, remover completamente
-            if (Object.keys(nextDayData).length === 0) {
-              delete correctedEntries.entriesByDay[nextDay];
-            }
-            
-            // Recalcular as horas trabalhadas para este dia
-            if (correctedEntries.hoursWorkedByDay && currentDayData.entrada && currentDayData.saida) {
-              const entrada = new Date(currentDayData.entrada);
-              const saida = new Date(currentDayData.saida);
-              
-              let hoursWorked = (saida.getTime() - entrada.getTime()) / (1000 * 60 * 60);
-              
-              // Se o resultado for negativo, significa que a saída foi no dia seguinte
-              if (hoursWorked < 0) {
-                hoursWorked = (saida.getTime() - entrada.getTime() + 24 * 60 * 60 * 1000) / (1000 * 60 * 60);
-              }
-              
-              // Limita o máximo de horas por dia a 24
-              hoursWorked = Math.min(hoursWorked, 24);
-              
-              // Arredonda para 2 casas decimais
-              hoursWorked = parseFloat(hoursWorked.toFixed(2));
-              
-              correctedEntries.hoursWorkedByDay[currentDay] = hoursWorked;
-              
-              // Remover as horas do próximo dia se existirem
-              if (correctedEntries.hoursWorkedByDay[nextDay] !== undefined) {
-                delete correctedEntries.hoursWorkedByDay[nextDay];
-              }
-            }
-          }
+    // Buscar os registros do mês
+    const timeEntries = await db.timeEntries.findMany({
+      where: {
+        user_id: userId,
+        entrace: {
+          gte: startDate,
+          lte: endDate
         }
+      },
+      include: {
+        user: true,
+        stores: true
+      },
+      orderBy: {
+        entrace: 'asc'
       }
+    });
+
+    // Organizar os dados por dia
+    const entriesByDay: Record<string, any> = {};
+    const hoursWorkedByDay: Record<string, number> = {};
+    let totalHoursWorked = 0;
+
+    timeEntries.forEach(entry => {
+      const day = entry.entrace.toISOString().split('T')[0];
       
-      // Recalcular o total de horas trabalhadas
-      if (correctedEntries.hoursWorkedByDay) {
-        let totalHours = 0;
-        Object.values(correctedEntries.hoursWorkedByDay).forEach(hours => {
-          totalHours += Number(hours);
-        });
-        
-        correctedEntries.totalHoursWorked = parseFloat(totalHours.toFixed(2));
-        
-        // Recalcular o valor total
-        if (correctedEntries.hourlyRate) {
-          correctedEntries.totalAmount = parseFloat((correctedEntries.totalHoursWorked * correctedEntries.hourlyRate).toFixed(2));
+      entriesByDay[day] = {
+        entrada: entry.entrace,
+        saida: entry.exit,
+        almoco: entry.lunchEntrace && entry.lunchExit ? {
+          entrada: entry.lunchEntrace,
+          saida: entry.lunchExit
+        } : null
+      };
+
+      // Calcular horas trabalhadas no dia
+      if (entry.entrace && entry.exit) {
+        let hoursWorked = (entry.exit.getTime() - entry.entrace.getTime()) / (1000 * 60 * 60);
+
+        // Se teve horário de almoço, subtrair
+        if (entry.lunchEntrace && entry.lunchExit) {
+          const lunchHours = (entry.lunchExit.getTime() - entry.lunchEntrace.getTime()) / (1000 * 60 * 60);
+          hoursWorked -= lunchHours;
         }
+
+        // Arredondar para 2 casas decimais
+        hoursWorked = parseFloat(hoursWorked.toFixed(2));
+        
+        // Limitar a 24 horas por dia
+        hoursWorked = Math.min(hoursWorked, 24);
+
+        hoursWorkedByDay[day] = hoursWorked;
+        totalHoursWorked += hoursWorked;
       }
-    }
+    });
+
+    // Buscar o valor por hora do trabalho fixo do usuário
+    const fixedJob = await db.fixedJobs.findFirst({
+      where: {
+        user_id: userId,
+        deletedAt: null
+      }
+    });
+
+    const hourlyRate = fixedJob?.price_per_hour ?? 39.40; // Usa o valor do trabalho fixo ou o padrão
+    const totalAmount = parseFloat((totalHoursWorked * hourlyRate).toFixed(2));
 
     return res.status(200).json({
       userId,
       month,
       year,
-      data: correctedEntries
+      data: {
+        entriesByDay,
+        hoursWorkedByDay,
+        totalHoursWorked: parseFloat(totalHoursWorked.toFixed(2)),
+        hourlyRate,
+        totalAmount
+      }
     });
   } catch (error: any) {
     console.error('Erro ao buscar registros de tempo:', error);

@@ -66,19 +66,16 @@ model User {
   @@map("users")
 }
 
-enum TYPE_ENTRIES {
-  ENTRADA
-  SAIDA
-}
-
 model TimeEntries {
-  id        Int          @id @default(autoincrement())
-  user_id   String
-  store_id  String
-  type      TYPE_ENTRIES
-  data_hora DateTime
-  latitude  Float?
-  longitude Float?
+  id           Int       @id @default(autoincrement())
+  user_id      String
+  store_id     String
+  entrace      DateTime
+  exit         DateTime?
+  lunchEntrace DateTime?
+  lunchExit    DateTime?
+  latitude     Float?
+  longitude    Float?
 
   user   User   @relation(fields: [user_id], references: [id])
   stores Stores @relation(fields: [store_id], references: [id])
