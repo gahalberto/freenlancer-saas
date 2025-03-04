@@ -70,7 +70,7 @@ model TimeEntries {
   id           Int       @id @default(autoincrement())
   user_id      String
   store_id     String
-  entrace      DateTime
+  entrace      DateTime?
   exit         DateTime?
   lunchEntrace DateTime?
   lunchExit    DateTime?
