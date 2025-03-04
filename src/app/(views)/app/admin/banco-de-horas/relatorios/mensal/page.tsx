@@ -215,6 +215,7 @@ const MonthlyReportPage = () => {
                           <CTableHeaderCell scope="col">#</CTableHeaderCell>
                           <CTableHeaderCell scope="col">Mashguiach</CTableHeaderCell>
                           <CTableHeaderCell scope="col">Estabelecimento</CTableHeaderCell>
+                          <CTableHeaderCell scope="col">Dias Trabalhados</CTableHeaderCell>
                           <CTableHeaderCell scope="col">Horas Trabalhadas</CTableHeaderCell>
                           <CTableHeaderCell scope="col">Valor por Hora</CTableHeaderCell>
                           <CTableHeaderCell scope="col">Valor Total</CTableHeaderCell>
@@ -226,13 +227,14 @@ const MonthlyReportPage = () => {
                             <CTableDataCell>{index + 1}</CTableDataCell>
                             <CTableDataCell>{userReport.job.mashguiach.name}</CTableDataCell>
                             <CTableDataCell>{userReport.job.store.title}</CTableDataCell>
+                            <CTableDataCell>{Object.keys(userReport.entriesByDay).length}</CTableDataCell>
                             <CTableDataCell>{userReport.totalHoursWorked} horas</CTableDataCell>
                             <CTableDataCell>{formatCurrency(userReport.hourlyRate)}</CTableDataCell>
                             <CTableDataCell>{formatCurrency(userReport.totalAmount)}</CTableDataCell>
                           </CTableRow>
                         ))}
                         <CTableRow className="table-primary">
-                          <CTableHeaderCell colSpan={3}>Total</CTableHeaderCell>
+                          <CTableHeaderCell colSpan={4}>Total</CTableHeaderCell>
                           <CTableHeaderCell>{reportData.totalHoursAllUsers} horas</CTableHeaderCell>
                           <CTableHeaderCell>-</CTableHeaderCell>
                           <CTableHeaderCell>{formatCurrency(reportData.totalAmountAllUsers)}</CTableHeaderCell>

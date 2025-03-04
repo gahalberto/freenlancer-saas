@@ -2,17 +2,25 @@
 
 import { db } from "@/app/_lib/prisma"
 
-export const editTimeEntry = async (
-  entryId: number,
-  newDateTime: Date,
-) => {
+interface UpdateData {
+  id: number
+  entrace?: Date
+  exit?: Date
+  lunchEntrace?: Date
+  lunchExit?: Date
+}
+
+export const editTimeEntry = async (updateData: UpdateData) => {
   try {
     const updatedEntry = await db.timeEntries.update({
       where: {
-        id: entryId,
+        id: updateData.id,
       },
       data: {
-        data_hora: newDateTime,
+        entrace: updateData.entrace,
+        exit: updateData.exit,
+        lunchEntrace: updateData.lunchEntrace,
+        lunchExit: updateData.lunchExit,
       },
     })
 
