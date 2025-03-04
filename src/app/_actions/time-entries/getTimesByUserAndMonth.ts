@@ -7,11 +7,11 @@ export const getTimesByUserAndMonth = async (userId: string, month: number, year
     const startDate = new Date(year, month - 1, 1);
     const endDate = new Date(year, month, 0, 23, 59, 59);
 
-    // Busca todas as entradas e saídas do usuário no período
+    // Busca todas as entradas do usuário no período
     const timeEntries = await db.timeEntries.findMany({
         where: {
             user_id: userId,
-            data_hora: {
+            entrace: {
                 gte: startDate,
                 lte: endDate
             }
@@ -21,52 +21,42 @@ export const getTimesByUserAndMonth = async (userId: string, month: number, year
             stores: true,
         },
         orderBy: {
-            data_hora: 'asc'
+            entrace: 'asc'
         }
     });
 
-    // Organiza as entradas e saídas por dia
-    const entriesByDay: Record<string, { entrada?: Date, entradaId?: number, saida?: Date, saidaId?: number }> = {};
-    
-    timeEntries.forEach(entry => {
-        const day = entry.data_hora.toISOString().split('T')[0];
-        
-        if (!entriesByDay[day]) {
-            entriesByDay[day] = {};
-        }
-        
-        if (entry.type === 'ENTRADA') {
-            entriesByDay[day].entrada = entry.data_hora;
-            entriesByDay[day].entradaId = entry.id;
-        } else if (entry.type === 'SAIDA') {
-            entriesByDay[day].saida = entry.data_hora;
-            entriesByDay[day].saidaId = entry.id;
-        }
-    });
-
-    // Calcula as horas trabalhadas por dia
+    // Organiza as entradas por dia
+    const entriesByDay: Record<string, any> = {};
     const hoursWorkedByDay: Record<string, number> = {};
     let totalHoursWorked = 0;
     
-    Object.entries(entriesByDay).forEach(([day, times]) => {
-        if (times.entrada && times.saida) {
-            const entrada = new Date(times.entrada);
-            const saida = new Date(times.saida);
+    timeEntries.forEach(entry => {
+        const day = entry.entrace.toISOString().split('T')[0];
+        
+        entriesByDay[day] = {
+            entrada: entry.entrace,
+            saida: entry.exit,
+            almoco: entry.lunchEntrace && entry.lunchExit ? {
+                entrada: entry.lunchEntrace,
+                saida: entry.lunchExit
+            } : null
+        };
+        
+        // Calcula as horas trabalhadas no dia
+        if (entry.entrace && entry.exit) {
+            let hoursWorked = (entry.exit.getTime() - entry.entrace.getTime()) / (1000 * 60 * 60);
             
-            // Se a saída for menor que a entrada, significa que passou da meia-noite
-            // Nesse caso, adicionamos 24 horas à saída
-            let hoursWorked = (saida.getTime() - entrada.getTime()) / (1000 * 60 * 60);
-            
-            // Se o resultado for negativo, significa que a saída foi no dia seguinte
-            if (hoursWorked < 0) {
-                hoursWorked = (saida.getTime() - entrada.getTime() + 24 * 60 * 60 * 1000) / (1000 * 60 * 60);
+            // Se teve horário de almoço, subtrair
+            if (entry.lunchEntrace && entry.lunchExit) {
+                const lunchHours = (entry.lunchExit.getTime() - entry.lunchEntrace.getTime()) / (1000 * 60 * 60);
+                hoursWorked -= lunchHours;
             }
-            
-            // Limita o máximo de horas por dia a 24
-            hoursWorked = Math.min(hoursWorked, 24);
             
             // Arredonda para 2 casas decimais
             hoursWorked = parseFloat(hoursWorked.toFixed(2));
+            
+            // Limita o máximo de horas por dia a 24
+            hoursWorked = Math.min(hoursWorked, 24);
             
             hoursWorkedByDay[day] = hoursWorked;
             totalHoursWorked += hoursWorked;

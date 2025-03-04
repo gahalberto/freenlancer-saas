@@ -29,15 +29,16 @@ import { User } from '@prisma/client'
 import { getAllMashguichim } from '@/app/_actions/getAllMashguichim'
 import { getTimesByUserAndMonth } from '@/app/_actions/time-entries/getTimesByUserAndMonth'
 import { editTimeEntry } from '@/app/_actions/time-entries/editTimeEntry'
-import { adjustSingleTimeEntry, adjustAllTimeEntries } from '@/app/_actions/time-entries/adjustTimeEntries'
 import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 import { useSearchParams } from 'next/navigation'
 
 interface TimeEntry {
   id: number
-  type: 'ENTRADA' | 'SAIDA'
-  data_hora: Date
+  entrace: Date
+  exit: Date | null
+  lunchEntrace: Date | null
+  lunchExit: Date | null
 }
 
 const EditTimeEntriesPage = () => {
@@ -51,6 +52,7 @@ const EditTimeEntriesPage = () => {
   const [loading, setLoading] = useState<boolean>(false)
   const [editModalVisible, setEditModalVisible] = useState(false)
   const [selectedEntry, setSelectedEntry] = useState<TimeEntry | null>(null)
+  const [editType, setEditType] = useState<'entrada' | 'saida' | 'almoco_entrada' | 'almoco_saida'>('entrada')
   const [newDateTime, setNewDateTime] = useState<string>('')
 
   useEffect(() => {
@@ -93,9 +95,33 @@ const EditTimeEntriesPage = () => {
     }
   }
 
-  const handleEditClick = (entry: TimeEntry) => {
+  const handleEditClick = (entry: TimeEntry, type: 'entrada' | 'saida' | 'almoco_entrada' | 'almoco_saida') => {
     setSelectedEntry(entry)
-    setNewDateTime(format(new Date(entry.data_hora), "yyyy-MM-dd'T'HH:mm"))
+    setEditType(type)
+    let dateToEdit: Date | null = null
+    
+    switch (type) {
+      case 'entrada':
+        dateToEdit = entry.entrace
+        break
+      case 'saida':
+        dateToEdit = entry.exit
+        break
+      case 'almoco_entrada':
+        dateToEdit = entry.lunchEntrace
+        break
+      case 'almoco_saida':
+        dateToEdit = entry.lunchExit
+        break
+    }
+    
+    if (dateToEdit) {
+      setNewDateTime(format(dateToEdit, "yyyy-MM-dd'T'HH:mm"))
+    } else {
+      const baseDate = entry.entrace
+      setNewDateTime(format(baseDate, "yyyy-MM-dd'T'HH:mm"))
+    }
+    
     setEditModalVisible(true)
   }
 
@@ -103,7 +129,14 @@ const EditTimeEntriesPage = () => {
     if (!selectedEntry || !newDateTime) return
 
     try {
-      await editTimeEntry(selectedEntry.id, new Date(newDateTime))
+      const updateData = {
+        id: selectedEntry.id,
+        [editType === 'entrada' ? 'entrace' :
+          editType === 'saida' ? 'exit' :
+          editType === 'almoco_entrada' ? 'lunchEntrace' : 'lunchExit']: new Date(newDateTime)
+      }
+      
+      await editTimeEntry(updateData)
       setEditModalVisible(false)
       fetchTimeEntries() // Recarrega os dados
       alert('Registro atualizado com sucesso!')
@@ -113,31 +146,8 @@ const EditTimeEntriesPage = () => {
     }
   }
 
-  const handleAdjustSingle = async (entryId: number, adjustType: 'up' | 'down') => {
-    try {
-      await adjustSingleTimeEntry(entryId, adjustType)
-      fetchTimeEntries() // Recarrega os dados
-      alert('Registro ajustado com sucesso!')
-    } catch (error) {
-      console.error('Erro ao ajustar registro:', error)
-      alert('Erro ao ajustar registro')
-    }
-  }
-
-  const handleAdjustAll = async (adjustType: 'up' | 'down') => {
-    if (!selectedUserId) return
-
-    try {
-      await adjustAllTimeEntries(selectedUserId, selectedMonth, selectedYear, adjustType)
-      fetchTimeEntries() // Recarrega os dados
-      alert('Todos os registros foram ajustados com sucesso!')
-    } catch (error) {
-      console.error('Erro ao ajustar registros:', error)
-      alert('Erro ao ajustar registros')
-    }
-  }
-
-  const formatDateTime = (dateString: string) => {
+  const formatDateTime = (dateString: string | Date | null) => {
+    if (!dateString) return '-'
     const date = new Date(dateString)
     return format(date, 'dd/MM/yyyy HH:mm', { locale: ptBR })
   }
@@ -198,37 +208,6 @@ const EditTimeEntriesPage = () => {
                 />
               </CCol>
             </CRow>
-            <CRow>
-              <CCol>
-                <CButton
-                  color="primary"
-                  onClick={fetchTimeEntries}
-                  disabled={loading}
-                  className="me-2"
-                >
-                  {loading ? 'Buscando...' : 'Buscar Registros'}
-                </CButton>
-                {timeEntries && (
-                  <>
-                    <CButton
-                      color="warning"
-                      onClick={() => handleAdjustAll('up')}
-                      disabled={loading}
-                      className="me-2"
-                    >
-                      Ajustar Todos para Cima
-                    </CButton>
-                    <CButton
-                      color="warning"
-                      onClick={() => handleAdjustAll('down')}
-                      disabled={loading}
-                    >
-                      Ajustar Todos para Baixo
-                    </CButton>
-                  </>
-                )}
-              </CCol>
-            </CRow>
           </CForm>
         </CCardBody>
       </CCard>
@@ -244,85 +223,66 @@ const EditTimeEntriesPage = () => {
             <CTable bordered>
               <CTableHead>
                 <CTableRow>
-                  <CTableHeaderCell>Data/Hora</CTableHeaderCell>
-                  <CTableHeaderCell>Tipo</CTableHeaderCell>
+                  <CTableHeaderCell>Data</CTableHeaderCell>
+                  <CTableHeaderCell>Entrada</CTableHeaderCell>
+                  <CTableHeaderCell>Almoço Entrada</CTableHeaderCell>
+                  <CTableHeaderCell>Almoço Saída</CTableHeaderCell>
+                  <CTableHeaderCell>Saída</CTableHeaderCell>
                   <CTableHeaderCell>Ações</CTableHeaderCell>
                 </CTableRow>
               </CTableHead>
               <CTableBody>
                 {Object.entries(timeEntries.entriesByDay).map(([day, times]: [string, any]) => (
-                  <>
-                    {times.entrada && (
-                      <CTableRow key={`entrada-${day}`}>
-                        <CTableDataCell>{formatDateTime(times.entrada)}</CTableDataCell>
-                        <CTableDataCell>Entrada</CTableDataCell>
-                        <CTableDataCell>
-                          <CButton 
-                            color="primary"
-                            size="sm"
-                            onClick={() => handleEditClick({
-                              id: times.entradaId,
-                              type: 'ENTRADA',
-                              data_hora: new Date(times.entrada)
-                            })}
-                            className="me-2"
-                          >
-                            Editar
-                          </CButton>
-                          <CButton
-                            color="warning"
-                            size="sm"
-                            onClick={() => handleAdjustSingle(times.entradaId, 'up')}
-                            className="me-2"
-                          >
-                            ↑ Próxima Hora
-                          </CButton>
-                          <CButton
-                            color="warning"
-                            size="sm"
-                            onClick={() => handleAdjustSingle(times.entradaId, 'down')}
-                          >
-                            ↓ Hora Atual
-                          </CButton>
-                        </CTableDataCell>
-                      </CTableRow>
-                    )}
-                    {times.saida && (
-                      <CTableRow key={`saida-${day}`}>
-                        <CTableDataCell>{formatDateTime(times.saida)}</CTableDataCell>
-                        <CTableDataCell>Saída</CTableDataCell>
-                        <CTableDataCell>
-                          <CButton 
-                            color="primary"
-                            size="sm"
-                            onClick={() => handleEditClick({
-                              id: times.saidaId,
-                              type: 'SAIDA',
-                              data_hora: new Date(times.saida)
-                            })}
-                            className="me-2"
-                          >
-                            Editar
-                          </CButton>
-                          <CButton
-                            color="warning"
-                            size="sm"
-                            onClick={() => handleAdjustSingle(times.saidaId, 'up')}
-                            className="me-2"
-                          >
-                            ↑ Próxima Hora
-                          </CButton>
-                          <CButton
-                            color="warning"
-                            size="sm"
-                            onClick={() => handleAdjustSingle(times.saidaId, 'down')}
-                          >
-                            ↓ Hora Atual
-                          </CButton>
-                        </CTableDataCell>
-                      </CTableRow>
-                    )}
-                  </>
+                  <CTableRow key={day}>
+                    <CTableDataCell>{formatDateTime(times.entrada).split(' ')[0]}</CTableDataCell>
+                    <CTableDataCell>
+                      {formatDateTime(times.entrada).split(' ')[1]}
+                      <CButton
+                        color="link"
+                        size="sm"
+                        className="ms-2"
+                        onClick={() => handleEditClick(times, 'entrada')}
+                      >
+                        Editar
+                      </CButton>
+                    </CTableDataCell>
+                    <CTableDataCell>
+                      {formatDateTime(times.almoco?.entrada).split(' ')[1]}
+                      <CButton
+                        color="link"
+                        size="sm"
+                        className="ms-2"
+                        onClick={() => handleEditClick(times, 'almoco_entrada')}
+                      >
+                        Editar
+                      </CButton>
+                    </CTableDataCell>
+                    <CTableDataCell>
+                      {formatDateTime(times.almoco?.saida).split(' ')[1]}
+                      <CButton
+                        color="link"
+                        size="sm"
+                        className="ms-2"
+                        onClick={() => handleEditClick(times, 'almoco_saida')}
+                      >
+                        Editar
+                      </CButton>
+                    </CTableDataCell>
+                    <CTableDataCell>
+                      {formatDateTime(times.saida).split(' ')[1]}
+                      <CButton
+                        color="link"
+                        size="sm"
+                        className="ms-2"
+                        onClick={() => handleEditClick(times, 'saida')}
+                      >
+                        Editar
+                      </CButton>
+                    </CTableDataCell>
+                    <CTableDataCell>
+                      {timeEntries.hoursWorkedByDay[day] ? `${timeEntries.hoursWorkedByDay[day]} horas` : '-'}
+                    </CTableDataCell>
+                  </CTableRow>
                 ))}
               </CTableBody>
             </CTable>
@@ -332,10 +292,9 @@ const EditTimeEntriesPage = () => {
 
       <CModal visible={editModalVisible} onClose={() => setEditModalVisible(false)}>
         <CModalHeader>
-          <CModalTitle>Editar Registro de {selectedEntry?.type === 'ENTRADA' ? 'Entrada' : 'Saída'}</CModalTitle>
+          <CModalTitle>Editar {editType.replace('_', ' ').charAt(0).toUpperCase() + editType.slice(1)}</CModalTitle>
         </CModalHeader>
         <CModalBody>
-          <CFormLabel>Data e Hora</CFormLabel>
           <CFormInput
             type="datetime-local"
             value={newDateTime}

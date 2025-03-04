@@ -138,6 +138,12 @@ const IndividualReportPage = () => {
     return format(date, 'dd/MM/yyyy', { locale: ptBR })
   }
 
+  const formatTime = (dateString: string | Date | null) => {
+    if (!dateString) return '-'
+    const date = new Date(dateString)
+    return format(date, 'HH:mm', { locale: ptBR })
+  }
+
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('pt-BR', {
       style: 'currency',
@@ -263,6 +269,8 @@ const IndividualReportPage = () => {
                         <CTableRow>
                           <CTableHeaderCell scope="col">Data</CTableHeaderCell>
                           <CTableHeaderCell scope="col">Entrada</CTableHeaderCell>
+                          <CTableHeaderCell scope="col">Almoço Entrada</CTableHeaderCell>
+                          <CTableHeaderCell scope="col">Almoço Saída</CTableHeaderCell>
                           <CTableHeaderCell scope="col">Saída</CTableHeaderCell>
                           <CTableHeaderCell scope="col">Horas Trabalhadas</CTableHeaderCell>
                           <CTableHeaderCell scope="col">Valor</CTableHeaderCell>
@@ -272,12 +280,10 @@ const IndividualReportPage = () => {
                         {Object.entries(reportData.entriesByDay).map(([day, times]: [string, any]) => (
                           <CTableRow key={day}>
                             <CTableDataCell>{formatDate(day)}</CTableDataCell>
-                            <CTableDataCell>
-                              {times.entrada ? format(new Date(times.entrada), 'HH:mm', { locale: ptBR }) : '-'}
-                            </CTableDataCell>
-                            <CTableDataCell>
-                              {times.saida ? format(new Date(times.saida), 'HH:mm', { locale: ptBR }) : '-'}
-                            </CTableDataCell>
+                            <CTableDataCell>{formatTime(times.entrada)}</CTableDataCell>
+                            <CTableDataCell>{formatTime(times.almoco?.entrada)}</CTableDataCell>
+                            <CTableDataCell>{formatTime(times.almoco?.saida)}</CTableDataCell>
+                            <CTableDataCell>{formatTime(times.saida)}</CTableDataCell>
                             <CTableDataCell>
                               {reportData.hoursWorkedByDay[day] ? `${reportData.hoursWorkedByDay[day]} horas` : '-'}
                             </CTableDataCell>
@@ -289,7 +295,7 @@ const IndividualReportPage = () => {
                           </CTableRow>
                         ))}
                         <CTableRow className="table-primary">
-                          <CTableHeaderCell colSpan={3}>Total</CTableHeaderCell>
+                          <CTableHeaderCell colSpan={5}>Total</CTableHeaderCell>
                           <CTableHeaderCell>{reportData.totalHoursWorked} horas</CTableHeaderCell>
                           <CTableHeaderCell>{formatCurrency(reportData.totalAmount)}</CTableHeaderCell>
                         </CTableRow>
