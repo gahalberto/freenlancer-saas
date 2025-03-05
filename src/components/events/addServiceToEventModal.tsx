@@ -26,7 +26,7 @@ import { createEventServices } from '@/app/_actions/events/createEventServices'
 import { useSession } from 'next-auth/react'
 import { getCreditsByUser } from '@/app/_actions/getCreditsByUser'
 import { useRouter } from 'next/navigation'
-import { getAllMashguichim } from '@/app/_actions/getAllMashguichim'
+import { getAllMashguichim, getAvailableMashguichim } from '@/app/_actions/getAllMashguichim'
 import CIcon from '@coreui/icons-react'
 import { cilMap, cilSearch } from '@coreui/icons'
 import { User } from '@prisma/client'
@@ -96,14 +96,53 @@ const AddServiceToEventModal = ({ fetchAll, visible, onClose, StoreEventsId }: P
       }
     }, [productionOrEvent]);
   
-
-
+  // Função atualizada para buscar mashguichim disponíveis
   const fetchMashguichim = async () => {
-    const response = await getAllMashguichim()
-    if (response) {
-      setMashguiachOptions(response)
+    // Se não temos horários selecionados, buscamos todos os mashguichim
+    if (!arriveMashguiachTime || !endMashguiachTime) {
+      console.log("Sem horários selecionados, buscando todos os mashguichim");
+      const response = await getAllMashguichim();
+      if (response) {
+        console.log(`Encontrados ${response.length} mashguichim no total`);
+        setMashguiachOptions(response);
+      }
+      return;
     }
-  }
+    
+    // Se temos horários selecionados, buscamos apenas os disponíveis
+    try {
+      console.log(`Buscando mashguichim disponíveis para o período:`, {
+        inicio: arriveMashguiachTime.toLocaleString(),
+        fim: endMashguiachTime.toLocaleString()
+      });
+
+      const availableMashguichim = await getAvailableMashguichim(
+        arriveMashguiachTime,
+        endMashguiachTime
+      );
+      
+      console.log(`Encontrados ${availableMashguichim.length} mashguichim disponíveis`);
+      setMashguiachOptions(availableMashguichim);
+      
+      // Se o mashguiach selecionado não está mais disponível, resetamos a seleção
+      if (mashguiachSelected && mashguiachSelected !== '999') {
+        const isStillAvailable = availableMashguichim.some(m => m.id === mashguiachSelected);
+        console.log(`Mashguiach selecionado (${mashguiachSelected}) ainda está disponível? ${isStillAvailable}`);
+        
+        if (!isStillAvailable) {
+          console.log(`Resetando seleção de mashguiach para ALEATÓRIO`);
+          setMashguiachSelected('999');
+        }
+      }
+    } catch (error) {
+      console.error('Erro ao buscar mashguichim disponíveis:', error);
+      // Em caso de erro, carregamos todos os mashguichim
+      const response = await getAllMashguichim();
+      if (response) {
+        setMashguiachOptions(response);
+      }
+    }
+  };
 
   useEffect(() => {
     fetchCredits()
@@ -118,6 +157,13 @@ const AddServiceToEventModal = ({ fetchAll, visible, onClose, StoreEventsId }: P
   const [totalHours, setTotalHours] = useState<number>(0)
   const [observationText, setObservationText] = useState('')
   const [transportPrice, setTransportPrice] = useState(50)
+
+  // Atualizar a lista de mashguichim disponíveis quando os horários mudarem
+  useEffect(() => {
+    if (arriveMashguiachTime && endMashguiachTime) {
+      fetchMashguichim();
+    }
+  }, [arriveMashguiachTime, endMashguiachTime]);
 
   const calculatePrice = (startDate: Date, endDate: Date) => {
     const differenceInHours = Math.max(
