@@ -166,12 +166,6 @@ const _nav = [
     items: [
       {
         component: CNavItem,
-        name: 'Por Usuário',
-        href: '/app/admin/banco-de-horas/user',
-        icon: <CIcon icon={cilCircle} customClassName="nav-icon" />,
-      },
-      {
-        component: CNavItem,
         name: 'Relatórios',
         href: '/app/admin/banco-de-horas/relatorios',
         icon: <CIcon icon={cilFile} customClassName="nav-icon" />,
@@ -188,19 +182,6 @@ const _nav = [
         href: '/app/admin/banco-de-horas/relatorios/mensal',
         icon: <CIcon icon={cilPeople} customClassName="nav-icon" />,
       },
-      {
-        component: CNavItem,
-        name: 'Pendentes',
-        href: '/app/admin/events/pendentes',
-        icon: <CIcon icon={cilCircle} customClassName="nav-icon" />,
-      },
-      {
-        component: CNavItem,
-        name: 'Por Estabelecimento',
-        href: '/app/admin/events/estabelecimento',
-        icon: <CIcon icon={cilCircle} customClassName="nav-icon" />,
-      },
-
     ]
   },
   {
