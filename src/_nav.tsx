@@ -58,6 +58,17 @@ const _nav = [
   },
   {
     component: CNavItem,
+    name: 'Dashboard Avançado',
+    roleId: [3,4],
+    icon: <CIcon icon={cilSpeedometer} customClassName="nav-icon" />,
+    badge: {
+      color: 'success-gradient',
+      text: 'NOVO',
+    },
+    href: '/app/dashboard/admin2',
+  },
+  {
+    component: CNavItem,
     name: 'Dashboard',
     roleId: [3,4],
     icon: <CIcon icon={cilSpeedometer} customClassName="nav-icon" />,
@@ -67,6 +78,7 @@ const _nav = [
     },
     href: '/app',
   },
+  
   {
     component: CNavTitle,
     name: 'Admin',
