@@ -25,6 +25,7 @@ import { EventsServices } from '@prisma/client'
 import { getSession } from 'next-auth/react'
 import FinishJobModal from './finishJobModal'
 import { useUserSession } from '@/contexts/sessionContext'
+import EditDatesModal from './EditDatesModal'
 
 type PropsType = {
   eventStoreId: string
@@ -47,6 +48,8 @@ export const EventsTableByEvent = ({ eventStoreId }: PropsType) => {
   const [selectedMashguiach, setSelectedMashguiach] = useState<string | null>(null)
   const [userLogged, setUserLogged] = useState<any>(null)
   const [finishSelectService, setFinishSelectService] = useState<EventsServices | null>(null)
+  const [editDatesModalVisible, setEditDatesModalVisible] = useState(false)
+  const [selectedServiceForDates, setSelectedServiceForDates] = useState<string>('')
 
   const handleModalClick = () => {
     setVisible(!visible)
@@ -58,6 +61,11 @@ export const EventsTableByEvent = ({ eventStoreId }: PropsType) => {
     setSelectedMashguiach(mashguiachId ?? null) // Define o Mashguiach atual (ou null)
   }
 
+  const handleEditDatesClick = (serviceId: string) => {
+    setSelectedServiceForDates(serviceId)
+    setEditDatesModalVisible(true)
+  }
+
   const fetchEventServices = async () => {
     const response = await getEventServices(eventStoreId)
     if (response) {
@@ -67,6 +75,17 @@ export const EventsTableByEvent = ({ eventStoreId }: PropsType) => {
 
   const handleFinishEventModal = (serviceId: string) => {
     setFinishEventModal(true)
+  }
+
+  // Verifica se o usuário pode editar as datas de um serviço
+  const canEditDates = (service: ServiceType) => {
+    // Se não tem mashguiach, qualquer usuário pode editar
+    if (!service.mashguiachId) {
+      return true
+    }
+    
+    // Se tem mashguiach, apenas administradores (roleId = 3) podem editar
+    return session?.roleId === 3
   }
 
   useEffect(() => {
@@ -145,7 +164,10 @@ export const EventsTableByEvent = ({ eventStoreId }: PropsType) => {
                     )}
                   </CTableDataCell>
                   <CTableDataCell>
-                    <small>
+                    <small 
+                      style={{ cursor: 'pointer', textDecoration: 'underline' }}
+                      onClick={() => handleEditDatesClick(service.id)}
+                    >
                       {new Date(service.arriveMashguiachTime).toLocaleDateString('pt-BR', {
                         day: 'numeric',
                         month: 'long',
@@ -156,7 +178,11 @@ export const EventsTableByEvent = ({ eventStoreId }: PropsType) => {
                     </small>
                   </CTableDataCell>
                   <CTableDataCell>
-                    <small className={service.reallyMashguiachArrive ? 'text-muted' : 'text-danger'}> 
+                    <small 
+                      className={service.reallyMashguiachArrive ? 'text-muted' : 'text-danger'}
+                      style={{ cursor: 'pointer', textDecoration: 'underline' }}
+                      onClick={() => handleEditDatesClick(service.id)}
+                    > 
                       {new Date(service.endMashguiachTime).toLocaleDateString('pt-BR', {
                         day: 'numeric',
                         month: 'long',
@@ -179,15 +205,16 @@ export const EventsTableByEvent = ({ eventStoreId }: PropsType) => {
                   <CTableDataCell>
                     <small>{service.observationText}</small>
                   </CTableDataCell>
-                  <CTableDataCell>
+                  <CTableDataCell className='d-flex gap-2 '>
                     <CButton
+                    className='text-white'
                       size="sm"
                       color="danger"
                       onClick={() => handleDeleteButton(service.id)}
                     >
                       <CIcon icon={cilTrash} color="danger" />
                     </CButton>
-                    {userLogged.roleId === 3 && (
+                    {userLogged?.roleId === 3 && (
                       <CButton color="dark" onClick={() => handleFinishEventModal(service.id)}>
                         Finalizar
                       </CButton>
@@ -227,7 +254,17 @@ export const EventsTableByEvent = ({ eventStoreId }: PropsType) => {
           serviceId={selectService}
           currentMashguiachId={selectedMashguiach} // Passa o Mashguiach atual
         />
-      )}{' '}
+      )}
+      {editDatesModalVisible && (
+        <EditDatesModal
+          onClose={() => {
+            setEditDatesModalVisible(false)
+            fetchEventServices() // Atualiza a lista de serviços após o fechamento do modal
+          }}
+          serviceId={selectedServiceForDates}
+          canEdit={canEditDates(eventServicesList.find(service => service.id === selectedServiceForDates) as ServiceType)}
+        />
+      )}
     </>
   )
 }
