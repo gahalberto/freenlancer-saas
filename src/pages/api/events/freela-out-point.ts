@@ -18,22 +18,22 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   const currentDate = new Date();
   try {
-    // Registra a entrada do mashguiach
+    // Registra a saída do mashguiach
     const services = await db.eventsServices.update({
       where: {
         id: service_id as string,
         mashguiachId: user_id as string
       },
       data: {
-        reallyMashguiachArrive: currentDate
+        reallyMashguiachEndTime: currentDate
       }
     });
 
-    return res.status(200).json({
+    return res.status(201).json({
         services
         });
   } catch (error) {
-    console.error('Erro ao registrar entrada:', error);
-    return res.status(500).json({ error: 'Erro ao registrar entrada' });
+    console.error('Erro ao registrar saída:', error);
+    return res.status(500).json({ error: 'Erro ao registrar saída' });
   }
 } 

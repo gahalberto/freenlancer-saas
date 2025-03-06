@@ -12,33 +12,39 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(400).json({ error: 'ID do usuário é obrigatório' });
   }
 
-  const currentDate = new Date();
-
   try {
-    // Cria as datas de início e fim do mês
+    // Obtém a data atual e configura para 00:00:00 (início do dia)
+    const currentDate = new Date();
+    const startOfDay = new Date(
+      currentDate.getFullYear(),
+      currentDate.getMonth(),
+      currentDate.getDate(),
+      0, 0, 0
+    );
 
-    // Busca todas as entradas do usuário no período
+    // Busca todos os serviços do usuário a partir do início do dia atual
     const services = await db.eventsServices.findMany({
       where: {
         mashguiachId: user_id as string,
         arriveMashguiachTime: {
-            gte: currentDate
-        }
+          gte: startOfDay // Considera eventos a partir do início do dia atual (00:00)
+        },
+        reallyMashguiachEndTime: null
       },
       include: {
         Mashguiach: true,
         StoreEvents: true
       },
       orderBy: {
-        arriveMashguiachTime: 'desc'
+        arriveMashguiachTime: 'asc' // Ordena por data/hora de chegada em ordem crescente
       }
     });
 
     return res.status(200).json({
-        services
-        });
+      services
+    });
   } catch (error) {
-    console.error('Erro ao gerar relatório:', error);
-    return res.status(500).json({ error: 'Erro ao gerar relatório' });
+    console.error('Erro ao buscar serviços do usuário:', error);
+    return res.status(500).json({ error: 'Erro ao buscar serviços do usuário' });
   }
 } 

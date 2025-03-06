@@ -5,7 +5,7 @@ import { db } from "@/app/_lib/prisma";
 export const confirmExit = async (id: string, exitTime: Date) => {
     try {
       if (!id || !exitTime) {
-        throw new Error('ID ou horário de entrada não fornecidos.');
+        throw new Error('ID ou horário de saída não fornecidos.');
       }
   
       const updatedEvent = await db.eventsServices.update({
@@ -19,8 +19,8 @@ export const confirmExit = async (id: string, exitTime: Date) => {
   
       return updatedEvent;
     } catch (error) {
-      console.error('Erro ao confirmar horário de entrada:', error);
-      throw new Error('Falha ao confirmar o horário de entrada.');
+      console.error('Erro ao confirmar horário de saída:', error);
+      throw new Error('Falha ao confirmar o horário de saída.');
     }
   };
   
