@@ -1,6 +1,7 @@
 import React from 'react'
 
 import { CFooter } from '@coreui/react-pro'
+import Link from 'next/link'
 
 const AppFooter = () => {
   return (
@@ -20,6 +21,10 @@ const AppFooter = () => {
         >
           Ocupi
         </a>
+        <span className="mx-2">|</span>
+        <Link href="/privacy" className="text-decoration-none">
+          Política de Privacidade
+        </Link>
       </div>
     </CFooter>
   )
