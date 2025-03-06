@@ -25,6 +25,10 @@ const AppFooter = () => {
         <Link href="/privacy" className="text-decoration-none">
           Política de Privacidade
         </Link>
+        <span className="mx-2">|</span>
+        <Link href="/excluir-conta" className="text-decoration-none">
+          Excluir Conta
+        </Link>
       </div>
     </CFooter>
   )

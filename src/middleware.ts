@@ -18,8 +18,8 @@ export default withAuth(
       authorized: ({ token, req }) => {
         const { pathname } = req.nextUrl
 
-        // Permite acesso irrestrito à homepage e à página de política de privacidade
-        if (pathname === '/' || pathname === '/privacy') {
+        // Permite acesso irrestrito à homepage, política de privacidade e exclusão de conta
+        if (pathname === '/' || pathname === '/privacy' || pathname === '/excluir-conta') {
           return true
         }
 
@@ -33,7 +33,7 @@ export default withAuth(
 export const config = {
   // Protege todas as rotas, exceto aquelas explicitamente excluídas
   matcher: [
-    '/((?!register|login|recuperar-senha|resetar|api|privacy).*)', // Permite algumas rotas específicas
+    '/((?!register|login|recuperar-senha|resetar|api|privacy|excluir-conta).*)', // Permite algumas rotas específicas
     '/app/:path*', // Protege todas as rotas de app
   ],
 }

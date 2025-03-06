@@ -1,6 +1,7 @@
 import { Metadata } from "next";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import Link from "next/link";
 
 export const metadata: Metadata = {
   title: "Política de Privacidade | BYK - Beit Yaakov Kashrut",
@@ -13,7 +14,7 @@ export default function PrivacyPolicyPage() {
   return (
     <div className="bg-gray-50 min-h-screen">
       {/* Header com fundo */}
-      <div className="bg-blue-600 text-black py-12 mb-10">
+      <div className="bg-blue-600 text-white py-12 mb-10">
         <div className="container mx-auto px-6 text-center">
           <h1 className="text-4xl font-bold mb-4">Política de Privacidade</h1>
           <p className="text-xl max-w-3xl mx-auto">
@@ -72,7 +73,7 @@ export default function PrivacyPolicyPage() {
             <span className="text-blue-600">📌</span> Utilizamos criptografia e medidas de segurança avançadas para garantir a integridade das informações.
           </p>
           <p>
-            Caso você queira excluir seus dados, entre em contato conosco através do e-mail abaixo.
+            Caso você queira excluir seus dados, entre em contato conosco através do e-mail abaixo ou utilize nossa <Link href="/excluir-conta" className="text-blue-600 hover:underline">página de solicitação de exclusão de conta</Link>.
           </p>
 
           <h2 className="text-2xl font-semibold mt-10 mb-6 text-blue-700">5. Permissões do Aplicativo</h2>
@@ -100,7 +101,7 @@ export default function PrivacyPolicyPage() {
             <li><span className="text-green-600">✔️</span> Limitar ou contestar o uso dos dados.</li>
           </ul>
           <p>
-            Para exercer esses direitos, entre em contato através do e-mail: contato@beityaakovkashrut.com.br.
+            Para exercer esses direitos, entre em contato através do e-mail: contato@beityaakovkashrut.com.br ou acesse nossa <Link href="/excluir-conta" className="text-blue-600 hover:underline font-medium">página de solicitação de exclusão de conta</Link>.
           </p>
 
           <h2 className="text-2xl font-semibold mt-10 mb-6 text-blue-700">8. Alterações na Política de Privacidade</h2>
@@ -123,6 +124,16 @@ export default function PrivacyPolicyPage() {
             Ao utilizar o BYK - Beit Yaakov Kashrut, você concorda com esta Política de Privacidade. 
             Se não concordar com qualquer ponto, recomendamos que não utilize o aplicativo.
           </p>
+          
+          <div className="bg-gray-100 p-6 rounded-lg mt-10 text-center">
+            <p className="mb-4 font-medium">Deseja solicitar a exclusão da sua conta e dados pessoais?</p>
+            <Link 
+              href="/excluir-conta" 
+              className="inline-block bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-6 rounded-md transition-colors"
+            >
+              Solicitar Exclusão de Conta
+            </Link>
+          </div>
         </div>
       </div>
     </div>
