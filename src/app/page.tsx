@@ -10,8 +10,12 @@ import { getAllStores } from './_actions/stores/getAllStores'
 const Home = () => {
   const [stores, setStores] = useState<Stores[]>([])
   const [searchTerm, setSearchTerm] = useState('')
+  const [isClient, setIsClient] = useState(false)
 
   useEffect(() => {
+    // Marcar que estamos no cliente
+    setIsClient(true)
+    
     const fetchStores = async () => {
       try {
         const response = await getAllStores()
@@ -25,9 +29,15 @@ const Home = () => {
     fetchStores()
   }, [])
 
+  // Filtrar estabelecimentos com base no termo de pesquisa
   const filteredStores = stores.filter((store) =>
     store.title.toLowerCase().includes(searchTerm.toLowerCase()),
   )
+
+  // Renderizar um placeholder até que o componente seja montado no cliente
+  if (!isClient) {
+    return <div>Carregando...</div>
+  }
 
   return (
     <>
@@ -53,7 +63,6 @@ const Home = () => {
           style={{
             position: 'absolute',
             top: 0,
-
             left: 0,
             right: 0,
             bottom: 0,
