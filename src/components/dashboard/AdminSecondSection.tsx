@@ -21,7 +21,7 @@ import { EventsServices, StoreEvents, Stores } from '@prisma/client'
 import { EditIcon, EyeIcon, KeyIcon } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 
 type EventsWithServices = StoreEvents & {
   EventsServices: EventsServices[]
@@ -31,20 +31,30 @@ type EventsWithServices = StoreEvents & {
 const AdminSecondSection = () => {
   const [events, setEvents] = useState<EventsWithServices[]>([])
   const [visibleOffcanvas, setVisibleOffcanvas] = useState<string | null>(null)
+  const [isLoading, setIsLoading] = useState(true)
 
   const router = useRouter()
 
-  const fetchEvents = async () => {
-    const response = await getAllEvents() // Atualize com sua rota real
-    if (response) {
-      setEvents(response)
+  // Usar useCallback para evitar recriação da função em cada renderização
+  const fetchEvents = useCallback(async () => {
+    try {
+      setIsLoading(true)
+      const response = await getAllEvents()
+      if (response) {
+        setEvents(response)
+      }
+    } catch (error) {
+      console.error('Erro ao buscar eventos:', error)
+    } finally {
+      setIsLoading(false)
     }
-  }
+  }, [])
 
-  
   // Fetch events data from your API
   useEffect(() => {
     fetchEvents()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // Desabilitamos a regra de dependências aqui para evitar loops infinitos
   }, [])
   
   const getDayOfWeek = (dateString: string) => {
@@ -70,9 +80,14 @@ const AdminSecondSection = () => {
     return <p>Nenhum evento cadastrado.</p>
   }
 
-  const handleApproveEvent = (eventId: string, isApproved: boolean) => {
-    aproveEvent(eventId, isApproved);
-    fetchEvents()
+  const handleApproveEvent = async (eventId: string, isApproved: boolean) => {
+    try {
+      await aproveEvent(eventId, isApproved)
+      // Atualizar a lista de eventos após a aprovação
+      fetchEvents()
+    } catch (error) {
+      console.error('Erro ao aprovar/desaprovar evento:', error)
+    }
   }
 
   return (
