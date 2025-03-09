@@ -61,10 +61,19 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             }
         });
 
+        const monthEventsCount = await db.eventsServices.count({
+            where: {
+                arriveMashguiachTime: {
+                    gte: new Date(new Date().setMonth(new Date().getMonth() - 1))
+                }
+            }
+        });
+
         const todayEventsCount = await db.eventsServices.count({
             where: {
                 arriveMashguiachTime: {
-                    gte: new Date(new Date().setDate(new Date().getDate() - 1))
+                    gte: new Date(new Date().setHours(0, 0, 0, 0)), // Início do dia atual
+                    lt: new Date(new Date().setHours(23, 59, 59, 999)) // Fim do dia atual
                 }
             }
         });
@@ -72,7 +81,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         const todayEvents = await db.eventsServices.findMany({
             where: {
                 arriveMashguiachTime: {
-                    gte: new Date(new Date().setDate(new Date().getDate() - 1))
+                    gte: new Date(new Date().setHours(0, 0, 0, 0)), // Início do dia atual
+                    lt: new Date(new Date().setHours(23, 59, 59, 999)) // Fim do dia atual
                 },
             },
             include: {
@@ -95,6 +105,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         return res.status(200).json({
             mashguiachCount,
             storeCount,
+            monthEventsCount,
             eventsCount,
             todayEventsCount,
             pedingEvents,

@@ -140,6 +140,9 @@ export default async function handler(
       where,
       include: {
         EventsServices: {
+          orderBy: {
+            arriveMashguiachTime: 'asc',
+          },
           include: {
             Mashguiach: {
               select: {
@@ -164,7 +167,7 @@ export default async function handler(
         EventsAdresses: true,
       },
       orderBy: {
-        date: 'desc', // Ordenar por data decrescente (mais recentes primeiro)
+        date: 'asc', // Ordenar por data decrescente (mais recentes primeiro)
       },
       skip,
       take: limit,
