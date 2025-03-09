@@ -292,7 +292,7 @@ const Calendar2Page = () => {
           <div className="d-flex justify-content-between align-items-center">
             <div>
               <CCardTitle>
-                <h4>Calendário 2.0</h4>
+                <h4>Calendário Administração</h4>
               </CCardTitle>
               <p className="text-medium-emphasis">
                 Visualize todos os serviços de mashguiach em um calendário
