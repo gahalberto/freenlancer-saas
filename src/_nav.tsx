@@ -93,6 +93,13 @@ const _nav = [
     icon: <CIcon icon={cilCalendar} customClassName="nav-icon" />,
   },
   {
+    component: CNavItem,
+    name: 'Calendário 2.0',
+    roleId: [3,4],
+    href: '/app/admin/calendar2',
+    icon: <CIcon icon={cilCalendar} customClassName="nav-icon" />,
+  },
+  {
     component: CNavGroup,
     name: 'Eventos',
     roleId: [3,4],
