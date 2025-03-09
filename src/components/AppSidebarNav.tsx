@@ -1,6 +1,6 @@
 'use client'
 
-import React, { ReactNode } from 'react'
+import React, { ReactNode, useState, useEffect } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 
@@ -16,7 +16,14 @@ interface AppSidebarNavProps {
 }
 
 export default function AppSidebarNav({ items }: AppSidebarNavProps) {
-  const location = usePathname()
+  const [currentPath, setCurrentPath] = useState('')
+  const pathname = usePathname()
+
+  useEffect(() => {
+    // Este código só será executado no cliente
+    setCurrentPath(pathname || '')
+  }, [pathname])
+
   const navLink = (
     name: string | JSX.Element,
     icon: string | ReactNode,
@@ -48,7 +55,7 @@ export default function AppSidebarNav({ items }: AppSidebarNavProps) {
     return (
       <Component as="div" key={index}>
         {rest.href ? (
-          <CNavLink {...(rest.href && { as: Link, active: location === rest.href })} {...rest}>
+          <CNavLink {...(rest.href && { as: Link, active: currentPath === rest.href })} {...rest}>
             {navLink(name, icon, badge, indent)}
           </CNavLink>
         ) : (
@@ -65,10 +72,10 @@ export default function AppSidebarNav({ items }: AppSidebarNavProps) {
         idx={String(index)}
         key={index}
         toggler={navLink(name, icon)}
-        {...(href && { visible: location && location.startsWith(href) })}
+        {...(href && { visible: currentPath && currentPath.startsWith(href) })}
         {...rest}
       >
-        {item.items?.map((item: NavItem, index: number) =>
+        {item.items?.map((item, index) =>
           item.items ? navGroup(item, index) : navItem(item, index, true),
         )}
       </Component>
