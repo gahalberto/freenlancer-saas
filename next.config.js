@@ -3,7 +3,7 @@ const nextConfig = {
   swcMinify: true,
   staticPageGenerationTimeout: 60,
   experimental: {
-    appDir: true,
+    // appDir foi removido pois não é mais necessário nas versões recentes do Next.js
   },
   onDemandEntries: {
     maxInactiveAge: 60 * 1000,
