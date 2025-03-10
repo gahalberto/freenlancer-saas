@@ -29,6 +29,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const mashguichim = await db.user.findMany({
       where: {
         roleId: 1
+      },
+      orderBy: {
+        name: 'asc'
       }
     }
 );
