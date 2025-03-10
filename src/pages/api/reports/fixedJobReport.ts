@@ -37,15 +37,14 @@ export default async function handler(
     token = req.query.token as string;
   }
 
-  if (!token) {
-    return res.status(401).json({ success: false, message: 'Token de autenticação não fornecido' });
+  // Validar o token se fornecido
+  if (token) {
+    const { valid, error } = await validateToken(token);
+    if (!valid) {
+      return res.status(401).json({ success: false, message: error || 'Token inválido' });
+    }
   }
-
-  // Validar o token
-  const { valid, decoded, error } = await validateToken(token);
-  if (!valid) {
-    return res.status(401).json({ success: false, message: error || 'Token inválido' });
-  }
+  // Se não houver token, continuar sem validação (para permitir acesso público ao relatório)
 
   try {
     // Obter parâmetros da requisição
@@ -97,12 +96,7 @@ export default async function handler(
         name: true,
         email: true,
         phone: true,
-        address_street: true,
-        address_number: true,
-        address_neighbor: true,
-        address_city: true,
-        address_state: true,
-        address_zicode: true,
+        pixKey: true,
       }
     });
 
@@ -259,20 +253,8 @@ async function generatePDF(user: any, reportData: any[], startDate: Date, endDat
       doc.fontSize(12).text(`Nome: ${user.name}`);
       doc.text(`Email: ${user.email}`);
       doc.text(`Telefone: ${user.phone || 'Não informado'}`);
-      
-      // Endereço
-      if (user.address_street) {
-        const address = [
-          user.address_street,
-          user.address_number,
-          user.address_neighbor,
-          `${user.address_city} - ${user.address_state}`,
-          user.address_zicode
-        ].filter(Boolean).join(', ');
-        
-        doc.text(`Endereço: ${address}`);
-      }
-      
+      doc.text(`PIX:: ${user.pixKey || 'Não informado'}`);
+            
       doc.moveDown(2);
       
       // Resumo por estabelecimento
@@ -283,7 +265,7 @@ async function generatePDF(user: any, reportData: any[], startDate: Date, endDat
       
       reportData.forEach((data, index) => {
         // Informações do estabelecimento
-        doc.fontSize(12).text(`Estabelecimento: ${data.store.name}`, { continued: true });
+        doc.fontSize(12).text(`Estabelecimento: ${data.store.title}`, { continued: true });
         doc.text(`  (${data.store.address_city} - ${data.store.address_state})`, { underline: true });
         
         doc.text(`Valor por hora: R$ ${data.fixedJob.price_per_hour.toFixed(2)}`);

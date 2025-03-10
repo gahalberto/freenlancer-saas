@@ -25,6 +25,8 @@ const updateEventServiceSchema = z.object({
   longitude: z.number().nullable().optional(),
   mashguiachPricePerHour: z.number().nonnegative('Preço por hora deve ser não-negativo').optional(),
   transport_price: z.number().nonnegative('Preço de transporte deve ser não-negativo').nullable().optional(),
+  dayHourValue: z.number().nonnegative('Valor da hora diurna deve ser não-negativo').optional(),
+  nightHourValue: z.number().nonnegative('Valor da hora noturna deve ser não-negativo').optional(),
   address_zipcode: z.string().nullable().optional(),
   address_street: z.string().nullable().optional(),
   address_number: z.string().nullable().optional(),
@@ -119,6 +121,78 @@ export default async function handler(
     
     // Remover o ID do objeto de atualização
     delete updateData.id
+
+    // Recalcular o preço total se os valores de hora ou datas foram alterados
+    if ((serviceData.dayHourValue !== undefined || serviceData.nightHourValue !== undefined) && 
+        (serviceData.arriveMashguiachTime && serviceData.endMashguiachTime)) {
+      
+      // Usar os valores atualizados ou os existentes
+      const dayHourValue = serviceData.dayHourValue ?? existingService.dayHourValue ?? 50;
+      const nightHourValue = serviceData.nightHourValue ?? existingService.nightHourValue ?? 75;
+      
+      // Calcular a duração e o preço
+      const startDateTime = new Date(serviceData.arriveMashguiachTime);
+      const endDateTime = new Date(serviceData.endMashguiachTime);
+      
+      // Calcular duração total em horas
+      const durationMs = endDateTime.getTime() - startDateTime.getTime();
+      
+      // Calcular horas diurnas e noturnas
+      let dayHours = 0;
+      let nightHours = 0;
+      
+      // Criar cópia da data de início para iterar
+      const currentTime = new Date(startDateTime);
+      
+      // Avançar em intervalos de 15 minutos para maior precisão
+      const intervalMinutes = 15;
+      const intervalMs = intervalMinutes * 60 * 1000;
+      const totalIntervals = Math.ceil(durationMs / intervalMs);
+      
+      for (let i = 0; i < totalIntervals; i++) {
+        const hour = currentTime.getHours();
+        
+        // Verificar se é horário noturno (22h às 6h)
+        if (hour >= 22 || hour < 6) {
+          nightHours += intervalMinutes / 60;
+        } else {
+          dayHours += intervalMinutes / 60;
+        }
+        
+        // Avançar para o próximo intervalo
+        currentTime.setTime(currentTime.getTime() + intervalMs);
+        
+        // Se passamos do horário final, ajustar o último intervalo
+        if (currentTime > endDateTime) {
+          const overflowMs = currentTime.getTime() - endDateTime.getTime();
+          const overflowHours = overflowMs / (1000 * 60 * 60);
+          
+          // Subtrair o excesso do tipo de hora apropriado
+          const lastHour = new Date(currentTime.getTime() - intervalMs).getHours();
+          if (lastHour >= 22 || lastHour < 6) {
+            nightHours -= overflowHours;
+          } else {
+            dayHours -= overflowHours;
+          }
+        }
+      }
+      
+      // Calcular preço total
+      const dayValue = Math.max(0, dayHours) * dayHourValue;
+      const nightValue = Math.max(0, nightHours) * nightHourValue;
+      const totalValue = dayValue + nightValue;
+      
+      // Atualizar o preço total
+      updateData.mashguiachPrice = totalValue;
+      
+      console.log('Preço recalculado:', {
+        dayHours: Math.max(0, dayHours),
+        nightHours: Math.max(0, nightHours),
+        dayValue,
+        nightValue,
+        totalValue
+      });
+    }
 
     // Atualizar o serviço
     const updatedService = await prisma.eventsServices.update({

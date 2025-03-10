@@ -291,6 +291,13 @@ const _nav = [
     icon: <CIcon icon={cilCalendar} customClassName="nav-icon" />,
   },
   {
+    component: CNavItem,
+    name: 'Relatórios de Trabalho',
+    roleId: [1, 3, 4],
+    href: '/app/mashguiach/relatorios',
+    icon: <CIcon icon={cilFile} customClassName="nav-icon" />,
+  },
+  {
     component: CNavTitle,
     name: 'Relatórios & Avisos',
     roleId: [1, 2, 3],

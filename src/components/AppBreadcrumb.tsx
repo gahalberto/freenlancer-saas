@@ -20,7 +20,25 @@ type route = {
 
 const routeNames = [
   { path: '/app', name: 'Início' },
-  { path: '/components/base/navs', name: 'Navs & Tabs' },
+  { path: '/app/dashboard', name: 'Dashboard' },
+  { path: '/app/dashboard/admin2', name: 'Dashboard Avançado' },
+  { path: '/app/admin', name: 'Admin' },
+  { path: '/app/admin/calendar2', name: 'Calendário' },
+  { path: '/app/admin/events', name: 'Eventos' },
+  { path: '/app/admin/events/todos', name: 'Todos os Eventos' },
+  { path: '/app/admin/events/pendentes', name: 'Eventos Pendentes' },
+  { path: '/app/admin/events/estabelecimento', name: 'Eventos por Estabelecimento' },
+  { path: '/app/admin/events/mashguiach', name: 'Eventos por Mashguiach' },
+  { path: '/app/services/finalizar', name: 'Finalizar Eventos' },
+  { path: '/app/admin/users', name: 'Usuários' },
+  { path: '/app/admin/questionarios', name: 'Questionários' },
+  { path: '/app/admin/users/create-demo', name: 'Cadastrar User Demo' },
+  { path: '/app/admin/banco-de-horas', name: 'Banco de Horas' },
+  { path: '/app/admin/banco-de-horas/relatorios', name: 'Relatórios' },
+  { path: '/app/admin/banco-de-horas/relatorios/individual', name: 'Relatório Individual' },
+  { path: '/app/admin/banco-de-horas/relatorios/mensal', name: 'Relatório Mensal' },
+  { path: '/app/admin/estabelecimentos', name: 'Estabelecimentos' },
+  { path: '/app/admin/estabelecimentos/tipos', name: 'Tipos de Estabelecimentos' },
 ]
 
 const humanize = (text: string) => {
@@ -38,18 +56,40 @@ const getRouteName = (pathname: string, routes: route[]) => {
   return currentRoute ? currentRoute.name : false
 }
 
+/**
+ * Gera os breadcrumbs com base no caminho atual
+ * Exemplo: para o caminho /app/admin/calendar2
+ * Retorna: [
+ *   { pathname: '/app', name: 'Início', active: false },
+ *   { pathname: '/app/admin', name: 'Admin', active: false },
+ *   { pathname: '/app/admin/calendar2', name: 'Calendário', active: true }
+ * ]
+ */
 const getBreadcrumbs = (location: string) => {
   const breadcrumbs: breadcrumb[] = []
-  location.split('/').reduce((prev, curr, index, array) => {
-    const currentPathname = `${prev}/${curr}`
-    const routeName = getRouteName(currentPathname, routeNames) || humanize(curr)
+  
+  // Se não começar com /app, retorna breadcrumbs vazios
+  if (!location.startsWith('/app')) {
+    return breadcrumbs
+  }
+  
+  // Dividimos o caminho em partes
+  const pathParts = location.split('/').filter(part => part !== '')
+  
+  // Construímos os breadcrumbs a partir de /app
+  let currentPath = ''
+  
+  pathParts.forEach((part, index) => {
+    currentPath += `/${part}`
+    const routeName = getRouteName(currentPath, routeNames) || humanize(part)
+    
     breadcrumbs.push({
-      pathname: currentPathname,
+      pathname: currentPath,
       name: routeName,
-      active: index + 1 === array.length ? true : false,
+      active: index + 1 === pathParts.length ? true : false,
     })
-    return currentPathname
   })
+  
   return breadcrumbs
 }
 
@@ -74,7 +114,6 @@ const AppBreadcrumb = () => {
   return (
     <>
       <CBreadcrumb className="m-0 ms-2">
-        <CBreadcrumbItem href="/">Home</CBreadcrumbItem>
         {breadcrumbs.map((breadcrumb, index) => {
           return (
             <CBreadcrumbItem

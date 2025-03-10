@@ -322,6 +322,8 @@ model EventsServices {
   latitude                Float?
   longitude               Float?
   mashguiachPricePerHour  Float             @default(0)
+  dayHourValue            Float             @default(50)
+  nightHourValue          Float             @default(75)
   transport_price         Float?            @default(0)
   address_zipcode         String?
   address_street          String?

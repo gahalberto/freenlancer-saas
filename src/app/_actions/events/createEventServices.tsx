@@ -11,6 +11,8 @@ type CreateEventServicesInput = {
   isApproved: boolean
   mashguiachPrice: number
   mashguiachPricePerHour: number
+  dayHourValue: number
+  nightHourValue: number
   observationText: string
   productionOrEvent: string
   mashguiachId?: string | null
@@ -20,6 +22,7 @@ type CreateEventServicesInput = {
   address_neighbor: string
   address_city: string
   address_state: string
+  transport_price?: number
 }
 
 export const createEventServices = async (data: CreateEventServicesInput) => {
@@ -36,6 +39,8 @@ export const createEventServices = async (data: CreateEventServicesInput) => {
       isApproved: data.isApproved,
       mashguiachPrice: data.mashguiachPrice,
       mashguiachPricePerHour: data.mashguiachPricePerHour,
+      dayHourValue: data.dayHourValue,
+      nightHourValue: data.nightHourValue,
       observationText: data.observationText,
       workType: data.productionOrEvent === 'PRODUCAO' ? 'PRODUCAO' : 'EVENTO',
       mashguiachId: mashguiachId,
@@ -45,6 +50,7 @@ export const createEventServices = async (data: CreateEventServicesInput) => {
       address_neighbor: data.address_neighbor,
       address_city: data.address_city,
       address_state: data.address_state,
+      transport_price: data.transport_price,
     },
   })
 

@@ -55,6 +55,10 @@ const AddServiceToEventModal = ({ fetchAll, visible, onClose, StoreEventsId }: P
   const [addressCity, setAddressCity] = useState('')
   const [addressState, setAddressState] = useState('')
 
+  // Estados para valores de hora
+  const [dayHourValue, setDayHourValue] = useState<number>(50)
+  const [nightHourValue, setNightHourValue] = useState<number>(75)
+
   const fetchCredits = async () => {
     const response = await getCreditsByUser()
     if (response) {
@@ -175,7 +179,8 @@ const AddServiceToEventModal = ({ fetchAll, visible, onClose, StoreEventsId }: P
 
     for (let i = 0; i < effectiveHours; i++) {
       const hour = new Date(startDate.getTime() + i * 60 * 60 * 1000).getHours()
-      price += hour >= 22 || hour < 6 ? 75 : 50
+      // Usar os valores definidos pelo usuário
+      price += hour >= 22 || hour < 6 ? nightHourValue : dayHourValue
     }
 
     const minimumPrice = 250
@@ -188,7 +193,7 @@ const AddServiceToEventModal = ({ fetchAll, visible, onClose, StoreEventsId }: P
       setTotalPrice(price + transportPrice)
       setTotalHours(hours)
     }
-  }, [arriveMashguiachTime, endMashguiachTime, transportPrice])
+  }, [arriveMashguiachTime, endMashguiachTime, transportPrice, dayHourValue, nightHourValue])
 
   const handleCepSearch = async () => {
     try {
@@ -219,7 +224,9 @@ const AddServiceToEventModal = ({ fetchAll, visible, onClose, StoreEventsId }: P
         isApproved: false,
         mashguiachId: mashguiachSelected !== '999' ? mashguiachSelected : null, // Envia undefined se for 999
         mashguiachPrice: totalPrice,
-        mashguiachPricePerHour: 50,
+        mashguiachPricePerHour: dayHourValue,
+        dayHourValue: dayHourValue,
+        nightHourValue: nightHourValue,
         observationText,
         productionOrEvent,
         address_zipcode: addressZipcode,
@@ -228,6 +235,7 @@ const AddServiceToEventModal = ({ fetchAll, visible, onClose, StoreEventsId }: P
         address_neighbor: addressNeighbor,
         address_city: addressCity,
         address_state: addressState,
+        transport_price: transportPrice,
       })
 
       if (response) {
@@ -371,14 +379,59 @@ const AddServiceToEventModal = ({ fetchAll, visible, onClose, StoreEventsId }: P
             </CCol>
           </CRow>
 
+          <CRow className="mt-3">
+            <CCol md={3}>
+              <CFormLabel>Valor da hora diurna (6h-22h):</CFormLabel>
+              <CInputGroup>
+                <CInputGroupText>R$</CInputGroupText>
+                <CFormInput
+                  type="number"
+                  value={dayHourValue}
+                  onChange={(e) => setDayHourValue(Number(e.target.value))}
+                />
+              </CInputGroup>
+            </CCol>
+
+            <CCol md={3}>
+              <CFormLabel>Valor da hora noturna (22h-6h):</CFormLabel>
+              <CInputGroup>
+                <CInputGroupText>R$</CInputGroupText>
+                <CFormInput
+                  type="number"
+                  value={nightHourValue}
+                  onChange={(e) => setNightHourValue(Number(e.target.value))}
+                />
+              </CInputGroup>
+            </CCol>
+
+            <CCol md={3}>
+              <CFormLabel>Valor do transporte:</CFormLabel>
+              <CInputGroup>
+                <CInputGroupText>R$</CInputGroupText>
+                <CFormInput
+                  type="number"
+                  value={transportPrice}
+                  onChange={(e) => setTransportPrice(Number(e.target.value))}
+                />
+              </CInputGroup>
+            </CCol>
+          </CRow>
+
           <CCol style={{ marginTop: '20px' }}>
             <CTable>
               <CTableBody>
                 <CTableRow>
                   <CTableDataCell>
-                    <strong>Valor da hora:</strong>
+                    <strong>Valor da hora diurna (6h-22h):</strong>
                   </CTableDataCell>
-                  <CTableDataCell>R$ 50.00</CTableDataCell>
+                  <CTableDataCell>R$ {dayHourValue.toFixed(2)}</CTableDataCell>
+                </CTableRow>
+
+                <CTableRow>
+                  <CTableDataCell>
+                    <strong>Valor da hora noturna (22h-6h):</strong>
+                  </CTableDataCell>
+                  <CTableDataCell>R$ {nightHourValue.toFixed(2)}</CTableDataCell>
                 </CTableRow>
 
                 <CTableRow>
