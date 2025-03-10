@@ -122,6 +122,10 @@ export default async function handler(
     // Remover o ID do objeto de atualização
     delete updateData.id
 
+    // Remover campos que o Prisma não reconhece na operação de update
+    delete updateData.dayHourValue
+    delete updateData.nightHourValue
+
     // Converter StoreEventsId para o formato esperado pelo Prisma na operação de update
     if (updateData.StoreEventsId) {
       updateData.StoreEvents = {
@@ -158,66 +162,70 @@ export default async function handler(
       
       // Calcular duração total em horas
       const durationMs = endDateTime.getTime() - startDateTime.getTime();
+      const durationHours = durationMs / (1000 * 60 * 60);
       
       // Calcular horas diurnas e noturnas
       let dayHours = 0;
       let nightHours = 0;
       
-      // Criar cópia da data de início para iterar
+      // Criar cópias das datas para manipulação
       const currentTime = new Date(startDateTime);
       
-      // Avançar em intervalos de 15 minutos para maior precisão
-      const intervalMinutes = 15;
-      const intervalMs = intervalMinutes * 60 * 1000;
-      const totalIntervals = Math.ceil(durationMs / intervalMs);
-      
-      for (let i = 0; i < totalIntervals; i++) {
+      // Iterar hora a hora
+      while (currentTime < endDateTime) {
         const hour = currentTime.getHours();
         
-        // Verificar se é horário noturno (22h às 6h)
+        // Verificar se é hora diurna (6h-22h) ou noturna (22h-6h)
         if (hour >= 22 || hour < 6) {
-          nightHours += intervalMinutes / 60;
+          nightHours += 1;
         } else {
-          dayHours += intervalMinutes / 60;
+          dayHours += 1;
         }
         
-        // Avançar para o próximo intervalo
-        currentTime.setTime(currentTime.getTime() + intervalMs);
-        
-        // Se passamos do horário final, ajustar o último intervalo
-        if (currentTime > endDateTime) {
-          const overflowMs = currentTime.getTime() - endDateTime.getTime();
-          const overflowHours = overflowMs / (1000 * 60 * 60);
-          
-          // Subtrair o excesso do tipo de hora apropriado
-          const lastHour = new Date(currentTime.getTime() - intervalMs).getHours();
-          if (lastHour >= 22 || lastHour < 6) {
-            nightHours -= overflowHours;
-          } else {
-            dayHours -= overflowHours;
-          }
-        }
+        // Avançar 1 hora
+        currentTime.setHours(currentTime.getHours() + 1);
       }
       
-      // Calcular preço total
-      const dayValue = Math.max(0, dayHours) * dayHourValue;
-      const nightValue = Math.max(0, nightHours) * nightHourValue;
-      const totalValue = dayValue + nightValue;
+      // Ajustar a última hora parcial
+      const endMinutes = endDateTime.getMinutes();
+      const endHour = endDateTime.getHours();
+      const lastHourFraction = endMinutes / 60;
+      
+      if (endHour >= 22 || endHour < 6) {
+        nightHours -= (1 - lastHourFraction);
+      } else {
+        dayHours -= (1 - lastHourFraction);
+      }
+      
+      // Garantir que não haja valores negativos
+      dayHours = Math.max(0, dayHours);
+      nightHours = Math.max(0, nightHours);
+      
+      // Calcular valores
+      const dayValue = dayHours * dayHourValue;
+      const nightValue = nightHours * nightHourValue;
+      let totalValue = dayValue + nightValue;
+      
+      // Adicionar valor do transporte, se existir
+      if (updateData.transport_price) {
+        totalValue += Number(updateData.transport_price);
+      }
       
       // Atualizar o preço total
       updateData.mashguiachPrice = totalValue;
       
       console.log('Preço recalculado:', {
-        dayHours: Math.max(0, dayHours),
-        nightHours: Math.max(0, nightHours),
+        dayHours,
+        nightHours,
         dayValue,
         nightValue,
+        transportValue: updateData.transport_price || 0,
         totalValue
       });
     }
 
     // Atualizar o serviço
-    console.log('Dados para atualização:', JSON.stringify(updateData, null, 2))
+    console.log('Dados para atualização (após processamento):', JSON.stringify(updateData, null, 2))
     
     const updatedService = await prisma.eventsServices.update({
       where: { id: serviceData.id },
