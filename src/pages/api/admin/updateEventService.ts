@@ -127,8 +127,10 @@ export default async function handler(
         (serviceData.arriveMashguiachTime && serviceData.endMashguiachTime)) {
       
       // Usar os valores atualizados ou os existentes
-      const dayHourValue = serviceData.dayHourValue ?? existingService.dayHourValue ?? 50;
-      const nightHourValue = serviceData.nightHourValue ?? existingService.nightHourValue ?? 75;
+      const dayHourValue = serviceData.dayHourValue ?? 
+        (existingService as any).dayHourValue ?? 50;
+      const nightHourValue = serviceData.nightHourValue ?? 
+        (existingService as any).nightHourValue ?? 75;
       
       // Calcular a duração e o preço
       const startDateTime = new Date(serviceData.arriveMashguiachTime);

@@ -170,8 +170,8 @@ function calculateWorkHoursAndValues(eventsServices: any[]) {
     
     // Obter os valores de hora diurna e noturna do serviço
     // Usar valores padrão se não estiverem definidos
-    const dayHourValue = service.dayHourValue || 50;
-    const nightHourValue = service.nightHourValue || 75;
+    const dayHourValue = (service as any).dayHourValue || 50;
+    const nightHourValue = (service as any).nightHourValue || 75;
     
     // Calcular valor com base na hora do dia
     let totalValue = 0;
@@ -374,8 +374,8 @@ async function generatePDF(user: any, reportData: any[], startDate: Date, endDat
         doc.fillColor('black');
         
         // Valores e cálculos
-        doc.text(`Valor da hora diurna (6h-22h): R$ ${data.dayHourValue.toFixed(2)}`);
-        doc.text(`Valor da hora noturna (22h-6h): R$ ${data.nightHourValue.toFixed(2)}`);
+        doc.text(`Valor da hora diurna (6h-22h): R$ ${(data.dayHourValue || 50).toFixed(2)}`);
+        doc.text(`Valor da hora noturna (22h-6h): R$ ${(data.nightHourValue || 75).toFixed(2)}`);
         doc.text(`Horas diurnas: ${data.dayHours.toFixed(2)} (R$ ${data.dayValue.toFixed(2)})`);
         doc.text(`Horas noturnas: ${data.nightHours.toFixed(2)} (R$ ${data.nightValue.toFixed(2)})`);
         doc.text(`Transporte: R$ ${data.transportValue.toFixed(2)}`);
