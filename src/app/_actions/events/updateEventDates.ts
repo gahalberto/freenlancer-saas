@@ -88,6 +88,7 @@ export const updateEventDates = async (
       updateData.mashguiachPrice = mashguiachPrice;
     }
 
+    // Primeiro, atualizar os campos principais
     const updatedEvent = await db.eventsServices.update({
       where: {
         id,
@@ -95,9 +96,45 @@ export const updateEventDates = async (
       data: updateData,
     });
 
+    // Se os valores de hora foram fornecidos, atualizar diretamente no banco de dados
+    // usando uma consulta SQL bruta
+    if (dayHourValue !== undefined || nightHourValue !== undefined) {
+      try {
+        console.log('Atualizando valores de hora via SQL:', { dayHourValue, nightHourValue });
+        
+        // Construir a consulta SQL
+        let sql = `UPDATE "EventsServices" SET `;
+        const params: any[] = [];
+        let paramIndex = 1;
+        
+        if (dayHourValue !== undefined) {
+          sql += `"dayHourValue" = $${paramIndex}`;
+          params.push(dayHourValue);
+          paramIndex++;
+        }
+        
+        if (nightHourValue !== undefined) {
+          if (paramIndex > 1) sql += ', ';
+          sql += `"nightHourValue" = $${paramIndex}`;
+          params.push(nightHourValue);
+          paramIndex++;
+        }
+        
+        sql += ` WHERE "id" = $${paramIndex}`;
+        params.push(id);
+        
+        // Executar a consulta SQL
+        await db.$executeRawUnsafe(sql, ...params);
+        
+        console.log('Valores de hora atualizados com sucesso via SQL');
+      } catch (sqlError) {
+        console.error('Erro ao atualizar valores de hora via SQL:', sqlError);
+      }
+    }
+
     return updatedEvent;
   } catch (error) {
     console.error('Erro ao atualizar serviço:', error);
     throw new Error('Falha ao atualizar o serviço.');
   }
-}; 
+};

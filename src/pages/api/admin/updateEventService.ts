@@ -123,6 +123,9 @@ export default async function handler(
     delete updateData.id
 
     // Remover campos que o Prisma não reconhece na operação de update
+    const dayHourValueToUpdate = updateData.dayHourValue
+    const nightHourValueToUpdate = updateData.nightHourValue
+    console.log('Valores de hora a serem atualizados:', { dayHourValueToUpdate, nightHourValueToUpdate })
     delete updateData.dayHourValue
     delete updateData.nightHourValue
 
@@ -227,6 +230,7 @@ export default async function handler(
     // Atualizar o serviço
     console.log('Dados para atualização (após processamento):', JSON.stringify(updateData, null, 2))
     
+    // Primeiro, atualizar os campos principais
     const updatedService = await prisma.eventsServices.update({
       where: { id: serviceData.id },
       data: updateData,
@@ -243,6 +247,40 @@ export default async function handler(
         },
       },
     })
+
+    // Se os valores de hora foram fornecidos, atualizar diretamente no banco de dados
+    // usando uma consulta SQL bruta
+    if (dayHourValueToUpdate !== undefined || nightHourValueToUpdate !== undefined) {
+      try {
+        // Construir a consulta SQL
+        let sql = `UPDATE "EventsServices" SET `
+        const params: any[] = []
+        let paramIndex = 1
+        
+        if (dayHourValueToUpdate !== undefined) {
+          sql += `"dayHourValue" = $${paramIndex}`
+          params.push(dayHourValueToUpdate)
+          paramIndex++
+        }
+        
+        if (nightHourValueToUpdate !== undefined) {
+          if (paramIndex > 1) sql += ', '
+          sql += `"nightHourValue" = $${paramIndex}`
+          params.push(nightHourValueToUpdate)
+          paramIndex++
+        }
+        
+        sql += ` WHERE "id" = $${paramIndex}`
+        params.push(serviceData.id)
+        
+        // Executar a consulta SQL
+        await prisma.$executeRawUnsafe(sql, ...params)
+        
+        console.log('Valores de hora atualizados com sucesso via SQL')
+      } catch (sqlError) {
+        console.error('Erro ao atualizar valores de hora via SQL:', sqlError)
+      }
+    }
 
     return res.status(200).json({
       success: true,
