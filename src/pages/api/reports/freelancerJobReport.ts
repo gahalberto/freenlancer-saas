@@ -275,14 +275,22 @@ async function generatePDF(user: any, reportData: any[], startDate: Date, endDat
       doc.moveDown();
       
       let totalGeral = 0;
+      let totalTransporte = 0;
       
       // Tabela de serviços
       const tableTop = doc.y;
-      const tableHeaders = ['Data', 'Evento', 'Início', 'Fim', 'Horas', 'Valor (R$)'];
-      const columnWidth = doc.page.width / 6 - 20;
+      const tableHeaders = ['Data', 'Evento', 'Início', 'Fim', 'Horas', 'Transporte (R$)', 'Valor (R$)'];
+      const columnWidth = (doc.page.width - 100) / tableHeaders.length; // Ajuste para melhor distribuição
+      
+      // Desenhar cabeçalho com fundo cinza
+      doc.rect(50, tableTop - 5, doc.page.width - 100, 20).fill('#f0f0f0');
+      doc.fillColor('black');
       
       tableHeaders.forEach((header, i) => {
-        doc.text(header, 50 + (i * columnWidth), tableTop, { width: columnWidth, align: 'left' });
+        doc.text(header, 50 + (i * columnWidth), tableTop, { 
+          width: columnWidth, 
+          align: i >= 4 ? 'right' : 'left' // Alinhar valores numéricos à direita
+        });
       });
       
       doc.moveDown();
@@ -298,9 +306,16 @@ async function generatePDF(user: any, reportData: any[], startDate: Date, endDat
           doc.addPage();
           rowTop = 50;
           
+          // Redesenhar cabeçalho com fundo cinza
+          doc.rect(50, rowTop - 5, doc.page.width - 100, 20).fill('#f0f0f0');
+          doc.fillColor('black');
+          
           // Redesenhar cabeçalho
           tableHeaders.forEach((header, i) => {
-            doc.text(header, 50 + (i * columnWidth), rowTop, { width: columnWidth, align: 'left' });
+            doc.text(header, 50 + (i * columnWidth), rowTop, { 
+              width: columnWidth, 
+              align: i >= 4 ? 'right' : 'left' // Alinhar valores numéricos à direita
+            });
           });
           
           doc.moveDown();
@@ -321,7 +336,8 @@ async function generatePDF(user: any, reportData: any[], startDate: Date, endDat
         doc.text(dayjs(data.service.arriveMashguiachTime).format('DD/MM/YYYY'), 50, rowTop, { width: columnWidth, align: 'left' });
         
         // Nome do evento
-        doc.text(data.service.StoreEvents.title, 50 + columnWidth, rowTop, { width: columnWidth, align: 'left' });
+        const eventoNome = data.service.StoreEvents.title || 'Sem título';
+        doc.text(eventoNome.substring(0, 15) + (eventoNome.length > 15 ? '...' : ''), 50 + columnWidth, rowTop, { width: columnWidth, align: 'left' });
         
         // Horário de início
         doc.text(dayjs(data.startTime).format('HH:mm'), 50 + (2 * columnWidth), rowTop, { width: columnWidth, align: 'left' });
@@ -330,15 +346,19 @@ async function generatePDF(user: any, reportData: any[], startDate: Date, endDat
         doc.text(dayjs(data.endTime).format('HH:mm'), 50 + (3 * columnWidth), rowTop, { width: columnWidth, align: 'left' });
         
         // Horas trabalhadas
-        doc.text(data.durationHours.toFixed(2), 50 + (4 * columnWidth), rowTop, { width: columnWidth, align: 'left' });
+        doc.text(data.durationHours.toFixed(2), 50 + (4 * columnWidth), rowTop, { width: columnWidth, align: 'right' });
+        
+        // Valor do transporte
+        doc.text(`R$ ${data.transportValue.toFixed(2)}`, 50 + (5 * columnWidth), rowTop, { width: columnWidth, align: 'right' });
         
         // Valor total
-        doc.text(data.totalValue.toFixed(2), 50 + (5 * columnWidth), rowTop, { width: columnWidth, align: 'left' });
+        doc.text(`R$ ${data.totalValue.toFixed(2)}`, 50 + (6 * columnWidth), rowTop, { width: columnWidth, align: 'right' });
         
         // Resetar cor
         doc.fillColor('black');
         
         totalGeral += data.totalValue;
+        totalTransporte += data.transportValue;
         
         doc.moveDown();
         rowTop = doc.y;
@@ -347,9 +367,31 @@ async function generatePDF(user: any, reportData: any[], startDate: Date, endDat
       // Adicionar linha horizontal
       doc.moveTo(50, rowTop - 5).lineTo(doc.page.width - 50, rowTop - 5).stroke();
       
-      // Total geral
+      // Resumo financeiro
       doc.moveDown();
-      doc.fontSize(14).text(`Total Geral: R$ ${totalGeral.toFixed(2)}`, { align: 'right' });
+      doc.fontSize(14).text('Resumo Financeiro', { underline: true });
+      doc.moveDown(0.5);
+      
+      // Calcular totais
+      let totalHorasDiurnas = 0;
+      let totalHorasNoturnas = 0;
+      let totalValorDiurno = 0;
+      let totalValorNoturno = 0;
+      
+      reportData.forEach(data => {
+        totalHorasDiurnas += data.dayHours;
+        totalHorasNoturnas += data.nightHours;
+        totalValorDiurno += data.dayValue;
+        totalValorNoturno += data.nightValue;
+      });
+      
+      // Exibir resumo
+      doc.fontSize(12);
+      doc.text(`Total de horas diurnas: ${totalHorasDiurnas.toFixed(2)} horas (R$ ${totalValorDiurno.toFixed(2)})`);
+      doc.text(`Total de horas noturnas: ${totalHorasNoturnas.toFixed(2)} horas (R$ ${totalValorNoturno.toFixed(2)})`);
+      doc.text(`Total de transporte: R$ ${totalTransporte.toFixed(2)}`);
+      doc.text(`Subtotal (sem transporte): R$ ${(totalValorDiurno + totalValorNoturno).toFixed(2)}`);
+      doc.fontSize(13).text(`Total geral: R$ ${totalGeral.toFixed(2)}`, { underline: true });
       
       // Detalhes dos serviços
       doc.addPage();
@@ -378,8 +420,15 @@ async function generatePDF(user: any, reportData: any[], startDate: Date, endDat
         doc.text(`Valor da hora noturna (22h-6h): R$ ${(data.nightHourValue || 75).toFixed(2)}`);
         doc.text(`Horas diurnas: ${data.dayHours.toFixed(2)} (R$ ${data.dayValue.toFixed(2)})`);
         doc.text(`Horas noturnas: ${data.nightHours.toFixed(2)} (R$ ${data.nightValue.toFixed(2)})`);
-        doc.text(`Transporte: R$ ${data.transportValue.toFixed(2)}`);
-        doc.text(`Total do serviço: R$ ${data.totalValue.toFixed(2)}`);
+        doc.text(`Transporte: R$ ${data.transportValue.toFixed(2)}`, { continued: false });
+        
+        // Subtotal sem transporte
+        const subtotalSemTransporte = data.dayValue + data.nightValue;
+        doc.text(`Subtotal (sem transporte): R$ ${subtotalSemTransporte.toFixed(2)}`);
+        
+        // Total com transporte
+        doc.fontSize(13).text(`Total do serviço: R$ ${data.totalValue.toFixed(2)}`, { underline: true });
+        doc.fontSize(12);
         
         // Observações
         if (data.service.observationText) {
