@@ -238,6 +238,8 @@ const AddServiceToEventModal = ({ createdEventId }: PropsType) => {
         mashguiachId: mashguiachSelected !== '999' ? mashguiachSelected : null, // Envia undefined se for 999
         mashguiachPrice: totalPrice,
         mashguiachPricePerHour: 50,
+        dayHourValue: 50,
+        nightHourValue: 70,
         observationText,
         productionOrEvent,
         address_zipcode: addressZipcode,
