@@ -122,6 +122,26 @@ export default async function handler(
     // Remover o ID do objeto de atualização
     delete updateData.id
 
+    // Converter StoreEventsId para o formato esperado pelo Prisma na operação de update
+    if (updateData.StoreEventsId) {
+      updateData.StoreEvents = {
+        connect: { id: updateData.StoreEventsId }
+      }
+      delete updateData.StoreEventsId
+    }
+
+    // Converter mashguiachId para o formato esperado pelo Prisma na operação de update
+    if (updateData.mashguiachId !== undefined) {
+      if (updateData.mashguiachId === null) {
+        updateData.Mashguiach = { disconnect: true }
+      } else {
+        updateData.Mashguiach = {
+          connect: { id: updateData.mashguiachId }
+        }
+      }
+      delete updateData.mashguiachId
+    }
+
     // Recalcular o preço total se os valores de hora ou datas foram alterados
     if ((serviceData.dayHourValue !== undefined || serviceData.nightHourValue !== undefined) && 
         (serviceData.arriveMashguiachTime && serviceData.endMashguiachTime)) {
@@ -197,6 +217,8 @@ export default async function handler(
     }
 
     // Atualizar o serviço
+    console.log('Dados para atualização:', JSON.stringify(updateData, null, 2))
+    
     const updatedService = await prisma.eventsServices.update({
       where: { id: serviceData.id },
       data: updateData,
@@ -221,6 +243,15 @@ export default async function handler(
     })
   } catch (error) {
     console.log('Erro ao atualizar serviço:', error)
+    
+    // Tratamento específico para erros do Prisma
+    if (error && typeof error === 'object' && 'name' in error && error.name === 'PrismaClientValidationError') {
+      return res.status(400).json({
+        success: false,
+        message: 'Erro de validação do Prisma: ' + (error as any).message,
+      })
+    }
+    
     if (error instanceof z.ZodError) {
       return res.status(400).json({
         success: false,
