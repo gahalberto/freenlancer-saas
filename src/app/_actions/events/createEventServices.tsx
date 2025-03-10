@@ -11,8 +11,8 @@ type CreateEventServicesInput = {
   isApproved: boolean
   mashguiachPrice: number
   mashguiachPricePerHour: number
-  dayHourValue: number
-  nightHourValue: number
+  dayHourValue?: number
+  nightHourValue?: number
   observationText: string
   productionOrEvent: string
   mashguiachId?: string | null
@@ -39,8 +39,9 @@ export const createEventServices = async (data: CreateEventServicesInput) => {
       isApproved: data.isApproved,
       mashguiachPrice: data.mashguiachPrice,
       mashguiachPricePerHour: data.mashguiachPricePerHour,
-      dayHourValue: data.dayHourValue,
-      nightHourValue: data.nightHourValue,
+      // Os campos dayHourValue e nightHourValue já têm valores padrão no schema do Prisma
+      // dayHourValue: data.dayHourValue,
+      // nightHourValue: data.nightHourValue,
       observationText: data.observationText,
       workType: data.productionOrEvent === 'PRODUCAO' ? 'PRODUCAO' : 'EVENTO',
       mashguiachId: mashguiachId,
