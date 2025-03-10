@@ -22,7 +22,7 @@ import {
   CAccordionItem,
   CAccordionHeader,
   CAccordionBody,
-} from '@coreui/react'
+} from '@coreui/react-pro'
 import dayjs from 'dayjs'
 import 'dayjs/locale/pt-br'
 import { formatCurrency } from '@/app/_lib/formatters'
@@ -66,28 +66,28 @@ export default function MashguiachEventsPage() {
     totalHours: 0,
     totalValue: 0,
   })
-  const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1) // Mês atual (1-12)
-  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear())
+  const [selectedMonth, setSelectedMonth] = useState(String(new Date().getMonth() + 1)) // Mês atual (1-12)
+  const [selectedYear, setSelectedYear] = useState(String(new Date().getFullYear()))
 
   const months = [
-    { value: 1, label: 'Janeiro' },
-    { value: 2, label: 'Fevereiro' },
-    { value: 3, label: 'Março' },
-    { value: 4, label: 'Abril' },
-    { value: 5, label: 'Maio' },
-    { value: 6, label: 'Junho' },
-    { value: 7, label: 'Julho' },
-    { value: 8, label: 'Agosto' },
-    { value: 9, label: 'Setembro' },
-    { value: 10, label: 'Outubro' },
-    { value: 11, label: 'Novembro' },
-    { value: 12, label: 'Dezembro' },
+    { value: '1', label: 'Janeiro' },
+    { value: '2', label: 'Fevereiro' },
+    { value: '3', label: 'Março' },
+    { value: '4', label: 'Abril' },
+    { value: '5', label: 'Maio' },
+    { value: '6', label: 'Junho' },
+    { value: '7', label: 'Julho' },
+    { value: '8', label: 'Agosto' },
+    { value: '9', label: 'Setembro' },
+    { value: '10', label: 'Outubro' },
+    { value: '11', label: 'Novembro' },
+    { value: '12', label: 'Dezembro' },
   ]
 
   // Gerar anos de 2020 até o ano atual + 1
   const currentYear = new Date().getFullYear()
   const years = Array.from({ length: currentYear - 2019 }, (_, i) => ({
-    value: 2020 + i,
+    value: String(2020 + i),
     label: `${2020 + i}`,
   }))
 
@@ -98,8 +98,8 @@ export default function MashguiachEventsPage() {
     try {
       const result = await getEventsByMashguiachMonthAndYear({
         mashguiachId: session.user.id,
-        month: selectedMonth,
-        year: selectedYear,
+        month: Number(selectedMonth),
+        year: Number(selectedYear),
       })
 
       if (result.success && result.events) {
@@ -134,11 +134,11 @@ export default function MashguiachEventsPage() {
   }, [session, selectedMonth, selectedYear])
 
   const handleMonthChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    setSelectedMonth(Number(e.target.value))
+    setSelectedMonth(e.target.value)
   }
 
   const handleYearChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    setSelectedYear(Number(e.target.value))
+    setSelectedYear(e.target.value)
   }
 
   const getStatusBadge = (service: Service) => {
