@@ -1,14 +1,16 @@
 'use client'
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 
 const Dashboard = () => {
   const { data: session, status } = useSession()
   const router = useRouter()
+  const [hasRedirected, setHasRedirected] = useState(false)
 
   useEffect(() => {
-    if (status === 'authenticated') {
+    if (status === 'authenticated' && !hasRedirected) {
+      setHasRedirected(true)
       const roleId = session?.user?.roleId
 
       if (roleId === 1) {
@@ -16,10 +18,10 @@ const Dashboard = () => {
       } else if (roleId === 2) {
         router.push('/app/dashboard/estabelecimento')
       } else if (roleId === 3) {
-        router.push('/app/dashboard/admin')
+        router.push('/app/dashboard/admin2')
       }
     }
-  }, [session, status, router])
+  }, [session, status, router, hasRedirected])
 
   if (status === 'loading') {
     return <p>Carregando...</p>

@@ -1,5 +1,6 @@
 'use client'
 import { getStores } from '@/app/_actions/stores/getStores'
+import { getAllStores } from '@/app/_actions/stores/getAllStores'
 import {
   CButton,
   CCard,
@@ -57,6 +58,7 @@ type EventsWithServices = StoreEvents & {
 const AddEventFormPage = () => {
   const { data: session, status } = useSession()
   const userId = session?.user?.id || ''
+  const roleId = session?.user?.roleId || 0
   const [modalVisible, setModalVisible] = useState(false)
   const [disabled, setDisabled] = useState(false)
   const [pdfFile, setPdfFile] = useState<File | null>(null)
@@ -74,7 +76,18 @@ const AddEventFormPage = () => {
       return
     }
     try {
-      const response = await getStores(session.user.id)
+      let response;
+      
+      // Se for admin (roleId = 3), buscar todos os estabelecimentos
+      if (roleId === 3) {
+        console.log('Usuário é admin, buscando todos os estabelecimentos')
+        response = await getAllStores()
+      } else {
+        // Se for estabelecimento (roleId = 2), buscar apenas os estabelecimentos do usuário
+        console.log('Usuário é estabelecimento, buscando estabelecimentos do usuário')
+        response = await getStores(session.user.id)
+      }
+      
       if (response) {
         setStoreList(response)
       }

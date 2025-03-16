@@ -19,7 +19,7 @@ const AdminDashboard = () => {
     if (!hasCheckedRole && session) {
       setHasCheckedRole(true)
       if (session.roleId !== 3) {
-        router.push('/app')
+        router.push('/')
       }
     }
   }, [session, router, hasCheckedRole])
