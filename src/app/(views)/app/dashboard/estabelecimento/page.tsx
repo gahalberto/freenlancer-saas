@@ -67,7 +67,10 @@ const MashguiachDashboardPage = () => {
   const [modal, setModal] = useState<MODAL>(MODAL['ADDRESS'])
   const [events, setEvents] = useState<EventsWithServices[]>([])
   const [createdEventId, setCreatedEventId] = useState<string>(`d9911e17-1e1b-4df4-bb8c-f450c3c056c6`)
-
+  const [showLogoAlert, setShowLogoAlert] = useState(false)
+  const [showMenuAlert, setShowMenuAlert] = useState(false)
+  const [storeWithoutLogo, setStoreWithoutLogo] = useState<Stores | null>(null)
+  const [storeWithoutMenu, setStoreWithoutMenu] = useState<Stores | null>(null)
 
   const fetchEvents = async () => {
     const response = await getEventByEstabelecimento(userId) // Atualize com sua rota real
@@ -80,7 +83,6 @@ const MashguiachDashboardPage = () => {
     console.error('User ID não encontrado na sessão.')
   }
 
-
   const fetchStores = async () => {
     if (!session) {
       return
@@ -89,6 +91,26 @@ const MashguiachDashboardPage = () => {
       const response = await getStores(session.user.id)
       if (response) {
         setStoreList(response)
+        
+        // Verificar se algum estabelecimento não tem logo
+        const storeWithoutLogoFound = response.find(store => 
+          !store.imageUrl || store.imageUrl === ''
+        )
+        
+        if (storeWithoutLogoFound) {
+          setShowLogoAlert(true)
+          setStoreWithoutLogo(storeWithoutLogoFound)
+        }
+        
+        // Verificar se algum estabelecimento não tem cardápio
+        const storeWithoutMenuFound = response.find(store => 
+          !store.menuUrl || store.menuUrl === ''
+        )
+        
+        if (storeWithoutMenuFound) {
+          setShowMenuAlert(true)
+          setStoreWithoutMenu(storeWithoutMenuFound)
+        }
       }
     } catch (error) {
       console.error('Erro ao buscar lojas:', error)
@@ -186,6 +208,54 @@ const MashguiachDashboardPage = () => {
 
   return (
     <>
+      {showLogoAlert && (
+        <CRow className="mt-4 mb-4">
+          <CCol>
+            <div className="alert alert-warning d-flex align-items-center" role="alert">
+              <div className="me-3">
+                <strong>Atenção!</strong> Seu estabelecimento não possui logo cadastrada. 
+                Isso é importante para a visualização do seu estabelecimento pelos clientes.
+              </div>
+              <CButton 
+                color="primary" 
+                size="sm" 
+                onClick={() => router.push(`/app/stores/edit/${storeWithoutLogo?.id}`)}
+              >
+                Editar Estabelecimento
+              </CButton>
+            </div>
+          </CCol>
+        </CRow>
+      )}
+      
+      {showMenuAlert && (
+        <CRow className="mt-4 mb-4">
+          <CCol>
+            <div className="alert alert-warning d-flex align-items-center" role="alert">
+              <div className="me-3">
+                <strong>Atenção!</strong> Seu estabelecimento não possui cardápio cadastrado. 
+                Isso é importante para que os clientes conheçam seus produtos e serviços.
+              </div>
+              <CButton 
+                color="primary" 
+                size="sm" 
+                onClick={() => router.push(`/app/stores/edit/${storeWithoutMenu?.id}`)}
+              >
+                Editar Estabelecimento
+              </CButton>
+              <CButton 
+                color="secondary" 
+                size="sm" 
+                className="ms-2"
+                onClick={() => router.push(`/app/stores`)}
+              >
+                Ver Estabelecimentos
+              </CButton>
+            </div>
+          </CCol>
+        </CRow>
+      )}
+      
       <CRow className="mt-4">
         <CRow className="mt-4 mb-4 align-items-center">
           <CCol xs="auto" className="d-flex align-items-center">

@@ -12,6 +12,7 @@ import {
   CInputGroupText,
   CRow,
   CCol,
+  CFormCheck,
 } from '@coreui/react-pro'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
@@ -91,11 +92,20 @@ const EditStoreForm: React.FC<EditStoreFormProps> = ({ storeData }) => {
 
   useEffect(() => {
     const fetchData = async () => {
-      setMashguiachim(await getAllMashguichim())
-      setStoresType(await getStoresTypes())
-    }
-    fetchData()
-  }, [])
+      try {
+        const [mashguiachimData, storesTypeData] = await Promise.all([
+          getAllMashguichim(),
+          getStoresTypes()
+        ]);
+        setMashguiachim(mashguiachimData);
+        setStoresType(storesTypeData);
+      } catch (error) {
+        console.error('Erro ao buscar dados:', error);
+      }
+    };
+    
+    fetchData();
+  }, []);
 
   const handleCep = async () => {
     if (zipCode.length >= 8) {
@@ -128,11 +138,32 @@ const EditStoreForm: React.FC<EditStoreFormProps> = ({ storeData }) => {
         storeTypeId: formData.storeTypeId,
       }
 
+      console.log('Enviando dados para atualização:', updatedFormData);
       await editStore(updatedFormData)
       alert('Estabelecimento atualizado com sucesso!')
     } catch (error) {
       console.error('Erro ao atualizar estabelecimento:', error)
       alert('Erro ao atualizar estabelecimento.')
+    }
+  }
+
+  // Função para verificar se o evento de submit veio do formulário principal
+  const handleFormSubmit = (event?: React.FormEvent) => {
+    if (event) {
+      event.preventDefault();
+      
+      // Verificar se o evento veio de um input ou botão dentro do formulário
+      const target = event.target as HTMLElement;
+      if (target.tagName === 'FORM') {
+        console.log('Submit do formulário principal');
+        handleSubmit(onSubmit)();
+      } else {
+        console.log('Evento não é um submit do formulário principal, ignorando');
+      }
+    } else {
+      // Se for chamado diretamente pelo botão
+      console.log('Submit chamado pelo botão');
+      handleSubmit(onSubmit)();
     }
   }
 
@@ -143,7 +174,7 @@ const EditStoreForm: React.FC<EditStoreFormProps> = ({ storeData }) => {
           <strong>Editar Estabelecimento</strong>
         </CCardHeader>
         <CCardBody>
-          <CForm onSubmit={handleSubmit(onSubmit)}>
+          <CForm id="mainForm" onSubmit={handleFormSubmit}>
             <CRow className="mb-3">
               <CCol md={12}>
                 <CFormLabel htmlFor="title">Nome/Título do Estabelecimento</CFormLabel>
@@ -215,8 +246,8 @@ const EditStoreForm: React.FC<EditStoreFormProps> = ({ storeData }) => {
                 <CFormSelect
                   id="storeTypeId"
                   {...register('storeTypeId')}
-                  value={watch('storeTypeId')} // Garante que o valor seja atualizado corretamente
-                  onChange={(e) => setValue('storeTypeId', e.target.value)} // Atualiza o valor manualmente
+                  value={watch('storeTypeId')}
+                  onChange={(e) => setValue('storeTypeId', e.target.value)}
                   invalid={!!errors.storeTypeId}
                 >
                   <option value="">Selecione o tipo de estabelecimento</option>
@@ -234,9 +265,9 @@ const EditStoreForm: React.FC<EditStoreFormProps> = ({ storeData }) => {
                 <CFormLabel htmlFor="mashguiachId">Mashguiach</CFormLabel>
                 <CFormSelect
                   id="mashguiachId"
-                  value={watch('mashguiachId') || ''} // Garante que null ou undefined sejam transformados em string vazia
+                  value={watch('mashguiachId') || ''}
                   {...register('mashguiachId')}
-                  onChange={(e) => setValue('mashguiachId', e.target.value)} // Atualiza o valor manualmente
+                  onChange={(e) => setValue('mashguiachId', e.target.value)}
                   invalid={!!errors.mashguiachId}
                 >
                   <option value="">Selecione</option>
@@ -252,31 +283,46 @@ const EditStoreForm: React.FC<EditStoreFormProps> = ({ storeData }) => {
               </CCol>
             </CRow>
 
-            <CRow>
-              <CCol md={6} className="mb-3">
-                <UploadStoreLogo storeId={storeData.id} imageUrl={storeData.imageUrl || ''} />
-              </CCol>
-              <CCol md={6} className="mb-3">
-                <UploadMenu storeId={storeData.id} menuUrl={storeData.menuUrl || ''} />
-              </CCol>
-            </CRow>
-
-            <CButton type="submit" color="primary">
-              Atualizar
-            </CButton>
+            <hr className="my-4" />
           </CForm>
-        </CCardBody>
-      </CCard>
-      <CCard className="mb-4">
-        <CCardHeader>MENU PDF</CCardHeader>
-        <CCardBody>
-          {storeData?.menuUrl && (
-            <iframe
-              src={storeData?.menuUrl}
-              style={{ width: '100%', height: '600px', border: 'none' }}
-              title="Menu PDF"
-            ></iframe>
-          )}
+          
+          <CRow>
+            <CCol md={6} className="mb-3">
+              <UploadStoreLogo 
+                storeId={storeData.id} 
+                imageUrl={storeData.imageUrl || ''} 
+                onImageUploaded={(newImageUrl: string) => {
+                  console.log('Nova URL de imagem recebida:', newImageUrl);
+                  setValue('imageUrl', newImageUrl);
+                }}
+              />
+            </CCol>
+            <CCol md={6} className="mb-3">
+              <UploadMenu 
+                storeId={storeData.id} 
+                menuUrl={storeData.menuUrl || ''} 
+                onMenuUploaded={(newMenuUrl: string) => {
+                  console.log('Nova URL de menu recebida:', newMenuUrl);
+                  setValue('menuUrl', newMenuUrl);
+                }}
+              />
+            </CCol>
+          </CRow>
+
+          <hr className="my-4" />
+
+          {/* Botão fora do formulário para evitar submits acidentais */}
+          <CButton 
+            type="button" 
+            color="primary" 
+            onClick={(e) => {
+              e.preventDefault();
+              console.log('Botão de atualização clicado');
+              handleFormSubmit();
+            }}
+          >
+            Atualizar Estabelecimento
+          </CButton>
         </CCardBody>
       </CCard>
     </>
