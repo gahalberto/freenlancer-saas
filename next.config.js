@@ -1,7 +1,8 @@
 const nextConfig = {
   reactStrictMode: true,
   swcMinify: true,
-  staticPageGenerationTimeout: 60,
+  staticPageGenerationTimeout: 180,
+  output: 'standalone',
   experimental: {
     // appDir foi removido pois não é mais necessário nas versões recentes do Next.js
   },
