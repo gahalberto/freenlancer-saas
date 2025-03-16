@@ -1,5 +1,5 @@
 'use client'
-import { useEffect, useState } from 'react'
+import { useEffect, useState, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { getAllStores } from './_actions/stores/getAllStores'
 import { searchStores } from './_actions/stores/searchStores'
@@ -172,4 +172,20 @@ const HomePage = () => {
   )
 }
 
-export default HomePage
+// Componente wrapper com Suspense
+const HomePageWrapper = () => {
+  return (
+    <Suspense fallback={
+      <div className="text-center py-5">
+        <div className="spinner-border text-primary" role="status">
+          <span className="visually-hidden">Carregando...</span>
+        </div>
+        <p className="mt-3">Carregando página...</p>
+      </div>
+    }>
+      <HomePage />
+    </Suspense>
+  )
+}
+
+export default HomePageWrapper
