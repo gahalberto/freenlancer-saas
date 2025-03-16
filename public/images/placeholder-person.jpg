@@ -1,0 +1,18 @@
+Este é um arquivo de texto que substitui a imagem de placeholder para pessoas.
+
+Para adicionar imagens de placeholder para pessoas, você precisa:
+
+1. Baixar imagens de pessoas profissionais (como rabinos ou administradores)
+2. Renomear para "placeholder-person.jpg"
+3. Colocar neste diretório (public/images/)
+
+Recomendações para a imagem:
+- Resolução: pelo menos 800x600 pixels
+- Formato: JPG
+- Conteúdo: Imagens profissionais de pessoas em ambiente de trabalho
+- Tamanho: Menor que 200KB para carregamento rápido
+
+Você pode encontrar imagens gratuitas em sites como:
+- Unsplash (https://unsplash.com)
+- Pexels (https://pexels.com)
+- Pixabay (https://pixabay.com) 

@@ -1,0 +1,18 @@
+Este é um arquivo de texto que substitui a imagem padrão.
+
+Para adicionar uma imagem padrão para os estabelecimentos, você precisa:
+
+1. Baixar uma imagem de um restaurante ou estabelecimento genérico
+2. Renomear para "default-store.jpg"
+3. Colocar neste diretório (public/images/)
+
+Recomendações para a imagem:
+- Resolução: pelo menos 800x600 pixels
+- Formato: JPG
+- Conteúdo: Uma imagem neutra de um restaurante ou estabelecimento kosher
+- Tamanho: Menor que 200KB para carregamento rápido
+
+Você pode encontrar imagens gratuitas em sites como:
+- Unsplash (https://unsplash.com)
+- Pexels (https://pexels.com)
+- Pixabay (https://pixabay.com) 

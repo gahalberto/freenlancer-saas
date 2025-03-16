@@ -19,6 +19,7 @@ import {
   cilClock,
   cilUserPlus,
   cilPeople,
+  cilEnvelopeClosed,
 } from '@coreui/icons'
 import CIcon from '@coreui/icons-react'
 import { CNavGroup, CNavItem, CNavTitle } from '@coreui/react-pro'
@@ -90,6 +91,13 @@ const _nav = [
     roleId: [3,4],
     href: '/app/admin/calendar2',
     icon: <CIcon icon={cilCalendar} customClassName="nav-icon" />,
+  },
+  {
+    component: CNavItem,
+    name: 'Mensagens de Contato',
+    roleId: [3,4],
+    href: '/app/admin/contatos',
+    icon: <CIcon icon={cilEnvelopeClosed} customClassName="nav-icon" />,
   },
   {
     component: CNavGroup,
