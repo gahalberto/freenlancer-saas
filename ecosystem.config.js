@@ -10,8 +10,12 @@ module.exports = {
       max_memory_restart: '1G',
       env: {
         NODE_ENV: 'production',
-        PORT: 3000
-      }
+        PORT: 3000,
+        NEXT_SHARP_PATH: '/var/www/byk/html/freenlancer-saas/node_modules/sharp',
+        NODE_OPTIONS: '--max-old-space-size=4096'
+      },
+      cwd: '/var/www/byk/html/freenlancer-saas',
+      interpreter: '/usr/bin/node'
     }
   ]
 } 
