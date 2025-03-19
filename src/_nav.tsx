@@ -173,6 +173,30 @@ const _nav = [
     items: [
       {
         component: CNavItem,
+        name: 'Registrar Ponto',
+        href: '/app/admin/banco-de-horas/registrar',
+        icon: <CIcon icon={cilClock} customClassName="nav-icon" />,
+      },
+      {
+        component: CNavItem,
+        name: 'Funcionários',
+        href: '/app/admin/banco-de-horas/funcionarios',
+        icon: <CIcon icon={cilPeople} customClassName="nav-icon" />,
+      },
+      {
+        component: CNavItem,
+        name: 'Justificar Faltas',
+        href: '/app/admin/banco-de-horas/justificar-faltas',
+        icon: <CIcon icon={cilFlagAlt} customClassName="nav-icon" />,
+      },
+      {
+        component: CNavItem,
+        name: 'Escala de Trabalho',
+        href: '/app/admin/banco-de-horas/escala',
+        icon: <CIcon icon={cilCalendar} customClassName="nav-icon" />,
+      },
+      {
+        component: CNavItem,
         name: 'Relatórios',
         href: '/app/admin/banco-de-horas/relatorios',
         icon: <CIcon icon={cilFile} customClassName="nav-icon" />,

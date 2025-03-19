@@ -62,6 +62,7 @@ model User {
   role             Role                  @relation(fields: [roleId], references: [id])
   synagogue        Synagogue?            @relation(fields: [synagogueId], references: [id])
   TimeEntries      TimeEntries[]
+  absenceJustifications AbsenceJustification[]
 
   @@map("users")
 }
@@ -233,6 +234,7 @@ model Stores {
   StoreEvents      StoreEvents[]
   storeType        StoresType       @relation(fields: [storeTypeId], references: [id])
   fixedJobs        FixedJobs[]
+  absenceJustifications AbsenceJustification[]
 }
 
 model Certifications {
@@ -341,6 +343,7 @@ model FixedJobs {
   store_id        String
   price           Int?
   price_per_hour  Float
+  monthly_salary  Float?
   user_id         String
   timeIn          DateTime?
   timeOut         DateTime?
@@ -437,4 +440,24 @@ model Contact {
   lido      Boolean  @default(false)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+model AbsenceJustification {
+  id           String   @id @default(uuid())
+  user_id      String
+  store_id     String
+  date         DateTime
+  reason       String
+  status       String   @default("PENDING")
+  attachmentUrl String?
+  createdAt    DateTime @default(now())
+  
+  user         User     @relation(fields: [user_id], references: [id])
+  store        Stores   @relation(fields: [store_id], references: [id])
+}
+
+enum JustificationStatus {
+  Pending
+  Approved
+  Rejected
 }
