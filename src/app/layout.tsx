@@ -13,6 +13,7 @@ import { useEffect, useState } from 'react'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faTools, faClock } from '@fortawesome/free-solid-svg-icons'
 import dynamic from 'next/dynamic'
+import { Toaster } from 'react-hot-toast'
 
 // Importação dinâmica do componente com carregamento apenas no cliente
 const ClientProblemReportButton = dynamic(
@@ -40,6 +41,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <Provider store={store}>
               {children}
               <ClientProblemReportButton />
+              <Toaster position="top-right" />
             </Provider>
           </SessionProviderCustom>
         </SessionProvider>

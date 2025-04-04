@@ -124,7 +124,7 @@ const ClientProblemReportButton: React.FC = () => {
         onClick={showDialog}
         className="shadow-lg flex items-center"
       >
-        Reportar Problema
+        Reportar Problemaaaaa
       </AntButton>
     </div>
   );
@@ -140,7 +140,7 @@ const ClientProblemReportButton: React.FC = () => {
         }}>
           <DialogContent className="sm:max-w-[500px]">
             <DialogHeader>
-              <DialogTitle>Reportar Problema</DialogTitle>
+              <DialogTitle>Reportar Problemaaaaaa</DialogTitle>
             </DialogHeader>
             
             <Form

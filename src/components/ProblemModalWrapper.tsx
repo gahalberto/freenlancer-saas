@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   CModal,
   CModalHeader,
@@ -11,9 +11,13 @@ import {
   CForm,
   CFormInput,
   CFormTextarea,
-  CSpinner
+  CSpinner,
+  CFormLabel,
+  CToast,
+  CToastBody,
+  CToastHeader,
+  CToaster
 } from '@coreui/react-pro';
-import { toast } from 'react-hot-toast';
 import { useSession } from 'next-auth/react';
 
 interface ModalProps {
@@ -30,6 +34,9 @@ export default function ProblemModalWrapper({ isOpen, onClose }: ModalProps) {
     description: '',
     url: ''
   });
+  const [screenshot, setScreenshot] = useState<File | null>(null);
+  const toaster = useRef<HTMLDivElement>(null);
+  const [toast, setToast] = useState<any>(null);
   
   // Atualizar URL e definir como montado apenas no cliente
   useEffect(() => {
@@ -44,6 +51,16 @@ export default function ProblemModalWrapper({ isOpen, onClose }: ModalProps) {
     }
   }, []);
   
+  // Atualizar URL quando o modal for aberto
+  useEffect(() => {
+    if (isOpen && typeof window !== 'undefined') {
+      setFormData(prev => ({
+        ...prev,
+        url: window.location.href
+      }));
+    }
+  }, [isOpen]);
+  
   // Não renderizar nada no servidor
   if (!mounted) {
     return null;
@@ -54,44 +71,91 @@ export default function ProblemModalWrapper({ isOpen, onClose }: ModalProps) {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (files && files.length > 0) {
+      const file = files[0];
+      
+      // Validar tipo de arquivo
+      if (!file.type.startsWith('image/')) {
+        showToast('Erro', 'Por favor, envie apenas arquivos de imagem', 'danger');
+        e.target.value = '';
+        return;
+      }
+      
+      // Validar tamanho (máximo 2MB)
+      if (file.size > 2 * 1024 * 1024) {
+        showToast('Erro', 'A imagem deve ser menor que 2MB', 'danger');
+        e.target.value = '';
+        return;
+      }
+      
+      setScreenshot(file);
+    } else {
+      setScreenshot(null);
+    }
+  };
+
+  const showToast = (title: string, message: string, color: string = 'success') => {
+    setToast(
+      <CToast autohide={true} delay={5000} color={color}>
+        <CToastHeader closeButton>
+          <strong className="me-auto">{title}</strong>
+        </CToastHeader>
+        <CToastBody>{message}</CToastBody>
+      </CToast>
+    );
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!session?.user?.id) {
-      toast.error('Você precisa estar logado para reportar um problema');
+      showToast('Erro', 'Você precisa estar logado para reportar um problema', 'danger');
       return;
     }
 
     if (!formData.title || !formData.description) {
-      toast.error('Preencha todos os campos obrigatórios');
+      showToast('Erro', 'Preencha todos os campos obrigatórios', 'danger');
       return;
     }
 
     setLoading(true);
     
     try {
+      // Usar FormData para enviar o arquivo
+      const data = new FormData();
+      data.append('userId', session.user.id);
+      data.append('title', formData.title);
+      data.append('description', formData.description);
+      data.append('url', formData.url);
+      
+      // Anexar screenshot se existir
+      if (screenshot) {
+        data.append('screenshot', screenshot);
+      }
+
       const response = await fetch('/api/problem-report', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          userId: session.user.id,
-          ...formData
-        })
+        body: data
       });
 
       if (response.ok) {
-        toast.success('Problema reportado com sucesso!');
-        onClose();
-        setFormData({ 
-          title: '', 
-          description: '', 
-          url: window.location.href
-        });
+        showToast('Sucesso', 'Problema reportado com sucesso!', 'success');
+        setTimeout(() => {
+          onClose();
+          setFormData({ 
+            title: '', 
+            description: '', 
+            url: window.location.href
+          });
+          setScreenshot(null);
+        }, 1500);
       } else {
         throw new Error('Erro ao reportar problema');
       }
     } catch (error) {
-      toast.error('Erro ao enviar o relatório de problema');
+      showToast('Erro', 'Erro ao enviar o relatório de problema', 'danger');
       console.error(error);
     } finally {
       setLoading(false);
@@ -99,58 +163,80 @@ export default function ProblemModalWrapper({ isOpen, onClose }: ModalProps) {
   };
 
   return (
-    <CModal visible={isOpen} onClose={onClose}>
-      <CModalHeader>
-        <CModalTitle>Reportar Problema</CModalTitle>
-      </CModalHeader>
-      <CModalBody>
-        <CForm onSubmit={handleSubmit}>
-          <div className="mb-3">
-            <CFormInput
-              type="text"
-              id="title"
-              name="title"
-              label="Título"
-              placeholder="Título do problema"
-              value={formData.title}
-              onChange={handleInputChange}
-              required
-            />
-          </div>
-          <div className="mb-3">
-            <CFormTextarea
-              id="description"
-              name="description"
-              label="Descrição"
-              placeholder="Descreva o problema detalhadamente"
-              rows={5}
-              value={formData.description}
-              onChange={handleInputChange}
-              required
-            />
-          </div>
-          <div className="mb-3">
-            <CFormInput
-              type="text"
-              id="url"
-              name="url"
-              label="URL (opcional)"
-              placeholder="URL da página onde ocorreu o problema"
-              value={formData.url}
-              onChange={handleInputChange}
-            />
-          </div>
-          <CModalFooter>
-            <CButton color="secondary" onClick={onClose}>
-              Cancelar
-            </CButton>
-            <CButton color="primary" type="submit" disabled={loading}>
-              {loading ? <CSpinner size="sm" className="me-2" /> : null}
-              Enviar
-            </CButton>
-          </CModalFooter>
-        </CForm>
-      </CModalBody>
-    </CModal>
+    <>
+      <CModal visible={isOpen} onClose={onClose}>
+        <CModalHeader>
+          <CModalTitle>Reportar Problema</CModalTitle>
+        </CModalHeader>
+        <CModalBody>
+          <CForm onSubmit={handleSubmit}>
+            <div className="mb-3">
+              <CFormInput
+                type="text"
+                id="title"
+                name="title"
+                label="Título"
+                placeholder="Título do problema"
+                value={formData.title}
+                onChange={handleInputChange}
+                required
+              />
+            </div>
+            <div className="mb-3">
+              <CFormTextarea
+                id="description"
+                name="description"
+                label="Descrição"
+                placeholder="Descreva o problema detalhadamente"
+                rows={5}
+                value={formData.description}
+                onChange={handleInputChange}
+                required
+              />
+            </div>
+            <div className="mb-3">
+              <CFormInput
+                type="text"
+                id="url"
+                name="url"
+                label="URL (opcional)"
+                placeholder="URL da página onde ocorreu o problema"
+                value={formData.url}
+                onChange={handleInputChange}
+              />
+              <small className="text-muted">
+                URL atual do problema - você pode modificar caso necessário
+              </small>
+            </div>
+            <div className="mb-3">
+              <CFormLabel htmlFor="screenshot">Screenshot (opcional)</CFormLabel>
+              <CFormInput
+                type="file"
+                id="screenshot"
+                name="screenshot"
+                accept="image/*"
+                onChange={handleFileChange}
+              />
+              <small className="text-muted">
+                Envie uma imagem para ilustrar o problema (máximo 2MB)
+              </small>
+            </div>
+            <CModalFooter>
+              <CButton color="secondary" onClick={onClose}>
+                Cancelar
+              </CButton>
+              <CButton color="primary" type="submit" disabled={loading}>
+                {loading ? <CSpinner size="sm" className="me-2" /> : null}
+                Enviar
+              </CButton>
+            </CModalFooter>
+          </CForm>
+        </CModalBody>
+      </CModal>
+      
+      <CToaster ref={toaster} placement="top-end">
+        {toast}
+      </CToaster>
+    </>
   );
 } 
