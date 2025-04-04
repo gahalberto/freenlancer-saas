@@ -100,6 +100,13 @@ const _nav = [
     icon: <CIcon icon={cilEnvelopeClosed} customClassName="nav-icon" />,
   },
   {
+    component: CNavItem,
+    name: 'Relatórios de Problemas',
+    roleId: [3,4],
+    href: '/problem-reports',
+    icon: <CIcon icon={cilFlagAlt} customClassName="nav-icon" />,
+  },
+  {
     component: CNavGroup,
     name: 'Eventos',
     roleId: [3,4],
@@ -393,7 +400,6 @@ const _nav = [
     href: '/app/theme/colors',
     icon: <CIcon icon={cilSearch} customClassName="nav-icon" />,
   },
-
 ]
 
 export default _nav

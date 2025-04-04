@@ -33,7 +33,7 @@ export default async function handler(
   // Método PUT para atualizar status
   if (req.method === 'PUT') {
     try {
-      const { status } = req.body;
+      const { status, response } = req.body;
 
       if (!status) {
         return res.status(400).json({ error: 'Status não fornecido' });
@@ -42,7 +42,10 @@ export default async function handler(
       // Atualizar relatório
       const updatedReport = await prisma.problemReport.update({
         where: { id },
-        data: { status },
+        data: { 
+          status,
+          ...(response !== undefined && { response }),
+        },
       });
 
       return res.status(200).json(updatedReport);
