@@ -190,7 +190,7 @@ const AddEventFormPage = () => {
       <CCard className="mb-3">
           <CCardHeader>
             <CCardTitle className='flex'>
-            {modal === MODAL.EVENT ? (<strong>Criar Evento</strong>) : (<strong>Solicitar Massdsdhguiach</strong>) }
+            {modal === MODAL.EVENT ? (<strong>Criar Evento</strong>) : (<strong>Solicitar Mashguiach</strong>) }
 
             </CCardTitle>
             <span className="text-gray-400">

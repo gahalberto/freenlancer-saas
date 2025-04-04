@@ -1,0 +1,3 @@
+-- AlterTable
+ALTER TABLE "EventsServices" ADD COLUMN     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+ADD COLUMN     "paymentDate" TIMESTAMP(3);

@@ -21,13 +21,12 @@ import {
   
   const FinishJobModal = ({ onClose, service, serviceId }: FinishJobModalProps) => {
     const [isOpen, setIsOpen] = useState(true)
-    const [arriveMashguiachTime, setArriveMashguiachTime] = useState<Date | null>(null)
-    const [endMashguiachTime, setEndMashguiachTime] = useState<Date | null>(null)
+    const [paymentDate, setPaymentDate] = useState<Date | null>(null)
   
     const handleFinishJob = async () => {
         try {
-            if(!arriveMashguiachTime || !endMashguiachTime) return
-            const response = await finishAdminService(service.id, arriveMashguiachTime, endMashguiachTime)
+            if(!paymentDate) return
+            const response = await finishAdminService(service.id, paymentDate)
             if(response){
                 setIsOpen(false)
                 onClose()
@@ -39,11 +38,8 @@ import {
 
     // Formata a data inicial corretamente ao carregar o modal
     useEffect(() => {
-      if (service.arriveMashguiachTime) {
-        setArriveMashguiachTime(new Date(service.arriveMashguiachTime))
-      }
-      if (service.endMashguiachTime) {
-        setEndMashguiachTime(new Date(service.endMashguiachTime))
+      if (service.paymentDate) {
+        setPaymentDate(new Date(service.paymentDate))
       }
     }, [service])
   
@@ -55,7 +51,7 @@ import {
     return (
       <CModal visible={isOpen} onClose={handleClose} size="lg">
         <CModalHeader closeButton>
-          <CModalTitle>{serviceId} - Finalizar Serviço do Mashguiach</CModalTitle>
+          <CModalTitle>O servico já foi finalizado? Já foi pago?</CModalTitle>
         </CModalHeader>
         <CModalBody>
           <CRow>
@@ -64,31 +60,16 @@ import {
                 <CDatePicker
                   required
                   timepicker
-                  label="Horário de chegada"
-                  placeholder={arriveMashguiachTime ? arriveMashguiachTime.toLocaleDateString() : undefined}
+                  label="Dia do pagamento:"
                   className="w-100"
                   locale="pt-BR"
 
-                  defaultValue={arriveMashguiachTime?.toISOString()}
-                  onDateChange={(date: Date | null) => setArriveMashguiachTime(date)}
+                  defaultValue={paymentDate?.toISOString()}
+                  onDateChange={(date: Date | null) => setPaymentDate(date)}
                 />
               </CInputGroup>
             </CCol>
-            <CCol lg={6}>
-              <CInputGroup className="mb-3">
-                <CDatePicker
-                  required
-                  timepicker
-                  label="Horário de saída"
-                  placeholder={endMashguiachTime ? endMashguiachTime.toLocaleDateString() : undefined}
-                  className="w-100"
-                  locale="pt-BR"
-                  defaultValue={endMashguiachTime ? endMashguiachTime.toISOString() : undefined}
-                  onDateChange={(date: Date | null) => setEndMashguiachTime(date)}
-                />
-              </CInputGroup>
-            </CCol>
-            <CButton onClick={handleFinishJob} color='primary'>Salvar</CButton>
+            <CButton onClick={handleFinishJob} color='primary'>Confirmar pagamento</CButton>
           </CRow>
           
         </CModalBody>

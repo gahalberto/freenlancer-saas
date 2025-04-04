@@ -1,6 +1,6 @@
 'use client'
 import { aproveEvent } from '@/app/_actions/events/aproveEvent'
-import { getAllEvents } from '@/app/_actions/events/getAllEvents'
+import { getAllEvents, getEventDetails } from '@/app/_actions/events/getAllEvents'
 import {
   CBadge,
   CButton,
@@ -16,6 +16,7 @@ import {
   CRow,
   CCol,
   CCardTitle,
+  CSpinner
 } from '@coreui/react-pro'
 import { EventsServices, StoreEvents, Stores } from '@prisma/client'
 import { EditIcon, EyeIcon, KeyIcon } from 'lucide-react'
@@ -39,9 +40,16 @@ const AdminSecondSection = () => {
   const fetchEvents = useCallback(async () => {
     try {
       setIsLoading(true)
-      const response = await getAllEvents()
-      if (response) {
-        setEvents(response)
+      const response = await getAllEvents(1, 10) // Buscar apenas 10 eventos para a dashboard
+      if (response && response.events) {
+        // Buscar detalhes completos para cada evento
+        const eventsWithDetails = await Promise.all(
+          response.events.map(async (event) => {
+            const details = await getEventDetails(event.id)
+            return details as EventsWithServices
+          })
+        )
+        setEvents(eventsWithDetails.filter(Boolean) as EventsWithServices[])
       }
     } catch (error) {
       console.error('Erro ao buscar eventos:', error)
@@ -53,9 +61,7 @@ const AdminSecondSection = () => {
   // Fetch events data from your API
   useEffect(() => {
     fetchEvents()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    // Desabilitamos a regra de dependências aqui para evitar loops infinitos
-  }, [])
+  }, [fetchEvents])
   
   const getDayOfWeek = (dateString: string) => {
     const days = ['DOMINGO', 'SEGUNDA', 'TERÇA', 'QUARTA', 'QUINTA', 'SEXTA', 'SÁBADO']
@@ -72,11 +78,15 @@ const AdminSecondSection = () => {
     }).format(date)
   }
 
-  if (events.length === 0) {
-    return <p>Carregando...</p> // Indica que os dados estão carregando
+  if (isLoading) {
+    return (
+      <div className="d-flex justify-content-center my-5">
+        <CSpinner color="primary" />
+      </div>
+    )
   }
 
-  if (!events) {
+  if (events.length === 0) {
     return <p>Nenhum evento cadastrado.</p>
   }
 
@@ -92,16 +102,16 @@ const AdminSecondSection = () => {
 
   return (
     <div className="mt-2">
-                  <CCard className="mb-3">
-          <CCardHeader>
-            <CCardTitle>
-              <b>Todos Eventos</b>
-            </CCardTitle>
-            <span className="text-gray-400">
-               Todos os eventos registrados no sistema
-            </span>
-          </CCardHeader>
-        </CCard>
+      <CCard className="mb-3">
+        <CCardHeader>
+          <CCardTitle>
+            <b>Todos Eventos</b>
+          </CCardTitle>
+          <span className="text-gray-400">
+             Todos os eventos registrados no sistema
+          </span>
+        </CCardHeader>
+      </CCard>
 
       <CRow className="g-4">
         {events.map((event) => (

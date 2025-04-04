@@ -3,6 +3,7 @@ import { db } from '@/app/_lib/prisma'
 import { createNotification } from '../notifications/createNotification'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/pages/api/auth/[...nextauth]'
+import { WORKTYPE } from '@prisma/client'
 
 type CreateEventServicesInput = {
   StoreEventsId: string
@@ -31,6 +32,20 @@ export const createEventServices = async (data: CreateEventServicesInput) => {
 
   const mashguiachId = data.mashguiachId || null // Converter undefined para null
 
+  let workType = '';
+  switch (data.productionOrEvent) {
+    case 'PRODUCAO':
+      workType = 'PRODUCAO';
+      break;
+    case 'EVENTO':
+      workType = 'EVENTO';
+      break;
+    case 'SUBSTITUICAO':
+      workType = 'SUBSTITUICAO';
+      break;
+  }
+  
+
   const createService = await db.eventsServices.create({
     data: {
       StoreEventsId: data.StoreEventsId,
@@ -43,7 +58,7 @@ export const createEventServices = async (data: CreateEventServicesInput) => {
       // dayHourValue: data.dayHourValue,
       // nightHourValue: data.nightHourValue,
       observationText: data.observationText,
-      workType: data.productionOrEvent === 'PRODUCAO' ? 'PRODUCAO' : 'EVENTO',
+      workType: workType as WORKTYPE,
       mashguiachId: mashguiachId,
       address_zipcode: data.address_zipcode,
       address_street: data.address_street,

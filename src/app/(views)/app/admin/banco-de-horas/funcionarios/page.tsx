@@ -56,7 +56,6 @@ interface WorkSchedule {
 interface FormData {
   user_id: string;
   store_id: string;
-  price_per_hour: number;
   monthly_salary: number;
   workSchedule: WorkSchedule[];
 }
@@ -75,7 +74,6 @@ interface Employee {
   id: string;
   user_id: string;
   store_id: string;
-  price_per_hour: number;
   monthly_salary: number;
   mashguiach?: User;
   store?: Store;
@@ -101,7 +99,6 @@ export default function GerenciarFuncionarios() {
   const [formData, setFormData] = useState<FormData>({
     user_id: '',
     store_id: '',
-    price_per_hour: 0,
     monthly_salary: 0,
     workSchedule: [
       { dayOfWeek: 'Monday', timeIn: '08:00', timeOut: '17:00', isDayOff: false, sundayOff: null },
@@ -168,7 +165,7 @@ export default function GerenciarFuncionarios() {
     const { name, value } = e.target
     setFormData({
       ...formData,
-      [name]: name === 'price_per_hour' || name === 'monthly_salary' 
+      [name]: name === 'monthly_salary' 
         ? parseFloat(value) || 0 
         : value
     })
@@ -218,7 +215,6 @@ export default function GerenciarFuncionarios() {
     setFormData({
       user_id: '',
       store_id: '',
-      price_per_hour: 0,
       monthly_salary: 0,
       workSchedule: [
         { dayOfWeek: 'Monday', timeIn: '08:00', timeOut: '17:00', isDayOff: false, sundayOff: null },
@@ -258,7 +254,6 @@ export default function GerenciarFuncionarios() {
     setFormData({
       user_id: employee.user_id,
       store_id: employee.store_id,
-      price_per_hour: employee.price_per_hour,
       monthly_salary: employee.monthly_salary || 0,
       workSchedule
     })
@@ -269,7 +264,7 @@ export default function GerenciarFuncionarios() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     
-    if (!formData.user_id || !formData.store_id || formData.price_per_hour <= 0) {
+    if (!formData.user_id || !formData.store_id || formData.monthly_salary <= 0) {
       setToast({
         visible: true,
         color: 'danger',
@@ -287,11 +282,13 @@ export default function GerenciarFuncionarios() {
         
       const method = editingEmployee ? 'PUT' : 'POST'
       
+      // Remover o campo monthly_salary que não existe no banco de dados
+      const { monthly_salary, ...dataWithoutMonthlySalary } = formData;
+      
       // Garantir que valores numéricos são enviados corretamente
       const dataToSend = {
-        ...formData,
-        price_per_hour: Number(formData.price_per_hour),
-        monthly_salary: formData.monthly_salary ? Number(formData.monthly_salary) : null
+        ...dataWithoutMonthlySalary,
+        monthly_salary: Number(formData.monthly_salary)
       }
       
       console.log('Enviando dados:', dataToSend)
@@ -414,7 +411,6 @@ export default function GerenciarFuncionarios() {
               <CTableRow>
                 <CTableHeaderCell>Funcionário</CTableHeaderCell>
                 <CTableHeaderCell>Estabelecimento</CTableHeaderCell>
-                <CTableHeaderCell>Valor/Hora</CTableHeaderCell>
                 <CTableHeaderCell>Salário Mensal</CTableHeaderCell>
                 <CTableHeaderCell>Ações</CTableHeaderCell>
               </CTableRow>
@@ -431,8 +427,7 @@ export default function GerenciarFuncionarios() {
                   <CTableRow key={employee.id}>
                     <CTableDataCell>{employee.mashguiach?.name || 'N/A'}</CTableDataCell>
                     <CTableDataCell>{employee.store?.title || 'N/A'}</CTableDataCell>
-                    <CTableDataCell>{formatCurrency(employee.price_per_hour)}</CTableDataCell>
-                    <CTableDataCell>{employee.monthly_salary ? formatCurrency(employee.monthly_salary) : 'N/A'}</CTableDataCell>
+                    <CTableDataCell>{formatCurrency(employee.monthly_salary)}</CTableDataCell>
                     <CTableDataCell>
                       <div className="d-flex gap-2">
                         <CButton color="primary" variant="outline" size="sm" onClick={() => handleEditEmployee(employee)}>
@@ -543,22 +538,7 @@ export default function GerenciarFuncionarios() {
                 
                 <CRow className="mb-3">
                   <CCol md={12}>
-                    <CFormLabel htmlFor="price_per_hour">Valor por Hora (R$)</CFormLabel>
-                    <CFormInput
-                      id="price_per_hour"
-                      name="price_per_hour"
-                      type="number"
-                      step="0.01"
-                      min="0"
-                      value={formData.price_per_hour}
-                      onChange={handleInputChange}
-                    />
-                  </CCol>
-                </CRow>
-                
-                <CRow className="mb-3">
-                  <CCol md={6}>
-                    <CFormLabel htmlFor="monthly_salary">Salário Mensal (R$)</CFormLabel>
+                    <CFormLabel htmlFor="monthly_salary">Salário Mensal	 (R$)</CFormLabel>
                     <CFormInput
                       id="monthly_salary"
                       name="monthly_salary"

@@ -26,6 +26,7 @@ import { getSession } from 'next-auth/react'
 import FinishJobModal from './finishJobModal'
 import { useUserSession } from '@/contexts/sessionContext'
 import EditDatesModal from './EditDatesModal'
+import { calculateMashguiachPrice } from "@/app/_actions/getAllMashguichim"
 
 type PropsType = {
   eventStoreId: string
@@ -47,7 +48,6 @@ export const EventsTableByEvent = ({ eventStoreId }: PropsType) => {
   const [selectService, setSelectService] = useState('')
   const [selectedMashguiach, setSelectedMashguiach] = useState<string | null>(null)
   const [userLogged, setUserLogged] = useState<any>(null)
-  const [finishSelectService, setFinishSelectService] = useState<EventsServices | null>(null)
   const [editDatesModalVisible, setEditDatesModalVisible] = useState(false)
   const [selectedServiceForDates, setSelectedServiceForDates] = useState<string>('')
 
@@ -193,7 +193,37 @@ export const EventsTableByEvent = ({ eventStoreId }: PropsType) => {
                     </small>
                   </CTableDataCell>
                   <CTableDataCell>
-                    <small>R$ {service.mashguiachPrice}</small>
+                    <small>R$ {(() => {
+                      try {
+                        console.log('Valores do serviço:', {
+                          arriveMashguiachTime: service.arriveMashguiachTime,
+                          endMashguiachTime: service.endMashguiachTime,
+                          dayHourValue: service.dayHourValue,
+                          nightHourValue: service.nightHourValue,
+                          transport_price: service.transport_price
+                        });
+
+                        const mashguiachPrice = calculateMashguiachPrice(
+                          new Date(service.arriveMashguiachTime),
+                          new Date(service.endMashguiachTime),
+                          Number(service.dayHourValue) || 0,
+                          Number(service.nightHourValue) || 0
+                        );
+                        
+                        console.log('Preço do mashguiach calculado:', mashguiachPrice);
+                        
+                        const transportPrice = Number(service.transport_price) || 0;
+                        console.log('Preço do transporte:', transportPrice);
+                        
+                        const totalPrice = mashguiachPrice + transportPrice;
+                        console.log('Preço total:', totalPrice);
+                        
+                        return totalPrice.toFixed(2);
+                      } catch (error) {
+                        console.error('Erro ao calcular preço:', error);
+                        return '0.00';
+                      }
+                    })()}</small>
                   </CTableDataCell>
                   <CTableDataCell>
                     <CTooltip
@@ -214,7 +244,10 @@ export const EventsTableByEvent = ({ eventStoreId }: PropsType) => {
                     >
                       <CIcon icon={cilTrash} color="danger" />
                     </CButton>
-                    {userLogged?.roleId === 3 && (
+                    {service.paymentStatus === 'Success' && (
+                      <CButton className='text-white' color='success'>Pago</CButton>
+                    )}
+                    {userLogged?.roleId === 3 && service.paymentStatus === 'Pending' && (
                       <CButton color="dark" onClick={() => handleFinishEventModal(service.id)}>
                         Finalizar
                       </CButton>

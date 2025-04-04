@@ -1,7 +1,7 @@
 "use client"
 import { postQuestionario } from "@/app/_actions/postQuestionario";
 import { authOptions } from "@/pages/api/auth/[...nextauth]";
-import { CButton, CCard, CCardBody, CCardHeader, CCol, CForm, CFormCheck, CFormInput, CFormLabel, CFormSelect, CFormTextarea, CRow } from "@coreui/react-pro";
+import { CAlert, CButton, CCard, CCardBody, CCardHeader, CCol, CForm, CFormCheck, CFormInput, CFormLabel, CFormSelect, CFormTextarea, CRow } from "@coreui/react-pro";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { getServerSession } from "next-auth";
 import { getSession, useSession } from "next-auth/react";
@@ -38,6 +38,8 @@ type FormData = z.infer<typeof schema>;
 const Questionario = () => {
     const [maritalStatus, setMaritalStatus] = useState(""); // Estado para o estado civil
     const [userId, setUserId] = useState<string | ''>('');
+    const [hasAnswered, setHasAnswered] = useState(false);
+    const [showSuccessMessage, setShowSuccessMessage] = useState(false);
     const {
         register,
         handleSubmit,
@@ -50,6 +52,7 @@ const Questionario = () => {
         const fetchSession = async () => {
           const session = await getSession();
           setUserId(session?.user?.id || '');
+          setHasAnswered(session?.user?.asweredQuestions || false);
         };
         fetchSession();
       }, []);
@@ -84,8 +87,13 @@ const Questionario = () => {
 
         try {
             await postQuestionario(processedData);
-            console.log("Dados enviados com sucesso:", processedData);
-            router.push('/'); // Redireciona após o sucesso
+            setShowSuccessMessage(true);
+            setHasAnswered(true);
+            
+            // Redireciona após 3 segundos
+            setTimeout(() => {
+                router.push('/');
+            }, 3000);
         } catch (error) {
             console.error("Erro ao enviar os dados:", error);
         }
@@ -103,6 +111,18 @@ const Questionario = () => {
                             <strong>Questionário do Mashguiach </strong><small>Obrigatório</small>
                         </CCardHeader>
                         <CCardBody>
+                            {showSuccessMessage && (
+                                <CAlert color="success" className="mb-4">
+                                    Questionário enviado com sucesso! Você será redirecionado em alguns segundos.
+                                </CAlert>
+                            )}
+                            
+                            {hasAnswered && !showSuccessMessage && (
+                                <CAlert color="info" className="mb-4">
+                                    Você já respondeu este questionário. As informações abaixo não podem ser alteradas.
+                                </CAlert>
+                            )}
+                            
                             <p className="text-body-secondary small">
                                 Esse questionário é importante para que você seja aprovado como o Mashguiach da Beit Yaakov.
                             </p>
@@ -112,6 +132,7 @@ const Questionario = () => {
                                     <CFormInput type="text"
                                         {...register("jewishName")}
                                         invalid={!!errors.jewishName}
+                                        disabled={hasAnswered}
                                     />
                                 </CCol>
                                 <CCol md={6}>
@@ -120,6 +141,7 @@ const Questionario = () => {
                                         {...register("maritalStatus")}
                                         onChange={(e) => setMaritalStatus(e.target.value)}
                                         invalid={!!errors.maritalStatus}
+                                        disabled={hasAnswered}
                                     >
                                         <option>Escolha...</option>
                                         <option value={1}>Solteiro(a)</option>
@@ -135,6 +157,7 @@ const Questionario = () => {
                                             <CFormInput type="text"
                                                 {...register("weddingLocation")}
                                                 invalid={!!errors.weddingLocation}
+                                                disabled={hasAnswered}
                                             />
                                         </CCol>
                                         <CCol md={6}>
@@ -142,6 +165,7 @@ const Questionario = () => {
                                             <CFormInput type="text"
                                                 {...register("rabbiMarried")}
                                                 invalid={!!errors.rabbiMarried}
+                                                disabled={hasAnswered}
                                             />
                                         </CCol>
 
@@ -150,6 +174,7 @@ const Questionario = () => {
                                             <CFormInput type="text"
                                                 {...register("wifeName")}
                                                 invalid={!!errors.wifeName}
+                                                disabled={hasAnswered}
                                             />
                                         </CCol>
 
@@ -158,6 +183,7 @@ const Questionario = () => {
                                             <CFormSelect id="inputState"
                                                 {...register("wifeCoveredHair")}
                                                 invalid={!!errors.wifeCoveredHair}
+                                                disabled={hasAnswered}
                                             >
                                                 <option>Escolha...</option>
                                                 <option value={1}>Sempre</option>
@@ -172,6 +198,7 @@ const Questionario = () => {
                                             <CFormInput
                                                 {...register("childrenSchool")}
                                                 invalid={!!errors.childrenSchool}
+                                                disabled={hasAnswered}
                                             />
                                         </CCol>
 
@@ -182,6 +209,7 @@ const Questionario = () => {
                                     <CFormInput placeholder="Nome e Sobrenome do Rabino"
                                         {...register("rabbi")}
                                         invalid={!!errors.rabbi}
+                                        disabled={hasAnswered}
                                     />
                                 </CCol>
                                 <CCol xs={6}>
@@ -189,6 +217,7 @@ const Questionario = () => {
                                     <CFormInput placeholder="Nome da sinagoga & bairro"
                                         {...register("currentSynagogue")}
                                         invalid={!!errors.currentSynagogue}
+                                        disabled={hasAnswered}
                                     />
                                 </CCol>
                                 <CCol md={12}>
@@ -196,6 +225,7 @@ const Questionario = () => {
                                     <CFormTextarea rows={2}
                                         {...register("shiur")}
                                         invalid={!!errors.shiur}
+                                        disabled={hasAnswered}
                                     ></CFormTextarea>
                                 </CCol>
                                 <CCol md={6}>
@@ -203,6 +233,7 @@ const Questionario = () => {
                                     <CFormSelect id="inputState"
                                         {...register("daven")}
                                         invalid={!!errors.daven}
+                                        disabled={hasAnswered}
                                     >
                                         <option>Escolha...</option>
                                         <option value={1}>1 vez por dia</option>
@@ -217,6 +248,7 @@ const Questionario = () => {
                                     <CFormInput
                                         {...register("jewishStudies")}
                                         invalid={!!errors.jewishStudies}
+                                        disabled={hasAnswered}
                                     />
                                 </CCol>
 
@@ -225,6 +257,7 @@ const Questionario = () => {
                                     <CFormTextarea rows={4}
                                         {...register("kashrutBooks")}
                                         invalid={!!errors.kashrutBooks}
+                                        disabled={hasAnswered}
                                     ></CFormTextarea>
                                 </CCol>
 
@@ -233,6 +266,7 @@ const Questionario = () => {
                                     <CFormTextarea rows={4}
                                         {...register("kashrutCourses")}
                                         invalid={!!errors.kashrutCourses}
+                                        disabled={hasAnswered}
                                     ></CFormTextarea>
                                 </CCol>
 
@@ -242,6 +276,7 @@ const Questionario = () => {
                                     <CFormTextarea rows={2}
                                         {...register("ashgachotWorked")}
                                         invalid={!!errors.ashgachotWorked}
+                                        disabled={hasAnswered}
                                     ></CFormTextarea>
                                 </CCol>
 
@@ -250,6 +285,7 @@ const Questionario = () => {
                                     <CFormSelect
                                         {...register("kashrutLevel")}
                                         invalid={!!errors.kashrutLevel}
+                                        disabled={hasAnswered}
                                     >
                                         <option>Escolha...</option>
                                         <option value={1}>Correta</option>
@@ -266,6 +302,7 @@ const Questionario = () => {
                                         label="É Shomer Shabat?"
                                         {...register("shomerShabat")}
                                         invalid={!!errors.shomerShabat}
+                                        disabled={hasAnswered}
                                     />
                                     {errors.shomerShabat && <p className="text-danger">{errors.shomerShabat.message}</p>}
                                 </CCol>
@@ -275,6 +312,7 @@ const Questionario = () => {
                                     <CFormInput
                                         {...register("montherSingleName")}
                                         invalid={!!errors.montherSingleName}
+                                        disabled={hasAnswered}
                                     />
                                 </CCol>
 
@@ -284,6 +322,7 @@ const Questionario = () => {
                                     <CFormInput
                                         {...register("giurInFamily")}
                                         invalid={!!errors.giurInFamily}
+                                        disabled={hasAnswered}
                                     />
                                 </CCol>
 
@@ -292,13 +331,14 @@ const Questionario = () => {
                                     <CFormInput
                                         {...register("rabbiOfGiur")}
                                         invalid={!!errors.rabbiOfGiur}
+                                        disabled={hasAnswered}
                                     />
                                 </CCol>
 
 
 
                                 <CCol xs={12}>
-                                    <CButton color="primary" type="submit">
+                                    <CButton color="primary" type="submit" disabled={hasAnswered}>
                                         Enviar
                                     </CButton>
                                 </CCol>

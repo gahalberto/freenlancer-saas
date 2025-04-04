@@ -348,6 +348,7 @@ const AddServiceToEventModal = ({ createdEventId }: PropsType) => {
               <option>SELECIONE</option>
               <option value="PRODUCAO">PRODUÇÃO</option>
               <option value="EVENTO">EVENTO</option>
+              <option value="SUBSTITUICAO">SUBSTITUIÇÃO</option>
             </CFormSelect>
           </CCol>
 
@@ -565,7 +566,7 @@ const AddServiceToEventModal = ({ createdEventId }: PropsType) => {
         )}{' '}
       </>
       <CRow className='mt-4'>
-      <CButton color='secondary' disabled={session?.roleId !== 3} className='w-full' onClick={finalizarFuction}>Finalizar</CButton>
+      <CButton color='secondary' className='w-full' onClick={finalizarFuction}>Finalizar</CButton>
 
       </CRow>
     </>

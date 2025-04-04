@@ -20,6 +20,7 @@ import { getStores } from '@/app/_actions/stores/getStores'
 import { Stores } from '@prisma/client'
 import { getAllEvents } from '@/app/_actions/events/getAllEvents'
 import { getEventByEstabelecimento } from '@/app/_actions/events/getEventByEstabelecimento'
+import { getStoresAllEventsWithoutDate } from '@/app/_actions/events/getAllStoresEventsWithoutDate'
 
 const AdminEvents = () => {
   const { data: session, status } = useSession()
@@ -28,7 +29,7 @@ const AdminEvents = () => {
   useEffect(() => {
     const fetchStores = async () => {
       if (status === 'authenticated') {
-        const data = await getEventByEstabelecimento(session.user.id)
+        const data = await getStoresAllEventsWithoutDate(session.user.id)
         setStoresList(data as any)
       }
     }

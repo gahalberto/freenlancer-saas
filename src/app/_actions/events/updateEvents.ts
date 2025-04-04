@@ -10,6 +10,15 @@ interface eventsProps {
 
 export const updateEvents = async ({ data, eventId }: eventsProps) => {
   try {
+    // Verificar se o evento existe antes de tentar atualizá-lo
+    const eventExists = await db.storeEvents.findUnique({
+      where: { id: eventId }
+    });
+
+    if (!eventExists) {
+      throw new Error("Evento não encontrado");
+    }
+
     await db.storeEvents.update({
       where: {
         id: eventId,
@@ -22,6 +31,7 @@ export const updateEvents = async ({ data, eventId }: eventsProps) => {
 
     return true;
   } catch (error) {
+    console.error("Erro ao atualizar evento:", error);
     throw error;
   }
 };

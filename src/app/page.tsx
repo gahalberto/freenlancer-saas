@@ -35,11 +35,16 @@ interface Store {
 }
 
 const HomePage = () => {
+  const router = useRouter()
+  
+  useEffect(() => {
+    router.push('/app')
+  }, [router])
+
   const [stores, setStores] = useState<Store[]>([])
   const [filteredStores, setFilteredStores] = useState<Store[]>([])
   const [searchTerm, setSearchTerm] = useState('')
   const [loading, setLoading] = useState(true)
-  const router = useRouter()
   const searchParams = useSearchParams()
 
   useEffect(() => {

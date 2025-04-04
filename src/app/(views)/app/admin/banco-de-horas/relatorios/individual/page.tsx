@@ -26,10 +26,17 @@ import { getTimesByUserAndMonth } from '@/app/_actions/time-entries/getTimesByUs
 import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 
+interface Store {
+  id: string
+  title: string
+}
+
 const IndividualReportPage = () => {
   const { data: session, status } = useSession()
   const [mashguichimList, setMashguichimList] = useState<User[]>([])
+  const [storesList, setStoresList] = useState<Store[]>([])
   const [selectedUserId, setSelectedUserId] = useState<string>('')
+  const [selectedStoreId, setSelectedStoreId] = useState<string>('')
   const [selectedMonth, setSelectedMonth] = useState<number>(new Date().getMonth() + 1)
   const [selectedYear, setSelectedYear] = useState<number>(new Date().getFullYear())
   const [reportData, setReportData] = useState<any>(null)
@@ -55,6 +62,29 @@ const IndividualReportPage = () => {
     fetchMashguichim()
   }, [status])
 
+  useEffect(() => {
+    const fetchStores = async () => {
+      if (status === 'authenticated' && selectedUserId) {
+        try {
+          // Buscar estabelecimentos onde o mashguiach trabalha
+          const response = await fetch(`/api/admin/getUserStores?userId=${selectedUserId}`);
+          if (response.ok) {
+            const data = await response.json();
+            setStoresList(data.stores || []);
+          } else {
+            console.error("Erro ao buscar estabelecimentos");
+          }
+        } catch (error) {
+          console.error("Erro ao buscar estabelecimentos:", error);
+        }
+      }
+    };
+
+    // Resetar o estabelecimento selecionado quando o usuário mudar
+    setSelectedStoreId('');
+    fetchStores();
+  }, [selectedUserId, status]);
+
   const generateReport = async () => {
     if (!selectedUserId) {
       alert('Por favor, selecione um mashguiach')
@@ -63,7 +93,12 @@ const IndividualReportPage = () => {
 
     setLoading(true)
     try {
-      const data = await getTimesByUserAndMonth(selectedUserId, selectedMonth, selectedYear)
+      const data = await getTimesByUserAndMonth(
+        selectedUserId, 
+        selectedMonth, 
+        selectedYear, 
+        selectedStoreId || undefined
+      )
       setReportData(data)
     } catch (error) {
       console.error('Erro ao gerar relatório:', error)
@@ -168,7 +203,7 @@ const IndividualReportPage = () => {
         <CCardBody>
           <CForm>
             <CRow className="mb-3">
-              <CCol md={4}>
+              <CCol md={3}>
                 <CFormLabel htmlFor="mashguiach">Mashguiach</CFormLabel>
                 <CFormSelect
                   id="mashguiach"
@@ -183,7 +218,23 @@ const IndividualReportPage = () => {
                   ))}
                 </CFormSelect>
               </CCol>
-              <CCol md={4}>
+              <CCol md={3}>
+                <CFormLabel htmlFor="store">Estabelecimento</CFormLabel>
+                <CFormSelect
+                  id="store"
+                  value={selectedStoreId}
+                  onChange={(e) => setSelectedStoreId(e.target.value)}
+                  disabled={!selectedUserId || storesList.length === 0}
+                >
+                  <option value="">Todos os estabelecimentos</option>
+                  {storesList.map((store) => (
+                    <option key={store.id} value={store.id}>
+                      {store.title}
+                    </option>
+                  ))}
+                </CFormSelect>
+              </CCol>
+              <CCol md={3}>
                 <CFormLabel htmlFor="month">Mês</CFormLabel>
                 <CFormSelect
                   id="month"
@@ -197,7 +248,7 @@ const IndividualReportPage = () => {
                   ))}
                 </CFormSelect>
               </CCol>
-              <CCol md={4}>
+              <CCol md={3}>
                 <CFormLabel htmlFor="year">Ano</CFormLabel>
                 <CFormInput
                   id="year"
@@ -228,12 +279,13 @@ const IndividualReportPage = () => {
             <CCardHeader className="d-flex justify-content-between align-items-center">
               <strong>
                 Relatório de Horas - {mashguichimList.find(m => m.id === selectedUserId)?.name} - {getMonthName(selectedMonth)}/{selectedYear}
+                {reportData.storeName && ` - ${reportData.storeName}`}
               </strong>
               <div>
                 <CButton 
                   color="warning" 
                   className="me-2"
-                  href={`/app/admin/banco-de-horas/editar?userId=${selectedUserId}&month=${selectedMonth}&year=${selectedYear}`}
+                  href={`/app/admin/banco-de-horas/editar?userId=${selectedUserId}&month=${selectedMonth}&year=${selectedYear}${selectedStoreId ? `&storeId=${selectedStoreId}` : ''}`}
                 >
                   Editar Registros
                 </CButton>
@@ -247,7 +299,10 @@ const IndividualReportPage = () => {
               <div ref={reportRef} className="report-content">
                 <div className="report-header mb-4">
                   <h2 className="text-center">Relatório de Horas Trabalhadas</h2>
-                  <h3 className="text-center mb-4">{mashguichimList.find(m => m.id === selectedUserId)?.name} - {getMonthName(selectedMonth)}/{selectedYear}</h3>
+                  <h3 className="text-center mb-4">
+                    {mashguichimList.find(m => m.id === selectedUserId)?.name} - {getMonthName(selectedMonth)}/{selectedYear}
+                    {reportData.storeName && <><br />{reportData.storeName}</>}
+                  </h3>
                 </div>
                 
                 <CRow className="mb-4">
@@ -255,6 +310,9 @@ const IndividualReportPage = () => {
                     <h4>Resumo</h4>
                     <p><strong>Mashguiach:</strong> {mashguichimList.find(m => m.id === selectedUserId)?.name}</p>
                     <p><strong>Período:</strong> {getMonthName(selectedMonth)}/{selectedYear}</p>
+                    {reportData.storeName && (
+                      <p><strong>Estabelecimento:</strong> {reportData.storeName}</p>
+                    )}
                     <p><strong>Total de Horas Trabalhadas:</strong> {reportData.totalHoursWorked} horas</p>
                     <p><strong>Valor por Hora:</strong> {formatCurrency(reportData.hourlyRate)}</p>
                     <p><strong>Valor Total a Pagar:</strong> {formatCurrency(reportData.totalAmount)}</p>
@@ -264,43 +322,49 @@ const IndividualReportPage = () => {
                 <CRow>
                   <CCol>
                     <h4>Detalhamento por Dia</h4>
-                    <CTable bordered>
-                      <CTableHead>
-                        <CTableRow>
-                          <CTableHeaderCell scope="col">Data</CTableHeaderCell>
-                          <CTableHeaderCell scope="col">Entrada</CTableHeaderCell>
-                          <CTableHeaderCell scope="col">Almoço Entrada</CTableHeaderCell>
-                          <CTableHeaderCell scope="col">Almoço Saída</CTableHeaderCell>
-                          <CTableHeaderCell scope="col">Saída</CTableHeaderCell>
-                          <CTableHeaderCell scope="col">Horas Trabalhadas</CTableHeaderCell>
-                          <CTableHeaderCell scope="col">Valor</CTableHeaderCell>
-                        </CTableRow>
-                      </CTableHead>
-                      <CTableBody>
-                        {Object.entries(reportData.entriesByDay).map(([day, times]: [string, any]) => (
-                          <CTableRow key={day}>
-                            <CTableDataCell>{formatDate(day)}</CTableDataCell>
-                            <CTableDataCell>{formatTime(times.entrada)}</CTableDataCell>
-                            <CTableDataCell>{formatTime(times.almoco?.entrada)}</CTableDataCell>
-                            <CTableDataCell>{formatTime(times.almoco?.saida)}</CTableDataCell>
-                            <CTableDataCell>{formatTime(times.saida)}</CTableDataCell>
-                            <CTableDataCell>
-                              {reportData.hoursWorkedByDay[day] ? `${reportData.hoursWorkedByDay[day]} horas` : '-'}
-                            </CTableDataCell>
-                            <CTableDataCell>
-                              {reportData.hoursWorkedByDay[day] 
-                                ? formatCurrency(reportData.hoursWorkedByDay[day] * reportData.hourlyRate) 
-                                : '-'}
-                            </CTableDataCell>
+                    {Object.keys(reportData.entriesByDay).length > 0 ? (
+                      <CTable bordered>
+                        <CTableHead>
+                          <CTableRow>
+                            <CTableHeaderCell scope="col">Data</CTableHeaderCell>
+                            <CTableHeaderCell scope="col">Entrada</CTableHeaderCell>
+                            <CTableHeaderCell scope="col">Almoço Entrada</CTableHeaderCell>
+                            <CTableHeaderCell scope="col">Almoço Saída</CTableHeaderCell>
+                            <CTableHeaderCell scope="col">Saída</CTableHeaderCell>
+                            <CTableHeaderCell scope="col">Horas Trabalhadas</CTableHeaderCell>
+                            <CTableHeaderCell scope="col">Valor</CTableHeaderCell>
                           </CTableRow>
-                        ))}
-                        <CTableRow className="table-primary">
-                          <CTableHeaderCell colSpan={5}>Total</CTableHeaderCell>
-                          <CTableHeaderCell>{reportData.totalHoursWorked} horas</CTableHeaderCell>
-                          <CTableHeaderCell>{formatCurrency(reportData.totalAmount)}</CTableHeaderCell>
-                        </CTableRow>
-                      </CTableBody>
-                    </CTable>
+                        </CTableHead>
+                        <CTableBody>
+                          {Object.entries(reportData.entriesByDay).map(([day, times]: [string, any]) => (
+                            <CTableRow key={day}>
+                              <CTableDataCell>{formatDate(day)}</CTableDataCell>
+                              <CTableDataCell>{formatTime(times.entrada)}</CTableDataCell>
+                              <CTableDataCell>{formatTime(times.almoco?.entrada)}</CTableDataCell>
+                              <CTableDataCell>{formatTime(times.almoco?.saida)}</CTableDataCell>
+                              <CTableDataCell>{formatTime(times.saida)}</CTableDataCell>
+                              <CTableDataCell>
+                                {reportData.hoursWorkedByDay[day] ? `${reportData.hoursWorkedByDay[day]} horas` : '-'}
+                              </CTableDataCell>
+                              <CTableDataCell>
+                                {reportData.hoursWorkedByDay[day] 
+                                  ? formatCurrency(reportData.hoursWorkedByDay[day] * reportData.hourlyRate) 
+                                  : '-'}
+                              </CTableDataCell>
+                            </CTableRow>
+                          ))}
+                          <CTableRow className="table-primary">
+                            <CTableHeaderCell colSpan={5}>Total</CTableHeaderCell>
+                            <CTableHeaderCell>{reportData.totalHoursWorked} horas</CTableHeaderCell>
+                            <CTableHeaderCell>{formatCurrency(reportData.totalAmount)}</CTableHeaderCell>
+                          </CTableRow>
+                        </CTableBody>
+                      </CTable>
+                    ) : (
+                      <div className="alert alert-info">
+                        Nenhum registro de ponto encontrado para o período e filtros selecionados.
+                      </div>
+                    )}
                   </CCol>
                 </CRow>
               </div>

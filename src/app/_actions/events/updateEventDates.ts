@@ -7,7 +7,8 @@ export const updateEventDates = async (
   endMashguiachTime: Date,
   dayHourValue?: number,
   nightHourValue?: number,
-  mashguiachPrice?: number
+  mashguiachPrice?: number,
+  transport_price?: number
 ) => {
   try {
     if (!id || !arriveMashguiachTime || !endMashguiachTime) {
@@ -24,6 +25,11 @@ export const updateEventDates = async (
       arriveMashguiachTime,
       endMashguiachTime,
     };
+
+    // Adicionar o preço de transporte, se fornecido
+    if (transport_price !== undefined) {
+      updateData.transport_price = transport_price;
+    }
 
     // Calcular o preço total se os valores de hora forem fornecidos
     if (dayHourValue !== undefined || nightHourValue !== undefined) {
@@ -81,10 +87,11 @@ export const updateEventDates = async (
       const nightValue = nightHours * nightHourValueToUse;
       const totalValue = dayValue + nightValue;
       
-      // Atualizar o preço total
+      // Atualizar o preço total (sem incluir o transporte)
       updateData.mashguiachPrice = totalValue;
     } else if (mashguiachPrice !== undefined) {
       // Adicionar o preço total do mashguiach se fornecido
+      // Este valor já inclui o transporte, pois foi calculado no frontend
       updateData.mashguiachPrice = mashguiachPrice;
     }
 

@@ -203,15 +203,27 @@ const _nav = [
       },
       {
         component: CNavItem,
-        name: 'Relatório Individual',
+        name: 'Relatório Individual (Fixo)',
         href: '/app/admin/banco-de-horas/relatorios/individual',
-        icon: <CIcon icon={cilUser} customClassName="nav-icon" />,
+        icon: <CIcon icon={cilClock} customClassName="nav-icon" />,
+      },
+      {
+        component: CNavItem,
+        name: 'Relatório Individual (Freelancer)',
+        href: '/app/admin/relatorios/freelancer/individual',
+        icon: <CIcon icon={cilUserPlus} customClassName="nav-icon" />,
+      },
+      {
+        component: CNavItem,
+        name: 'Relatório por Estabelecimento',
+        href: '/app/admin/relatorios/estabelecimentos-freelancers',
+        icon: <CIcon icon={cilInstitution} customClassName="nav-icon" />,
       },
       {
         component: CNavItem,
         name: 'Relatório Mensal',
         href: '/app/admin/banco-de-horas/relatorios/mensal',
-        icon: <CIcon icon={cilPeople} customClassName="nav-icon" />,
+        icon: <CIcon icon={cilCalendar} customClassName="nav-icon" />,
       },
     ]
   },

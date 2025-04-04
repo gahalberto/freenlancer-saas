@@ -152,7 +152,7 @@ const ChangeMashguiachModal = ({
     return (
         <CModal visible={isOpen} onClose={handleClose}>
             <CModalHeader closeButton>
-                <CModalTitle>Alterar Mashguiach</CModalTitle>
+                <CModalTitle>Alteraaaasaaaar Mashguiach</CModalTitle>
             </CModalHeader>
             <CModalBody>
                 {isLoading ? (

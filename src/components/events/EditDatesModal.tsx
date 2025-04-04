@@ -48,6 +48,7 @@ const EditDatesModal = ({
     const [endTime, setEndTime] = useState<string>("");
     const [dayHourValue, setDayHourValue] = useState<number>(50);
     const [nightHourValue, setNightHourValue] = useState<number>(75);
+    const [transport_price, setTransport_price] = useState<number>(0);
     const [isLoading, setIsLoading] = useState(true);
     const [errorMessage, setErrorMessage] = useState<string | null>(null);
     const [successMessage, setSuccessMessage] = useState<string | null>(null);
@@ -79,11 +80,6 @@ const EditDatesModal = ({
                 return;
             }
             
-            // Verificar se a data de início é anterior à data de fim
-            if (startDateTime >= endDateTime) {
-                setErrorMessage("A data/hora de início deve ser anterior à data/hora de fim.");
-                return;
-            }
             
             // Verificar se os valores de hora são válidos
             if (dayHourValue <= 0 || nightHourValue <= 0) {
@@ -91,9 +87,15 @@ const EditDatesModal = ({
                 return;
             }
             
+            // Verificar se o valor do transporte é válido
+            if (transport_price < 0) {
+                setErrorMessage("O valor do transporte não pode ser negativo.");
+                return;
+            }
+            
             // Calcular o preço estimado para atualizar o mashguiachPrice
             const priceEstimateResult = calculateEstimatedPrice();
-            const totalPrice = priceEstimateResult?.totalValue || 0;
+            const totalPrice = (priceEstimateResult?.totalValue || 0) + transport_price;
             
             // Adicionar o preço total ao atualizar o serviço
             await updateEventDates(
@@ -102,7 +104,8 @@ const EditDatesModal = ({
                 endDateTime, 
                 dayHourValue, 
                 nightHourValue,
-                totalPrice
+                totalPrice,
+                transport_price
             );
             
             setSuccessMessage("Serviço atualizado com sucesso!");
@@ -144,6 +147,7 @@ const EditDatesModal = ({
                 // Definir valores de hora
                 setDayHourValue(extendedService.dayHourValue || 50);
                 setNightHourValue(extendedService.nightHourValue || 75);
+                setTransport_price(service.transport_price || 0);
             } else {
                 setErrorMessage("Serviço não encontrado");
             }
@@ -328,7 +332,7 @@ const EditDatesModal = ({
                         </CRow>
                         
                         <CRow className="mt-4">
-                            <CCol md={6} className="mb-3">
+                            <CCol md={4} className="mb-3">
                                 <CFormLabel>Valor da hora diurna (6h-22h):</CFormLabel>
                                 <CInputGroup>
                                     <CInputGroupText>R$</CInputGroupText>
@@ -343,7 +347,7 @@ const EditDatesModal = ({
                                 </CInputGroup>
                             </CCol>
                             
-                            <CCol md={6} className="mb-3">
+                            <CCol md={4} className="mb-3">
                                 <CFormLabel>Valor da hora noturna (22h-6h):</CFormLabel>
                                 <CInputGroup>
                                     <CInputGroupText>R$</CInputGroupText>
@@ -357,6 +361,21 @@ const EditDatesModal = ({
                                     />
                                 </CInputGroup>
                             </CCol>
+                            
+                            <CCol md={4} className="mb-3">
+                                <CFormLabel>Valor do transporte:</CFormLabel>
+                                <CInputGroup>
+                                    <CInputGroupText>R$</CInputGroupText>
+                                    <CFormInput
+                                        type="number"
+                                        value={transport_price}
+                                        onChange={(e) => setTransport_price(Number(e.target.value))}
+                                        disabled={!canEdit}
+                                        min="0"
+                                        step="0.01"
+                                    />
+                                </CInputGroup>
+                            </CCol>
                         </CRow>
                         
                         {priceEstimate && (
@@ -364,7 +383,8 @@ const EditDatesModal = ({
                                 <h5>Estimativa de preço:</h5>
                                 <p>Horas diurnas: {priceEstimate?.dayHours.toFixed(2)} ({priceEstimate?.dayValue.toFixed(2)} R$)</p>
                                 <p>Horas noturnas: {priceEstimate?.nightHours.toFixed(2)} ({priceEstimate?.nightValue.toFixed(2)} R$)</p>
-                                <p><strong>Total estimado: {priceEstimate?.totalValue.toFixed(2)} R$</strong></p>
+                                <p>Transporte: {transport_price.toFixed(2)} R$</p>
+                                <p><strong>Total estimado: {(priceEstimate?.totalValue + transport_price).toFixed(2)} R$</strong></p>
                             </CAlert>
                         )}
                         

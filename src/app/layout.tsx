@@ -12,6 +12,13 @@ import { SessionProviderCustom } from '@/contexts/sessionContext'
 import { useEffect, useState } from 'react'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faTools, faClock } from '@fortawesome/free-solid-svg-icons'
+import dynamic from 'next/dynamic'
+
+// Importação dinâmica do componente com carregamento apenas no cliente
+const ClientProblemReportButton = dynamic(
+  () => import('@/components/ClientProblemReportButton'),
+  { ssr: false }
+)
 
 const inter = Inter({
   subsets: ['latin'],
@@ -32,6 +39,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <SessionProviderCustom>
             <Provider store={store}>
               {children}
+              <ClientProblemReportButton />
             </Provider>
           </SessionProviderCustom>
         </SessionProvider>

@@ -47,7 +47,6 @@ export const getAvailableMashguichim = async (arriveMashguiachTime: Date, endMas
             WorkSchedule: {
                 where: {
                     dayOfWeek: dayName,
-                    isDayOff: false, // Não é dia de folga
                 }
             },
             mashguiach: {
@@ -107,3 +106,64 @@ export const getAvailableMashguichim = async (arriveMashguiachTime: Date, endMas
     
     return availableMashguichim;
 }
+
+// Função para calcular o preço do mashguiach baseado nos horários
+export const calculateMashguiachPrice = (
+    arriveMashguiachTime: Date,
+    endMashguiachTime: Date,
+    dayHourValue: number,
+    nightHourValue: number
+): number => {
+    console.log('Calculando preço com os seguintes parâmetros:', {
+        arriveMashguiachTime: arriveMashguiachTime.toISOString(),
+        endMashguiachTime: endMashguiachTime.toISOString(),
+        dayHourValue,
+        nightHourValue
+    });
+
+    // Verifica se os valores são números
+    if (isNaN(dayHourValue) || isNaN(nightHourValue)) {
+        console.error('Valores inválidos para cálculo de preço:', { dayHourValue, nightHourValue });
+        return 0;
+    }
+
+    // Se as datas são inválidas, retorna 0
+    if (!arriveMashguiachTime || !endMashguiachTime || !(arriveMashguiachTime instanceof Date) || !(endMashguiachTime instanceof Date)) {
+        console.error('Datas inválidas para cálculo de preço:', { arriveMashguiachTime, endMashguiachTime });
+        return 0;
+    }
+
+    let totalPrice = 0;
+    let dayHours = 0;
+    let nightHours = 0;
+    
+    // Clone da data para não modificar a original
+    let currentTime = new Date(arriveMashguiachTime.getTime());
+    
+    // Calcula a quantidade de horas entre as datas
+    while (currentTime < endMashguiachTime) {
+        const hour = currentTime.getHours();
+        const isNightTime = hour >= 22 || hour < 6;
+        
+        // Incrementa contador de horas por período
+        if (isNightTime) {
+            nightHours++;
+        } else {
+            dayHours++;
+        }
+        
+        // Avança para a próxima hora
+        currentTime.setTime(currentTime.getTime() + 60 * 60 * 1000);
+    }
+    
+    // Calcula o preço baseado no número de horas em cada período
+    const dayPrice = dayHours * dayHourValue;
+    const nightPrice = nightHours * nightHourValue;
+    totalPrice = dayPrice + nightPrice;
+    
+    console.log(`Horas diurnas: ${dayHours} x R$${dayHourValue} = R$${dayPrice}`);
+    console.log(`Horas noturnas: ${nightHours} x R$${nightHourValue} = R$${nightPrice}`);
+    console.log('Preço total calculado:', totalPrice);
+    
+    return totalPrice;
+};

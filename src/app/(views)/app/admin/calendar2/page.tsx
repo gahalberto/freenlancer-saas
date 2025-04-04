@@ -231,7 +231,7 @@ const Calendar2Page = () => {
         case 'EVENTO':
           backgroundColor = '#f0ad4e' // Laranja
           break
-        case 'SUBTITUICAO':
+        case 'SUBSTITUICAO':
           backgroundColor = '#5cb85c' // Verde
           break
         default:

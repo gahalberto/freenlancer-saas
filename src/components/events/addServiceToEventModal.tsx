@@ -85,6 +85,25 @@ const AddServiceToEventModal = ({ fetchAll, visible, onClose, StoreEventsId }: P
     }
   };
 
+  const fetchStoreAddress = async () => {
+    try {
+      const response = await findStoreAddress(StoreEventsId); // Função que busca o endereço do estabelecimento
+      if (response) {
+        setAddressZipcode(response.address_zipcode || "");
+        setAddressStreet(response.address_street || "");
+        setAddressNumber(response.address_number || "");
+        setAddressNeighbor(response.address_neighbor || "");
+        setAddressCity(response.address_city || "");
+        setAddressState(response.address_state || "");
+      } else {
+        alert("Endereço do estabelecimento não encontrado.");
+      }
+    } catch (error) {
+      console.error("Erro ao buscar endereço do estabelecimento:", error);
+      alert("Erro ao buscar o endereço do estabelecimento.");
+    }
+  };
+
     // Monitora a mudança para "PRODUÇÃO"
     useEffect(() => {
       if (productionOrEvent === "PRODUCAO") {
@@ -297,6 +316,7 @@ const AddServiceToEventModal = ({ fetchAll, visible, onClose, StoreEventsId }: P
                 <option>PRODUÇÃO OU EVENTO</option>
                 <option value="PRODUCAO">PRODUÇÃO</option>
                 <option value="EVENTO">EVENTO</option>
+                <option value="SUBSTITUICAO">SUBSTITUIÇÃO</option>
               </CFormSelect>
             </CCol>
 
@@ -340,6 +360,9 @@ const AddServiceToEventModal = ({ fetchAll, visible, onClose, StoreEventsId }: P
                 <CButton type="button" color="primary" onClick={handleCepSearch}>
                   <CIcon icon={cilSearch} style={{ marginRight: 6 }} />
                   Buscar
+                </CButton>
+                <CButton type="button" color="secondary" onClick={fetchStoreAddress}>
+                  Buscar Endereço do Estabelecimento
                 </CButton>
               </CInputGroup>
             </CCol>
@@ -459,7 +482,7 @@ const AddServiceToEventModal = ({ fetchAll, visible, onClose, StoreEventsId }: P
           </CCol>
         </CModalBody>
         <CModalFooter>
-          <CButton color="primary" disabled={session?.roleId !== 3} onClick={handleSubmit}>
+          <CButton color="primary" onClick={handleSubmit}>
             Solicitar
           </CButton>
           <CButton color="secondary" onClick={onClose}>

@@ -48,6 +48,7 @@ const EditTimeEntriesPage = () => {
   const [selectedUserId, setSelectedUserId] = useState<string>(searchParams?.get('userId') ?? '')
   const [selectedMonth, setSelectedMonth] = useState<number>(parseInt(searchParams?.get('month') ?? '') || new Date().getMonth() + 1)
   const [selectedYear, setSelectedYear] = useState<number>(parseInt(searchParams?.get('year') ?? '') || new Date().getFullYear())
+  const [selectedStoreId, setSelectedStoreId] = useState<string>(searchParams?.get('storeId') ?? '')
   const [timeEntries, setTimeEntries] = useState<any>(null)
   const [loading, setLoading] = useState<boolean>(false)
   const [editModalVisible, setEditModalVisible] = useState(false)
@@ -85,7 +86,12 @@ const EditTimeEntriesPage = () => {
 
     setLoading(true)
     try {
-      const data = await getTimesByUserAndMonth(selectedUserId, selectedMonth, selectedYear)
+      const data = await getTimesByUserAndMonth(
+        selectedUserId, 
+        selectedMonth, 
+        selectedYear,
+        selectedStoreId || undefined
+      )
       setTimeEntries(data)
     } catch (error) {
       console.error('Erro ao buscar registros:', error)

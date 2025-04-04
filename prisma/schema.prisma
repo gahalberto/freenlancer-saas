@@ -25,44 +25,46 @@ model Synagogue {
 }
 
 model User {
-  id               String                @id @default(uuid())
-  name             String
-  email            String                @unique
-  phone            String?
-  password         String
-  synagogueId      Int?
-  roleId           Int
-  isAdminPreview   Boolean?              @default(false)
-  createdAt        DateTime              @default(now())
-  updatedAt        DateTime              @updatedAt
-  status           Boolean               @default(true)
-  jewishName       String?
-  asweredQuestions Boolean?              @default(false)
-  questionarioId   Int                   @default(0)
-  isFixed          Boolean?              @default(false)
-  storeId          String?
-  credits          Int                   @default(0)
-  address_neighbor String                @default("")
-  address_number   String                @default("")
-  address_state    String                @default("")
-  address_street   String                @default("")
-  address_zicode   String                @default("")
-  address_city     String                @default("")
-  address_lat      String?
-  address_lng      String?
-  pixKey           String?               @default("")
-  deleteAt         DateTime?
-  avatar_url       String?               @default("")
-  Certifications   Certifications[]
-  EventsServices   EventsServices[]
-  mashguiachJobs   FixedJobs[]
-  StoreEvents      StoreEvents[]
-  transactions     Transaction[]
-  questionarios    MashguiachQuestions[]
-  role             Role                  @relation(fields: [roleId], references: [id])
-  synagogue        Synagogue?            @relation(fields: [synagogueId], references: [id])
-  TimeEntries      TimeEntries[]
+  id                    String                 @id @default(uuid())
+  name                  String
+  email                 String                 @unique
+  phone                 String?
+  password              String
+  synagogueId           Int?
+  roleId                Int
+  createdAt             DateTime               @default(now())
+  updatedAt             DateTime               @updatedAt
+  status                Boolean                @default(true)
+  jewishName            String?
+  asweredQuestions      Boolean?               @default(false)
+  questionarioId        Int                    @default(0)
+  isFixed               Boolean?               @default(false)
+  storeId               String?
+  credits               Int                    @default(0)
+  address_neighbor      String                 @default("")
+  address_number        String                 @default("")
+  address_state         String                 @default("")
+  address_street        String                 @default("")
+  address_zicode        String                 @default("")
+  address_city          String                 @default("")
+  address_lat           String?
+  address_lng           String?
+  pixKey                String?                @default("")
+  deleteAt              DateTime?              @db.Timestamp(6)
+  isAdminPreview        Boolean?               @default(false)
+  avatar_url            String?                @default("")
+  Certifications        Certifications[]
+  EventsServices        EventsServices[]
+  mashguiachJobs        FixedJobs[]
+  StoreEvents           StoreEvents[]
+  transactions          Transaction[]
+  questionarios         MashguiachQuestions[]
+  TimeEntries           TimeEntries[]
   absenceJustifications AbsenceJustification[]
+
+  role          Role            @relation(fields: [roleId], references: [id])
+  synagogue     Synagogue?      @relation(fields: [synagogueId], references: [id])
+  ProblemReport ProblemReport[]
 
   @@map("users")
 }
@@ -71,15 +73,14 @@ model TimeEntries {
   id           Int       @id @default(autoincrement())
   user_id      String
   store_id     String
-  entrace      DateTime?
-  exit         DateTime?
-  lunchEntrace DateTime?
-  lunchExit    DateTime?
   latitude     Float?
   longitude    Float?
-
-  user   User   @relation(fields: [user_id], references: [id])
-  stores Stores @relation(fields: [store_id], references: [id])
+  entrace      DateTime? @db.Timestamp(6)
+  exit         DateTime? @db.Timestamp(6)
+  lunchEntrace DateTime? @db.Timestamp(6)
+  lunchExit    DateTime? @db.Timestamp(6)
+  stores       Stores    @relation(fields: [store_id], references: [id])
+  user         User      @relation(fields: [user_id], references: [id])
 
   @@map("time_entries")
 }
@@ -211,29 +212,29 @@ model LessonOrder {
 }
 
 model Stores {
-  id               String           @id @default(uuid())
-  title            String
-  userId           String?
-  isMashguiach     Boolean?
-  mashguiachId     String?
-  storeTypeId      String
-  isAutomated      Boolean?
-  address_zipcode  String
-  address_street   String
-  address_number   String
-  address_neighbor String
-  address_city     String
-  address_state    String
-  comercialPhone   String           @default("")
-  phone            String           @default("")
-  imageUrl         String?          @default("")
-  menuUrl          String?          @default("")
-  Certifications   Certifications[]
-  times_entries    TimeEntries[] // Defina como um array para refletir a relação one-to-many
-  reports          Reports[]
-  StoreEvents      StoreEvents[]
-  storeType        StoresType       @relation(fields: [storeTypeId], references: [id])
-  fixedJobs        FixedJobs[]
+  id                    String                 @id @default(uuid())
+  title                 String
+  userId                String?
+  isMashguiach          Boolean?
+  mashguiachId          String?
+  storeTypeId           String
+  isAutomated           Boolean?
+  address_zipcode       String
+  address_street        String
+  address_number        String
+  address_neighbor      String
+  address_city          String
+  address_state         String
+  comercialPhone        String                 @default("")
+  phone                 String                 @default("")
+  imageUrl              String?                @default("")
+  menuUrl               String?                @default("")
+  Certifications        Certifications[]
+  fixedJobs             FixedJobs[]
+  reports               Reports[]
+  StoreEvents           StoreEvents[]
+  storeType             StoresType             @relation(fields: [storeTypeId], references: [id])
+  times_entries         TimeEntries[]
   absenceJustifications AbsenceJustification[]
 }
 
@@ -265,9 +266,6 @@ model StoreEvents {
   ownerId              String
   responsable          String?
   date                 DateTime
-  deletedAt            DateTime? // Campo opcional
-  createdAt            DateTime         @default(now())
-  updatedAt            DateTime?        @updatedAt
   nrPax                Int
   clientName           String
   eventType            String
@@ -282,28 +280,26 @@ model StoreEvents {
   address_street       String           @default("")
   address_zicode       String           @default("")
   menuUrl              String?          @default("")
+  createdAt            DateTime         @default(now())
+  deletedAt            DateTime?
+  updatedAt            DateTime?        @updatedAt
+  EventsAdresses       EventsAdresses[]
   EventsServices       EventsServices[]
   eventOwner           User             @relation(fields: [ownerId], references: [id], onDelete: Cascade)
   store                Stores           @relation(fields: [storeId], references: [id])
-  EventsAdresses       EventsAdresses[]
 }
 
 model EventsAdresses {
   id               String      @id @default(uuid())
-  storeEventId     String
-  workType         WORKTYPE
   address_zipcode  String
   address_street   String
   address_number   String
-  address_neighbor String
   address_city     String
   address_state    String
+  storeEventId     String
+  workType         WORKTYPE
+  address_neighbor String
   eventAddress     StoreEvents @relation(fields: [storeEventId], references: [id])
-}
-
-enum WORKTYPE {
-  PRODUCAO
-  EVENTO
 }
 
 model EventsServices {
@@ -319,54 +315,54 @@ model EventsServices {
   responseDate            DateTime?
   StoreId                 String            @default("")
   paymentStatus           TransactionStatus @default(Pending)
+  paymentDate             DateTime?
   reallyMashguiachArrive  DateTime?
   reallyMashguiachEndTime DateTime?
+  mashguiachPricePerHour  Float             @default(0)
+  transport_price         Float?            @default(0)
+  workType                WORKTYPE?
+  address_city            String?
+  address_neighbor        String?
+  address_number          String?
+  address_state           String?
+  address_street          String?
+  address_zipcode         String?
   latitude                Float?
   longitude               Float?
-  mashguiachPricePerHour  Float             @default(0)
   dayHourValue            Float             @default(50)
   nightHourValue          Float             @default(75)
-  transport_price         Float?            @default(0)
-  address_zipcode         String?
-  address_street          String?
-  address_number          String?
-  address_neighbor        String?
-  address_city            String?
-  address_state           String?
+  createdAt               DateTime          @default(now())
   StoreEvents             StoreEvents       @relation(fields: [StoreEventsId], references: [id])
   Mashguiach              User?             @relation(fields: [mashguiachId], references: [id])
-  workType                WORKTYPE?
 }
 
 model FixedJobs {
-  id              String    @id @default(uuid())
+  id              String         @id @default(uuid())
+  observationText String?
   store_id        String
+  user_id         String
   price           Int?
+  createdAt       DateTime       @default(now())
+  deletedAt       DateTime?
+  updatedAt       DateTime       @updatedAt
   price_per_hour  Float
   monthly_salary  Float?
-  user_id         String
   timeIn          DateTime?
   timeOut         DateTime?
-  observationText String?
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
-  deletedAt       DateTime?
-
-  WorkSchedule WorkSchedule[]
-  mashguiach   User           @relation(fields: [user_id], references: [id])
-  store        Stores         @relation(fields: [store_id], references: [id])
+  store           Stores         @relation(fields: [store_id], references: [id])
+  mashguiach      User           @relation(fields: [user_id], references: [id])
+  WorkSchedule    WorkSchedule[]
 }
 
 model WorkSchedule {
-  id         String  @id @default(uuid())
+  id         String    @id @default(uuid())
   fixedJobId String
-  dayOfWeek  String // "Sunday", "Monday", etc.
-  timeIn     String? // "08:00", null se folga
-  timeOut    String? // "17:00", null se folga
-  isDayOff   Boolean @default(false) // Se é um dia de folga normal
-  sundayOff  Int? // Exemplo: 1 significa que o funcionário folga no 1º domingo do mês
-
-  fixedJob FixedJobs @relation(fields: [fixedJobId], references: [id], onDelete: Cascade)
+  dayOfWeek  String
+  timeIn     String?
+  timeOut    String?
+  isDayOff   Boolean   @default(false)
+  sundayOff  Int?
+  fixedJob   FixedJobs @relation(fields: [fixedJobId], references: [id], onDelete: Cascade)
 }
 
 model Notification {
@@ -401,6 +397,19 @@ model CreditsTranscition {
   updateAt    DateTime          @updatedAt
 }
 
+model NotificationToken {
+  id        Int      @id @default(autoincrement())
+  token     String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum WORKTYPE {
+  PRODUCAO
+  EVENTO
+  SUBSTITUICAO
+}
+
 enum TransactionStatus {
   Success
   Failed
@@ -423,11 +432,9 @@ enum DaysOfWeek {
   SUNDAY
 }
 
-model NotificationToken {
-  id        Int      @id @default(autoincrement())
-  token     String   @unique
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+enum TYPE_ENTRIES {
+  ENTRADA
+  SAIDA
 }
 
 model Contact {
@@ -443,21 +450,41 @@ model Contact {
 }
 
 model AbsenceJustification {
-  id           String   @id @default(uuid())
-  user_id      String
-  store_id     String
-  date         DateTime
-  reason       String
-  status       String   @default("PENDING")
+  id            String   @id @default(uuid())
+  user_id       String
+  store_id      String
+  date          DateTime
+  reason        String
+  status        String   @default("PENDING")
   attachmentUrl String?
-  createdAt    DateTime @default(now())
-  
-  user         User     @relation(fields: [user_id], references: [id])
-  store        Stores   @relation(fields: [store_id], references: [id])
+  createdAt     DateTime @default(now())
+
+  user  User   @relation(fields: [user_id], references: [id])
+  store Stores @relation(fields: [store_id], references: [id])
 }
 
 enum JustificationStatus {
   Pending
   Approved
   Rejected
+}
+
+model ProblemReport {
+  id            String   @id @default(uuid())
+  userId        String
+  title         String
+  description   String
+  url           String?
+  screenshotUrl String?
+  status        String   @default("PENDING")
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  user          User     @relation(fields: [userId], references: [id])
+}
+
+enum ProblemStatus {
+  PENDING
+  IN_PROGRESS
+  RESOLVED
+  CLOSED
 }

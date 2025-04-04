@@ -11,13 +11,6 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: 'Não autorizado' }, { status: 401 })
     }
 
-    // Apenas admins (roleId 3 ou 4) podem listar todos os funcionários
-    if (session.user.roleId !== 3 && session.user.roleId !== 4) {
-      return NextResponse.json(
-        { error: 'Você não tem permissão para acessar esta funcionalidade' },
-        { status: 403 }
-      )
-    }
 
     const url = new URL(req.url)
     const storeId = url.searchParams.get('storeId')
@@ -90,11 +83,10 @@ export async function POST(req: NextRequest) {
     console.log('Dados recebidos na API:', data)
     
     // Validar dados
-    if (!data.user_id || !data.store_id || !data.price_per_hour) {
+    if (!data.user_id || !data.store_id) {
       console.log('Campos obrigatórios não preenchidos:', { 
         user_id: !!data.user_id, 
         store_id: !!data.store_id, 
-        price_per_hour: !!data.price_per_hour 
       })
       return NextResponse.json(
         { error: 'Campos obrigatórios não preenchidos' },
@@ -127,7 +119,7 @@ export async function POST(req: NextRequest) {
           data: {
             user_id: data.user_id,
             store_id: data.store_id,
-            price_per_hour: Number(data.price_per_hour),
+            price_per_hour: 0,
             monthly_salary: data.monthly_salary ? Number(data.monthly_salary) : null,
             observationText: data.observationText || null
           }

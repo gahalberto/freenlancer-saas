@@ -90,6 +90,7 @@ export async function getPendingEvents() {
     const pendingEvents = await db.storeEvents.findMany({
       where: {
         isApproved: false,
+        deletedAt: null,
       },
       include: {
         store: {
@@ -140,6 +141,7 @@ export async function getUpcomingEvents() {
 
     const upcomingEvents = await db.storeEvents.findMany({
       where: {
+        deletedAt: null,
         date: {
           gte: today,
         },

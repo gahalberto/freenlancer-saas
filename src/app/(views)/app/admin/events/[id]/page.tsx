@@ -44,6 +44,7 @@ import { useUserSession } from '@/contexts/sessionContext'
 import CIcon from '@coreui/icons-react'
 import { cilArrowLeft } from '@coreui/icons'
 import { useRouter } from 'next/navigation'
+import { deleteEventById } from '@/app/_actions/events/deleteUserEvent'
 
 interface ParamsType {
   params: {
@@ -190,6 +191,18 @@ const EditEventPage = ({ params }: ParamsType) => {
     }
   }
 
+  const handleDeleteEvent = async () => {
+    if (confirm('Tem certeza que deseja excluir este evento? Esta ação não pode ser desfeita.')) {
+      try {
+        await deleteEventById(params.id)
+        // Redirecionar para a página anterior após excluir
+        router.back()
+      } catch (error) {
+        console.error('Erro ao excluir evento:', error)
+      }
+    }
+  }
+
   const router = useRouter()
 
   return (
@@ -201,7 +214,7 @@ const EditEventPage = ({ params }: ParamsType) => {
         <CCard className="mb-4">
           <CCardHeader className="d-flex justify-content-between align-items-center">
             <div>
-              Evento criado por: <strong>{event?.eventOwner?.name} </strong>
+              Evento criado por: <strong>{event?.eventOwner?.name} na data: {event?.createdAt.toLocaleDateString()} as {event?.createdAt.toLocaleTimeString()} </strong>
             </div>
             {(session?.roleId === 3 || session?.roleId === 4) && (
               <CButton
@@ -310,6 +323,15 @@ const EditEventPage = ({ params }: ParamsType) => {
                 disabled={session?.roleId !== 3}
               >
                 Atualizar
+              </CButton>
+              <CButton
+                type="button"
+                color="danger"
+                className="mt-3 ms-2"
+                disabled={session?.roleId !== 3}
+                onClick={handleDeleteEvent}
+              >
+                Excluir
               </CButton>
             </form>
           </CCardBody>

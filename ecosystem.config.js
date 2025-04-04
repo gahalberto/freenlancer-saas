@@ -2,9 +2,9 @@ module.exports = {
   apps: [
     {
       name: 'freenlancer-saas',
-      script: 'node_modules/next/dist/bin/next',
-      args: 'start',
+      script: 'server.js',
       instances: 1,
+      exec_mode: 'fork',
       autorestart: true,
       watch: false,
       max_memory_restart: '1G',
@@ -15,7 +15,13 @@ module.exports = {
         NODE_OPTIONS: '--max-old-space-size=4096'
       },
       cwd: '/var/www/byk/html/freenlancer-saas',
-      interpreter: '/usr/bin/node'
+      interpreter: '/usr/bin/node',
+      exp_backoff_restart_delay: 100,
+      shutdown_with_message: true,
+      node_args: '--expose-gc',
+      wait_ready: true,
+      listen_timeout: 10000,
+      kill_timeout: 5000
     }
   ]
 } 
