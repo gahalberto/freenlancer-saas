@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { useDispatch } from 'react-redux'
 import Link from 'next/link'
+import { usePathname, useRouter } from 'next/navigation'
 
 import {
   CContainer,
@@ -14,6 +15,9 @@ import {
   CNavLink,
   CNavItem,
   useColorModes,
+  CBadge,
+  CBreadcrumb,
+  CBreadcrumbItem,
 } from '@coreui/react-pro'
 import { cilContrast, cilMenu, cilMoon, cilSun } from '@coreui/icons'
 import CIcon from '@coreui/icons-react'
@@ -27,13 +31,88 @@ import {
   AppHeaderDropdownTasks,
 } from './header/'
 
-import { AppBreadcrumb } from '@/components'
 import { useSession } from 'next-auth/react'
 import { getCreditsByUser } from '@/app/_actions/getCreditsByUser'
 
+type breadcrumb = {
+  pathname?: string
+  name?: boolean | string
+  active?: boolean
+}
+
+type route = {
+  path: string
+  name: string
+}
+
+const routeNames = [
+  { path: '/app', name: 'Início' },
+  { path: '/app/dashboard', name: 'Dashboard' },
+  { path: '/app/dashboard/admin2', name: 'Dashboard Avançado' },
+  { path: '/app/admin', name: 'Admin' },
+  { path: '/app/admin/calendar2', name: 'Calendário' },
+  { path: '/app/admin/events', name: 'Eventos' },
+  { path: '/app/admin/events/todos', name: 'Todos os Eventos' },
+  { path: '/app/admin/events/pendentes', name: 'Eventos Pendentes' },
+  { path: '/app/admin/events/estabelecimento', name: 'Eventos por Estabelecimento' },
+  { path: '/app/admin/events/mashguiach', name: 'Eventos por Mashguiach' },
+  { path: '/app/services/finalizar', name: 'Finalizar Eventos' },
+  { path: '/app/admin/users', name: 'Usuários' },
+  { path: '/app/admin/questionarios', name: 'Questionários' },
+  { path: '/app/admin/users/create-demo', name: 'Cadastrar User Demo' },
+  { path: '/app/admin/banco-de-horas', name: 'Banco de Horas' },
+  { path: '/app/admin/banco-de-horas/relatorios', name: 'Relatórios' },
+  { path: '/app/admin/banco-de-horas/relatorios/individual', name: 'Relatório Individual' },
+  { path: '/app/admin/banco-de-horas/relatorios/mensal', name: 'Relatório Mensal' },
+  { path: '/app/admin/estabelecimentos', name: 'Estabelecimentos' },
+  { path: '/app/admin/estabelecimentos/tipos', name: 'Tipos de Estabelecimentos' },
+]
+
+const humanize = (text: string) => {
+  const string = text
+    .split('-')
+    .reduce(
+      (accumulator, currentValue) =>
+        accumulator + ' ' + currentValue[0].toUpperCase() + currentValue.slice(1),
+    )
+  return string[0].toUpperCase() + string.slice(1)
+}
+
+const getRouteName = (pathname: string, routes: route[]) => {
+  const currentRoute = routes.find((route) => route.path === pathname)
+  return currentRoute ? currentRoute.name : false
+}
+
+const getBreadcrumbs = (location: string) => {
+  const breadcrumbs: breadcrumb[] = []
+  
+  if (!location.startsWith('/app')) {
+    return breadcrumbs
+  }
+  
+  const pathParts = location.split('/').filter(part => part !== '')
+  let currentPath = ''
+  
+  pathParts.forEach((part, index) => {
+    currentPath += `/${part}`
+    const routeName = getRouteName(currentPath, routeNames) || humanize(part)
+    
+    breadcrumbs.push({
+      pathname: currentPath,
+      name: routeName,
+      active: index + 1 === pathParts.length ? true : false,
+    })
+  })
+  
+  return breadcrumbs
+}
+
 const AppHeader = (): JSX.Element => {
-  const { data: session, status } = useSession()
+  const { data: session, status, update } = useSession()
   const [credits, setCredits] = useState(0)
+  const [breadcrumbs, setBreadcrumbs] = useState<breadcrumb[]>([])
+  const pathname = usePathname()
+  const router = useRouter()
 
   const headerRef = useRef<HTMLDivElement>(null)
   const { colorMode, setColorMode } = useColorModes(
@@ -52,15 +131,15 @@ const AppHeader = (): JSX.Element => {
 
     setColorMode('light')
 
-    // const fetchCredits = async () => {
-    //   const response = await getCreditsByUser()
-    //   if (response) {
-    //     setCredits(response.credits)
-    //   }
-    // }
+    if (pathname) {
+      setBreadcrumbs(getBreadcrumbs(pathname))
+    }
+  }, [pathname])
 
-    // fetchCredits()
-  }, [])
+  const handleUpdate = async (roleId: number) => {
+    await update({ roleId })
+    router.push('/app')
+  }
 
   return (
     <CHeader position="sticky" className="mb-4 p-0" ref={headerRef}>
@@ -73,34 +152,23 @@ const AppHeader = (): JSX.Element => {
         </CHeaderToggler>
 
         <CHeaderNav className="d-none d-md-flex">
-          <CNavItem>
-            <CNavLink href="/" as={Link}>
-              Dashboard
-            </CNavLink>
-          </CNavItem>
-          <CNavItem>
-            <CNavLink href="#">Users</CNavLink>
-          </CNavItem>
-          <CNavItem>
-            <CNavLink href="#">Settings</CNavLink>
-          </CNavItem>
+          <CBreadcrumb className="m-0 ms-2">
+            {breadcrumbs.map((breadcrumb, index) => {
+              return (
+                <CBreadcrumbItem
+                  {...(breadcrumb.pathname && { href: breadcrumb.pathname })}
+                  {...(breadcrumb.active && { active: true })}
+                  key={index}
+                >
+                  {breadcrumb.name}
+                </CBreadcrumbItem>
+              )
+            })}
+          </CBreadcrumb>
         </CHeaderNav>
 
         <CHeaderNav className="ms-auto ms-md-0">
-          {/* <li className="nav-item py-1">
-            <div className="vr h-100 mx-2 text-body text-opacity-75"></div>
-          </li> */}
           <CDropdown variant="nav-item" placement="bottom-end">
-            {/* <CDropdownToggle caret={false}>
-              {colorMode === 'dark' ? (
-                <CIcon icon={cilMoon} size="lg" />
-              ) : colorMode === 'auto' ? (
-                <CIcon icon={cilContrast} size="lg" />
-              ) : (
-                <CIcon icon={cilSun} size="lg" />
-              )}
-            </CDropdownToggle> */}
-
             <CDropdownMenu>
               <CDropdownItem
                 active={colorMode === 'light'}
@@ -137,28 +205,11 @@ const AppHeader = (): JSX.Element => {
             </li>
             <AppHeaderDropdownNotif />
           </CHeaderNav>
-          {/* CRÉDITOS CREDITOS */}
-          {/* <CHeaderNav className="ms-left ms-md-0 d-flex align-items-center justify-content-center">
-            <li className="nav-item py-1">
-              <div className="vr h-100 mx-2 text-body text-opacity-75"></div>
-            </li>
-            <div
-              className="d-flex justify-content-center align-items-center
-            "
-            >
-              <Link href={`/credits`}>
-                <div className="text-opacity-75">R$ {credits}</div>
-              </Link>
-            </div>
-          </CHeaderNav> */}
           <li className="nav-item py-1">
             <div className="vr h-100 mx-2 text-body text-opacity-75"></div>
           </li>
           <AppHeaderDropdown />
         </CHeaderNav>
-      </CContainer>
-      <CContainer className="px-4" fluid>
-        <AppBreadcrumb />
       </CContainer>
     </CHeader>
   )

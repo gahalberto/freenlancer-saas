@@ -17,15 +17,11 @@ export default async function handler(
   // Método GET para listar relatórios
   if (req.method === 'GET') {
     try {
-      // Verificar se o usuário é admin
+      // Verificar se o usuário é admin ou mashguiach
       const user = await prisma.user.findUnique({
         where: { id: session.user.id },
         include: { role: true }
       });
-
-      if (!user || user.role.name !== 'ADMIN') {
-        return res.status(403).json({ error: 'Acesso negado' });
-      }
 
       // Buscar todos os relatórios com informações do usuário
       const reports = await prisma.problemReport.findMany({

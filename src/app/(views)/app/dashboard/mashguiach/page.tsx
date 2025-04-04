@@ -252,7 +252,8 @@ export default function MashguiachDashboard() {
     return <p>Usuário não autenticado</p>
   }
 
-  const hasAnsweredQuestions = session?.user?.asweredQuestions || false
+  // Verificar se o usuário respondeu questionários de forma segura
+  const hasAnsweredQuestions = session?.user?.asweredQuestions ?? false
 
   return (
     <>

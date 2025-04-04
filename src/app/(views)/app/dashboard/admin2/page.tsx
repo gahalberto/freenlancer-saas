@@ -18,6 +18,7 @@ import {
   CTableDataCell,
   CBadge,
   CButton,
+  CAlert,
 } from '@coreui/react-pro'
 import { useSession } from 'next-auth/react'
 import CIcon from '@coreui/icons-react'
@@ -35,6 +36,9 @@ import {
   getUpcomingEvents 
 } from '@/app/_actions/dashboard/getDashboardMetrics'
 import { aproveEvent } from '@/app/_actions/events/aproveEvent'
+import NewsSection from '@/components/dashboard/NewsSection'
+import DashboardAlert from '@/components/dashboard/DashboardAlert'
+import { useRouter } from 'next/navigation'
 
 // Interfaces para as métricas e eventos
 interface DashboardMetrics {
@@ -61,6 +65,7 @@ const Admin2Dashboard = () => {
   const [metrics, setMetrics] = useState<DashboardMetrics | null>(null)
   const [pendingEvents, setPendingEvents] = useState<Event[]>([])
   const [upcomingEvents, setUpcomingEvents] = useState<Event[]>([])
+  const router = useRouter()
 
   // Função para buscar as métricas e eventos
   const fetchDashboardData = async () => {
@@ -143,167 +148,198 @@ const Admin2Dashboard = () => {
             Visão geral do sistema
           </span>
         </CCardHeader>
-</CCard>
-          {loading ? (
-            <div className="d-flex justify-content-center">
-              <CSpinner color="primary" />
-            </div>
-          ) : (
-            <>
-              {/* Widgets de métricas */}
-              <CRow className="mb-4">
-                <CCol sm={6} lg={3}>
-                  <CWidgetStatsF
-                    className="mb-3"
-                    color="primary"
-                    icon={<CIcon icon={cilPeople} height={24} />}
-                    title="Mashguichim"
-                    value={metrics?.totalMashguichim.toString() || '0'}
-                  />
-                </CCol>
-                <CCol sm={6} lg={3}>
-                  <CWidgetStatsF
-                    className="mb-3"
-                    color="info"
-                    icon={<CIcon icon={cilInstitution} height={24} />}
-                    title="Estabelecimentos"
-                    value={metrics?.totalEstablishments.toString() || '0'}
-                  />
-                </CCol>
-                <CCol sm={6} lg={3}>
-                  <CWidgetStatsF
-                    className="mb-3"
-                    color="success"
-                    icon={<CIcon icon={cilCalendar} height={24} />}
-                    title="Eventos (Ano Atual)"
-                    value={metrics?.totalEventsThisYear.toString() || '0'}
-                  />
-                </CCol>
-                <CCol sm={6} lg={3}>
-                  <CWidgetStatsF
-                    className="mb-3"
-                    color="warning"
-                    icon={<CIcon icon={cilBriefcase} height={24} />}
-                    title="Funcionários Fixos"
-                    value={metrics?.totalFixedJobs.toString() || '0'}
-                  />
-                </CCol>
-              </CRow>
+      </CCard>
+      
+      {/* Alertas do Dashboard */}
+      <DashboardAlert />
+      
+      {/* Alerta de fallback para depuração */}
+      <CAlert 
+        color="info"
+        className="d-flex align-items-center mb-4 mt-2"
+        dismissible
+      >
+        <div className="d-flex flex-column flex-grow-1">
+          <div className="d-flex justify-content-between align-items-center">
+            <strong>Alerta de Teste Fixo</strong>
+          </div>
+          <div className="mt-2">
+            Este é um alerta fixo para teste. Se você está vendo este alerta, a renderização está funcionando, 
+            mas pode haver problemas com a busca dinâmica de alertas.
+          </div>
+          <div className="mt-2 d-flex gap-2">
+            <CButton 
+              color="info" 
+              variant="outline"
+              size="sm" 
+              onClick={() => router.push('/app/debug-alert')}
+            >
+              Página de Debug
+            </CButton>
+          </div>
+        </div>
+      </CAlert>
+      
+      {loading ? (
+        <div className="d-flex justify-content-center">
+          <CSpinner color="primary" />
+        </div>
+      ) : (
+        <>
+          {/* Widgets de métricas */}
+          <CRow className="mb-4">
+            <CCol sm={6} lg={3}>
+              <CWidgetStatsF
+                className="mb-3"
+                color="primary"
+                icon={<CIcon icon={cilPeople} height={24} />}
+                title="Mashguichim"
+                value={metrics?.totalMashguichim.toString() || '0'}
+              />
+            </CCol>
+            <CCol sm={6} lg={3}>
+              <CWidgetStatsF
+                className="mb-3"
+                color="info"
+                icon={<CIcon icon={cilInstitution} height={24} />}
+                title="Estabelecimentos"
+                value={metrics?.totalEstablishments.toString() || '0'}
+              />
+            </CCol>
+            <CCol sm={6} lg={3}>
+              <CWidgetStatsF
+                className="mb-3"
+                color="success"
+                icon={<CIcon icon={cilCalendar} height={24} />}
+                title="Eventos (Ano Atual)"
+                value={metrics?.totalEventsThisYear.toString() || '0'}
+              />
+            </CCol>
+            <CCol sm={6} lg={3}>
+              <CWidgetStatsF
+                className="mb-3"
+                color="warning"
+                icon={<CIcon icon={cilBriefcase} height={24} />}
+                title="Funcionários Fixos"
+                value={metrics?.totalFixedJobs.toString() || '0'}
+              />
+            </CCol>
+          </CRow>
 
-              {/* Tabela de eventos pendentes */}
-              <CCard className="mb-4">
-                <CCardHeader>
-                  <CCardTitle>
-                    <strong>Eventos Pendentes</strong>
-                  </CCardTitle>
-                  <span className="text-gray-400">
-                    Eventos que aguardam aprovação
-                  </span>
-                </CCardHeader>
-                <CCardBody>
-                  <CTable hover responsive>
-                    <CTableHead>
-                      <CTableRow>
-                        <CTableHeaderCell>Título</CTableHeaderCell>
-                        <CTableHeaderCell>Data</CTableHeaderCell>
-                        <CTableHeaderCell>Estabelecimento</CTableHeaderCell>
-                        <CTableHeaderCell>Status</CTableHeaderCell>
-                        <CTableHeaderCell>Mashguiach</CTableHeaderCell>
-                        <CTableHeaderCell>Ações</CTableHeaderCell>
+          {/* Tabela de eventos pendentes */}
+          <CCard className="mb-4">
+            <CCardHeader>
+              <CCardTitle>
+                <strong>Eventos Pendentes</strong>
+              </CCardTitle>
+              <span className="text-gray-400">
+                Eventos que aguardam aprovação
+              </span>
+            </CCardHeader>
+            <CCardBody>
+              <CTable hover responsive>
+                <CTableHead>
+                  <CTableRow>
+                    <CTableHeaderCell>Título</CTableHeaderCell>
+                    <CTableHeaderCell>Data</CTableHeaderCell>
+                    <CTableHeaderCell>Estabelecimento</CTableHeaderCell>
+                    <CTableHeaderCell>Status</CTableHeaderCell>
+                    <CTableHeaderCell>Mashguiach</CTableHeaderCell>
+                    <CTableHeaderCell>Ações</CTableHeaderCell>
+                  </CTableRow>
+                </CTableHead>
+                <CTableBody>
+                  {pendingEvents.length > 0 ? (
+                    pendingEvents.map((event) => (
+                      <CTableRow key={event.id}>
+                        <CTableDataCell>{event.title}</CTableDataCell>
+                        <CTableDataCell>{formatDate(event.date)}</CTableDataCell>
+                        <CTableDataCell>{event.storeName}</CTableDataCell>
+                        <CTableDataCell>
+                          <CBadge color={getStatusColor(event.status)}>
+                            {event.status}
+                          </CBadge>
+                        </CTableDataCell>
+                        <CTableDataCell>
+                          {event.mashguiachName || 'Não atribuído'}
+                        </CTableDataCell>
+                        <CTableDataCell className='d-flex gap-2'>
+                          <Link href={`/app/admin/events/${event.id}`}>
+                            <CButton color="primary" size="sm">Ver detalhes</CButton>
+                          </Link>
+                          <CButton color="secondary" size="sm" onClick={() => handleApproveEvent(event.id, false)}>Aprovar</CButton>
+                        </CTableDataCell>
                       </CTableRow>
-                    </CTableHead>
-                    <CTableBody>
-                      {pendingEvents.length > 0 ? (
-                        pendingEvents.map((event) => (
-                          <CTableRow key={event.id}>
-                            <CTableDataCell>{event.title}</CTableDataCell>
-                            <CTableDataCell>{formatDate(event.date)}</CTableDataCell>
-                            <CTableDataCell>{event.storeName}</CTableDataCell>
-                            <CTableDataCell>
-                              <CBadge color={getStatusColor(event.status)}>
-                                {event.status}
-                              </CBadge>
-                            </CTableDataCell>
-                            <CTableDataCell>
-                              {event.mashguiachName || 'Não atribuído'}
-                            </CTableDataCell>
-                            <CTableDataCell className='d-flex gap-2'>
-                              <Link href={`/app/admin/events/${event.id}`}>
-                                <CButton color="primary" size="sm">Ver detalhes</CButton>
-                              </Link>
-                              <CButton color="secondary" size="sm" onClick={() => handleApproveEvent(event.id, false)}>Aprovar</CButton>
-                            </CTableDataCell>
-                          </CTableRow>
-                        ))
-                      ) : (
-                        <CTableRow>
-                          <CTableDataCell colSpan={6} className="text-center">
-                            Nenhum evento pendente encontrado
-                          </CTableDataCell>
-                        </CTableRow>
-                      )}
-                    </CTableBody>
-                  </CTable>
-                </CCardBody>
-              </CCard>
+                    ))
+                  ) : (
+                    <CTableRow>
+                      <CTableDataCell colSpan={6} className="text-center">
+                        Nenhum evento pendente encontrado
+                      </CTableDataCell>
+                    </CTableRow>
+                  )}
+                </CTableBody>
+              </CTable>
+            </CCardBody>
+          </CCard>
 
-              {/* Tabela de próximos eventos */}
-              <CCard className="mb-4">
-                <CCardHeader>
-                  <CCardTitle>
-                    <strong>Próximos Eventos</strong>
-                  </CCardTitle>
-                  <span className="text-gray-400">
-                    Eventos programados a partir de hoje
-                  </span>
-                </CCardHeader>
-                <CCardBody>
-                  <CTable hover responsive>
-                    <CTableHead>
-                      <CTableRow>
-                        <CTableHeaderCell>Título</CTableHeaderCell>
-                        <CTableHeaderCell>Data</CTableHeaderCell>
-                        <CTableHeaderCell>Estabelecimento</CTableHeaderCell>
-                        <CTableHeaderCell>Status</CTableHeaderCell>
-                        <CTableHeaderCell>Mashguiach</CTableHeaderCell>
-                        <CTableHeaderCell>Ações</CTableHeaderCell>
+          {/* Tabela de próximos eventos */}
+          <CCard className="mb-4">
+            <CCardHeader>
+              <CCardTitle>
+                <strong>Próximos Eventos</strong>
+              </CCardTitle>
+              <span className="text-gray-400">
+                Eventos programados a partir de hoje
+              </span>
+            </CCardHeader>
+            <CCardBody>
+              <CTable hover responsive>
+                <CTableHead>
+                  <CTableRow>
+                    <CTableHeaderCell>Título</CTableHeaderCell>
+                    <CTableHeaderCell>Data</CTableHeaderCell>
+                    <CTableHeaderCell>Estabelecimento</CTableHeaderCell>
+                    <CTableHeaderCell>Status</CTableHeaderCell>
+                    <CTableHeaderCell>Mashguiach</CTableHeaderCell>
+                    <CTableHeaderCell>Ações</CTableHeaderCell>
+                  </CTableRow>
+                </CTableHead>
+                <CTableBody>
+                  {upcomingEvents.length > 0 ? (
+                    upcomingEvents.map((event) => (
+                      <CTableRow key={event.id}>
+                        <CTableDataCell>{event.title}</CTableDataCell>
+                        <CTableDataCell>{formatDate(event.date)}</CTableDataCell>
+                        <CTableDataCell>{event.storeName}</CTableDataCell>
+                        <CTableDataCell>
+                          <CBadge color={getStatusColor(event.status)}>
+                            {event.status}
+                          </CBadge>
+                        </CTableDataCell>
+                        <CTableDataCell>
+                          {event.mashguiachName || 'Não atribuído'}
+                        </CTableDataCell>
+                        <CTableDataCell>
+                          <Link href={`/app/admin/events/${event.id}`}>
+                          <CButton color="primary" size="sm">Ver detalhes</CButton>
+                          </Link>
+                        </CTableDataCell>
                       </CTableRow>
-                    </CTableHead>
-                    <CTableBody>
-                      {upcomingEvents.length > 0 ? (
-                        upcomingEvents.map((event) => (
-                          <CTableRow key={event.id}>
-                            <CTableDataCell>{event.title}</CTableDataCell>
-                            <CTableDataCell>{formatDate(event.date)}</CTableDataCell>
-                            <CTableDataCell>{event.storeName}</CTableDataCell>
-                            <CTableDataCell>
-                              <CBadge color={getStatusColor(event.status)}>
-                                {event.status}
-                              </CBadge>
-                            </CTableDataCell>
-                            <CTableDataCell>
-                              {event.mashguiachName || 'Não atribuído'}
-                            </CTableDataCell>
-                            <CTableDataCell>
-                              <Link href={`/app/admin/events/${event.id}`}>
-                              <CButton color="primary" size="sm">Ver detalhes</CButton>
-                              </Link>
-                            </CTableDataCell>
-                          </CTableRow>
-                        ))
-                      ) : (
-                        <CTableRow>
-                          <CTableDataCell colSpan={6} className="text-center">
-                            Nenhum evento próximo encontrado
-                          </CTableDataCell>
-                        </CTableRow>
-                      )}
-                    </CTableBody>
-                  </CTable>
-                </CCardBody>
-              </CCard>
-            </>
-          )}
+                    ))
+                  ) : (
+                    <CTableRow>
+                      <CTableDataCell colSpan={6} className="text-center">
+                        Nenhum evento próximo encontrado
+                      </CTableDataCell>
+                    </CTableRow>
+                  )}
+                </CTableBody>
+              </CTable>
+            </CCardBody>
+          </CCard>
+        </>
+      )}
     </>
   )
 }

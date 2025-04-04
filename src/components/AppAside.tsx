@@ -264,7 +264,7 @@ const AppAside = () => {
           </div>
         </CTabPane>
         <CTabPane className="p-3" visible={activeKey === 3}>
-          <h6>Settings</h6>
+          <h6>Settsdsdings</h6>
           <div>
             <div className="clearfix mt-4">
               <CFormSwitch size="lg" label="Option 1" id="Option1" defaultChecked />

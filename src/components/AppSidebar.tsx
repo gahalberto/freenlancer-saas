@@ -29,10 +29,23 @@ const AppSidebar = (): JSX.Element => {
   const { data: session, status } = useSession() // Adicionando status para verificar o carregamento
   const roleUserId = session?.user.roleId
 
+  // Adicionar console.log para depuração
+  console.log('Sessão do usuário:', session)
+  console.log('RoleUserId:', roleUserId)
+  console.log('Itens de navegação:', navigation)
+
   // Só renderiza o menu após a sessão estar carregada
   if (status === 'loading') {
     return <></> // Ou um componente de carregamento, como um spinner
   }
+
+  // Filtrar os itens de navegação e mostrar para depuração
+  const filteredItems = navigation.filter((item) =>
+    Array.isArray(item.roleId)
+      ? item.roleId.includes(roleUserId || 0)
+      : item.roleId === roleUserId,
+  )
+  console.log('Itens filtrados:', filteredItems)
 
   return (
     <CSidebar
@@ -58,11 +71,7 @@ const AppSidebar = (): JSX.Element => {
       </CSidebarHeader>
       {roleUserId && (
         <AppSidebarNav
-          items={navigation.filter((item) =>
-            Array.isArray(item.roleId)
-              ? item.roleId.includes(roleUserId)
-              : item.roleId === roleUserId,
-          )}
+          items={filteredItems}
         />
       )}
       <CSidebarFooter className="border-top d-none d-lg-flex">

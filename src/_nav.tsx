@@ -20,6 +20,9 @@ import {
   cilUserPlus,
   cilPeople,
   cilEnvelopeClosed,
+  cilBug,
+  cilNewspaper,
+  cilBell,
 } from '@coreui/icons'
 import CIcon from '@coreui/icons-react'
 import { CNavGroup, CNavItem, CNavTitle } from '@coreui/react-pro'
@@ -87,6 +90,20 @@ const _nav = [
   },
   {
     component: CNavItem,
+    name: 'Notícias e Avisos',
+    roleId: [3,4],
+    href: '/app/admin/news',
+    icon: <CIcon icon={cilNewspaper} customClassName="nav-icon" />,
+  },
+  {
+    component: CNavItem,
+    name: 'Alertas do Sistema',
+    roleId: [3,4],
+    href: '/app/admin/alerts',
+    icon: <CIcon icon={cilBell} customClassName="nav-icon" />,
+  },
+  {
+    component: CNavItem,
     name: 'Calendário Admin',
     roleId: [3,4],
     href: '/app/admin/calendar2',
@@ -102,9 +119,9 @@ const _nav = [
   {
     component: CNavItem,
     name: 'Relatórios de Problemas',
-    roleId: [3,4],
-    href: '/problem-reports',
-    icon: <CIcon icon={cilFlagAlt} customClassName="nav-icon" />,
+    roleId: 3,
+    icon: <CIcon icon={cilBug} customClassName="nav-icon" />,
+    href: '/app/problem-reports',
   },
   {
     component: CNavGroup,

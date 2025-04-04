@@ -489,3 +489,49 @@ enum ProblemStatus {
   RESOLVED
   CLOSED
 }
+
+enum NewsCategory {
+  SYSTEM_UPDATE
+  KASHRUT
+  MISC
+}
+
+model News {
+  id          String        @id @default(uuid())
+  title       String
+  summary     String
+  content     String
+  imageUrl    String?
+  category    NewsCategory
+  slug        String        @unique
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  publishedAt DateTime      @default(now())
+  isPublished Boolean       @default(true)
+}
+
+model Alert {
+  id         String           @id @default(uuid())
+  title      String
+  message    String
+  type       String
+  link       String?
+  active     Boolean          @default(true)
+  createdAt  DateTime         @default(now())
+  updatedAt  DateTime         @updatedAt
+  validFrom  DateTime         @default(now())
+  validTo    DateTime?
+  roleIds    Int[]
+  dismissals AlertDismissal[]
+}
+
+model AlertDismissal {
+  id          String   @id @default(uuid())
+  alertId     String
+  userId      String
+  dismissedAt DateTime @default(now())
+  
+  alert       Alert    @relation(fields: [alertId], references: [id], onDelete: Cascade)
+  
+  @@unique([alertId, userId])
+}

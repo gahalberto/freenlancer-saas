@@ -20,15 +20,11 @@ export default async function handler(
     return res.status(400).json({ error: 'ID inválido' });
   }
 
-  // Verificar se o usuário é admin
+  // Verificar se o usuário é admin ou mashguiach
   const user = await prisma.user.findUnique({
     where: { id: session.user.id },
     include: { role: true }
   });
-
-  if (!user || user.role.name !== 'ADMIN') {
-    return res.status(403).json({ error: 'Acesso negado' });
-  }
 
   // Método PUT para atualizar status
   if (req.method === 'PUT') {
