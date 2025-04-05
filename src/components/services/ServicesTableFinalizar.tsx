@@ -9,6 +9,7 @@ import { EventsServices, StoreEvents } from "@prisma/client"
 import { useSession } from "next-auth/react"
 import Link from "next/link"
 import { useEffect, useRef, useState } from "react"
+import FinishJobModal from "@/components/events/finishJobModal"
 
 interface EventsServiceExtended extends EventsServices {
     StoreEvents: StoreEvents,
@@ -20,6 +21,8 @@ interface EventsServiceExtended extends EventsServices {
 export default function ServicesTableFinalizar() {
     const [events, setEvents] = useState<EventsServiceExtended[]>([]);
     const [credits, setCredits] = useState(0);
+    const [finishJobModalVisible, setFinishJobModalVisible] = useState(false);
+    const [selectedService, setSelectedService] = useState<EventsServiceExtended | null>(null);
 
     const { data: session } = useSession() // Sessão do usuário logado
 
@@ -55,6 +58,11 @@ export default function ServicesTableFinalizar() {
     const handleFinishService = async (id: string, amount: number) => {
         finishService(id, amount)
     }
+
+    const handleOpenFinishModal = (service: EventsServiceExtended) => {
+        setSelectedService(service);
+        setFinishJobModalVisible(true);
+    };
 
     const [toastList, setToastList] = useState<JSX.Element[]>([]);
     const toaster = useRef<HTMLDivElement>(null);
@@ -126,13 +134,26 @@ export default function ServicesTableFinalizar() {
                                     </CCardText>
                                 </CCardBody>
                                 <CCardFooter>
-                                        <CButton color="primary" onClick={() => handleFinishService(item.id, totalToPay)}> Finalizar Serviço</CButton>
+                                        <CButton color="primary" onClick={() => handleOpenFinishModal(item)}> Finalizar Serviço</CButton>
                                 </CCardFooter>
                             </CCard>
                         </CCol>
                     );
                 })}
             </CRow>
+            
+            {/* Modal de finalização de serviço */}
+            {finishJobModalVisible && selectedService && (
+                <FinishJobModal
+                    onClose={() => {
+                        setFinishJobModalVisible(false);
+                        fetchEvents(); // Atualiza a lista após fechar o modal
+                    }}
+                    service={selectedService as any}
+                    serviceId={selectedService.id}
+                />
+            )}
+
             <CToaster className="p-3" placement="top-end" ref={toaster}>
                 {toastList}
             </CToaster>

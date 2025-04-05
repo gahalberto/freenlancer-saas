@@ -28,6 +28,10 @@ import {
   cilCalendar,
   cilBriefcase,
   cilClock,
+  cilMoney,
+  cilWallet,
+  cilDollar,
+  cilBank,
 } from '@coreui/icons'
 import Link from 'next/link'
 import { 
@@ -48,6 +52,10 @@ interface DashboardMetrics {
   totalFixedJobs: number
   totalPendingEvents: number
   totalUpcomingEvents: number
+  totalPendingPayments: number
+  totalPendingAmount: number
+  totalAmountThisMonth: number
+  totalAmountAllTime: number
 }
 
 interface Event {
@@ -129,6 +137,14 @@ const Admin2Dashboard = () => {
     }
   }
 
+  // Função para formatar valores monetários
+  const formatCurrency = (value: number) => {
+    return new Intl.NumberFormat('pt-BR', {
+      style: 'currency',
+      currency: 'BRL'
+    }).format(value);
+  }
+
   if (status === 'loading') {
     return <p>Carregando...</p>
   }
@@ -195,6 +211,46 @@ const Admin2Dashboard = () => {
                 icon={<CIcon icon={cilBriefcase} height={24} />}
                 title="Funcionários Fixos"
                 value={metrics?.totalFixedJobs.toString() || '0'}
+              />
+            </CCol>
+          </CRow>
+
+          {/* Nova linha de widgets para métricas financeiras */}
+          <CRow className="mb-4">
+            <CCol sm={6} lg={3}>
+              <CWidgetStatsF
+                className="mb-3"
+                color="danger"
+                icon={<CIcon icon={cilWallet} height={24} />}
+                title="Pagamentos Pendentes"
+                value={metrics?.totalPendingPayments.toString() || '0'}
+              />
+            </CCol>
+            <CCol sm={6} lg={3}>
+              <CWidgetStatsF
+                className="mb-3"
+                color="dark"
+                icon={<CIcon icon={cilMoney} height={24} />}
+                title="Total a Pagar Pendente"
+                value={formatCurrency(metrics?.totalPendingAmount || 0)}
+              />
+            </CCol>
+            <CCol sm={6} lg={3}>
+              <CWidgetStatsF
+                className="mb-3"
+                color="success"
+                icon={<CIcon icon={cilDollar} height={24} />}
+                title="Total Gerado Este Mês"
+                value={formatCurrency(metrics?.totalAmountThisMonth || 0)}
+              />
+            </CCol>
+            <CCol sm={6} lg={3}>
+              <CWidgetStatsF
+                className="mb-3"
+                color="primary"
+                icon={<CIcon icon={cilBank} height={24} />}
+                title="Total Gerado (Todo Período)"
+                value={formatCurrency(metrics?.totalAmountAllTime || 0)}
               />
             </CCol>
           </CRow>

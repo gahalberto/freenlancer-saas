@@ -50,8 +50,14 @@ const _nav = [
     href: '/app',
   },
   {
+    component: CNavTitle,
+    name: 'Métricas & Dashboards',
+    roleId: [3,4],
+  },
+
+  {
     component: CNavItem,
-    name: 'Dashboard',
+    name: 'Principal',
     roleId: 2,
     icon: <CIcon icon={cilSpeedometer} customClassName="nav-icon" />,
     badge: {
@@ -62,7 +68,7 @@ const _nav = [
   },
   {
     component: CNavItem,
-    name: 'Dashboard Avançado',
+    name: 'Principal',
     roleId: [3,4],
     icon: <CIcon icon={cilSpeedometer} customClassName="nav-icon" />,
     badge: {
@@ -73,7 +79,7 @@ const _nav = [
   },
   {
     component: CNavItem,
-    name: 'Dashboard Financeiro',
+    name: 'Financeiro',
     roleId: [3,4],
     icon: <CIcon icon={cilMoney} customClassName="nav-icon" />,
     badge: {
@@ -82,25 +88,11 @@ const _nav = [
     },
     href: '/app/dashboard/financeiro',
   },
-  
+
   {
     component: CNavTitle,
-    name: 'Admin',
+    name: 'Eventos Admin',
     roleId: [3,4],
-  },
-  {
-    component: CNavItem,
-    name: 'Notícias e Avisos',
-    roleId: [3,4],
-    href: '/app/admin/news',
-    icon: <CIcon icon={cilNewspaper} customClassName="nav-icon" />,
-  },
-  {
-    component: CNavItem,
-    name: 'Alertas do Sistema',
-    roleId: [3,4],
-    href: '/app/admin/alerts',
-    icon: <CIcon icon={cilBell} customClassName="nav-icon" />,
   },
   {
     component: CNavItem,
@@ -108,20 +100,6 @@ const _nav = [
     roleId: [3,4],
     href: '/app/admin/calendar2',
     icon: <CIcon icon={cilCalendar} customClassName="nav-icon" />,
-  },
-  {
-    component: CNavItem,
-    name: 'Mensagens de Contato',
-    roleId: [3,4],
-    href: '/app/admin/contatos',
-    icon: <CIcon icon={cilEnvelopeClosed} customClassName="nav-icon" />,
-  },
-  {
-    component: CNavItem,
-    name: 'Relatórios de Problemas',
-    roleId: 3,
-    icon: <CIcon icon={cilBug} customClassName="nav-icon" />,
-    href: '/app/problem-reports',
   },
   {
     component: CNavGroup,
@@ -161,34 +139,13 @@ const _nav = [
       },
     ]
   },
+
   {
-    component: CNavGroup,
-    roleId: 3,
-    name: 'Usuários',
-    icon: <CIcon icon={cilUser} customClassName="nav-icon" />,
-    items: [
-      {
-        component: CNavItem,
-        name: 'Lista de Usuários',
-        href: '/app/admin/users',
-        icon: <CIcon icon={cilUser} customClassName="nav-icon" />,
-      },
-      {
-        component: CNavItem,
-        name: 'Questionários',
-        href: '/app/admin/questionarios',
-        icon: <CIcon icon={cilFile} customClassName="nav-icon" />,
-      },
-
-      {
-        component: CNavItem,
-        name: 'Cadastrar User Demo',
-        href: '/app/admin/users/create-demo',
-        icon: <CIcon icon={cilUserPlus} customClassName="nav-icon" />,
-      },
-
-    ],
+    component: CNavTitle,
+    name: 'Relatórios',
+    roleId: [3,4],
   },
+
   {
     component: CNavGroup,
     name: 'Banco de Horas',
@@ -251,6 +208,71 @@ const _nav = [
       },
     ]
   },
+
+  {
+    component: CNavTitle,
+    name: 'Admin',
+    roleId: [3,4],
+  },
+  
+  {
+    component: CNavItem,
+    name: 'Notícias e Avisos',
+    roleId: [3,4],
+    href: '/app/admin/news',
+    icon: <CIcon icon={cilNewspaper} customClassName="nav-icon" />,
+  },
+  {
+    component: CNavItem,
+    name: 'Alertas do Sistema',
+    roleId: [3,4],
+    href: '/app/admin/alerts',
+    icon: <CIcon icon={cilBell} customClassName="nav-icon" />,
+  },
+  {
+    component: CNavItem,
+    name: 'Mensagens de Contato',
+    roleId: [3,4],
+    href: '/app/admin/contatos',
+    icon: <CIcon icon={cilEnvelopeClosed} customClassName="nav-icon" />,
+  },
+  {
+    component: CNavItem,
+    name: 'Relatórios de Problemas',
+    roleId: 3,
+    icon: <CIcon icon={cilBug} customClassName="nav-icon" />,
+    href: '/app/problem-reports',
+  },
+ 
+  {
+    component: CNavGroup,
+    roleId: 3,
+    name: 'Usuários',
+    icon: <CIcon icon={cilUser} customClassName="nav-icon" />,
+    items: [
+      {
+        component: CNavItem,
+        name: 'Lista de Usuários',
+        href: '/app/admin/users',
+        icon: <CIcon icon={cilUser} customClassName="nav-icon" />,
+      },
+      {
+        component: CNavItem,
+        name: 'Questionários',
+        href: '/app/admin/questionarios',
+        icon: <CIcon icon={cilFile} customClassName="nav-icon" />,
+      },
+
+      {
+        component: CNavItem,
+        name: 'Cadastrar User Demo',
+        href: '/app/admin/users/create-demo',
+        icon: <CIcon icon={cilUserPlus} customClassName="nav-icon" />,
+      },
+
+    ],
+  },
+ 
   {
     component: CNavGroup,
     name: 'Estabelecimentos',
