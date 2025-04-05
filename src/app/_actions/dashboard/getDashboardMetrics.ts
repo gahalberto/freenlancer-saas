@@ -239,14 +239,29 @@ export async function getDashboardMetrics(startDate?: Date, endDate?: Date): Pro
 
 /**
  * Busca eventos pendentes
+ * @param startDate Data inicial opcional para filtrar
+ * @param endDate Data final opcional para filtrar
  * @returns Array de eventos pendentes
  */
-export async function getPendingEvents() {
+export async function getPendingEvents(startDate?: Date, endDate?: Date) {
   try {
+    // Se as datas não foram fornecidas, usar valores padrão
+    const today = new Date()
+    const effectiveStartDate = startDate || new Date(today.getFullYear(), 0, 1) // 1º de janeiro do ano atual
+    const effectiveEndDate = endDate || new Date(today.getFullYear(), 11, 31, 23, 59, 59) // 31 de dezembro do ano atual
+
+    // Adicionar timestamp para evitar cache
+    const timestamp = new Date().getTime()
+    console.log(`Buscando eventos pendentes [${timestamp}] de ${effectiveStartDate} até ${effectiveEndDate}`)
+    
     const pendingEvents = await db.storeEvents.findMany({
       where: {
         isApproved: false,
         deletedAt: null,
+        date: {
+          gte: effectiveStartDate,
+          lte: effectiveEndDate,
+        },
       },
       include: {
         store: {
@@ -288,18 +303,31 @@ export async function getPendingEvents() {
 
 /**
  * Busca próximos eventos (a partir de hoje)
+ * @param startDate Data inicial opcional para filtrar
+ * @param endDate Data final opcional para filtrar
  * @returns Array de próximos eventos
  */
-export async function getUpcomingEvents() {
+export async function getUpcomingEvents(startDate?: Date, endDate?: Date) {
   try {
     const today = new Date()
     today.setHours(0, 0, 0, 0)
+    
+    // Se a data final não foi fornecida, usar valor padrão
+    const effectiveEndDate = endDate || new Date(today.getFullYear(), 11, 31, 23, 59, 59) // 31 de dezembro do ano atual
+    
+    // A data inicial para próximos eventos é sempre a data atual
+    const effectiveStartDate = today
+    
+    // Adicionar timestamp para evitar cache
+    const timestamp = new Date().getTime()
+    console.log(`Buscando próximos eventos [${timestamp}] de ${effectiveStartDate} até ${effectiveEndDate}`)
 
     const upcomingEvents = await db.storeEvents.findMany({
       where: {
         deletedAt: null,
         date: {
-          gte: today,
+          gte: effectiveStartDate,
+          lte: effectiveEndDate,
         },
       },
       include: {
@@ -405,4 +433,121 @@ function calculateDayAndNightHours(startTime: Date, endTime: Date): { dayHours: 
     console.error("Erro ao calcular horas diurnas/noturnas:", error);
     return { dayHours: 0, nightHours: 0 };
   }
+}
+
+/**
+ * Busca eventos agrupados por dia para o gráfico do dashboard
+ * @param startDate Data inicial para o período
+ * @param endDate Data final para o período
+ * @returns Array com contagem de eventos por dia
+ */
+export async function getEventsCountByDay(startDate?: Date, endDate?: Date) {
+  try {
+    // Se as datas não foram fornecidas, usar valores padrão (últimos 30 dias)
+    const today = new Date()
+    const defaultStartDate = new Date()
+    defaultStartDate.setDate(today.getDate() - 30)
+    
+    const effectiveStartDate = startDate || defaultStartDate
+    const effectiveEndDate = endDate || today
+    
+    // Adicionar timestamp para evitar cache
+    const timestamp = new Date().getTime()
+    console.log(`Buscando eventos por dia [${timestamp}] de ${effectiveStartDate} até ${effectiveEndDate}`)
+    
+    // Buscar todos os eventos no período
+    const events = await db.storeEvents.findMany({
+      where: {
+        deletedAt: null,
+        date: {
+          gte: effectiveStartDate,
+          lte: effectiveEndDate,
+        },
+      },
+      select: {
+        date: true,
+        isApproved: true,
+      },
+      orderBy: {
+        date: 'asc',
+      },
+    })
+    
+    // Inicializar mapa para contagem de eventos por dia
+    const eventsByDay = new Map()
+    
+    // Gerar todas as datas no intervalo para garantir que não faltem datas
+    const dateRange = getDateRange(effectiveStartDate, effectiveEndDate)
+    dateRange.forEach(date => {
+      const dateStr = formatDateISODay(date)
+      eventsByDay.set(dateStr, { 
+        date: dateStr, 
+        total: 0, 
+        approved: 0, 
+        pending: 0 
+      })
+    })
+    
+    // Contar eventos por dia
+    events.forEach(event => {
+      const dateStr = formatDateISODay(event.date)
+      
+      if (eventsByDay.has(dateStr)) {
+        const dayCount = eventsByDay.get(dateStr)
+        dayCount.total += 1
+        
+        if (event.isApproved) {
+          dayCount.approved += 1
+        } else {
+          dayCount.pending += 1
+        }
+      } else {
+        eventsByDay.set(dateStr, { 
+          date: dateStr, 
+          total: 1, 
+          approved: event.isApproved ? 1 : 0, 
+          pending: event.isApproved ? 0 : 1 
+        })
+      }
+    })
+    
+    // Converter o mapa para array e ordenar por data
+    return Array.from(eventsByDay.values()).sort((a, b) => 
+      new Date(a.date).getTime() - new Date(b.date).getTime()
+    )
+  } catch (error) {
+    console.error('Erro ao buscar eventos por dia:', error)
+    throw new Error('Erro ao buscar eventos por dia')
+  }
+}
+
+/**
+ * Formata uma data no formato ISO YYYY-MM-DD
+ * @param date Data a ser formatada
+ * @returns String formatada
+ */
+function formatDateISODay(date: Date): string {
+  return date.toISOString().split('T')[0]
+}
+
+/**
+ * Gera um array com todas as datas entre o início e o fim
+ * @param startDate Data inicial
+ * @param endDate Data final
+ * @returns Array de datas
+ */
+function getDateRange(startDate: Date, endDate: Date): Date[] {
+  const dates = []
+  const currentDate = new Date(startDate)
+  currentDate.setHours(0, 0, 0, 0)
+  
+  const lastDate = new Date(endDate)
+  lastDate.setHours(0, 0, 0, 0)
+  
+  while (currentDate <= lastDate) {
+    dates.push(new Date(currentDate))
+    currentDate.setDate(currentDate.getDate() + 1)
+  }
+  
+  return dates
 } 

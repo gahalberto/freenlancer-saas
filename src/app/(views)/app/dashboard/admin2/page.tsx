@@ -23,6 +23,7 @@ import {
   CInputGroup,
   CFormInput,
   CDatePicker,
+  CTooltip,
 } from '@coreui/react-pro'
 import { useSession } from 'next-auth/react'
 import CIcon from '@coreui/icons-react'
@@ -43,13 +44,24 @@ import Link from 'next/link'
 import { 
   getDashboardMetrics, 
   getPendingEvents, 
-  getUpcomingEvents 
+  getUpcomingEvents,
+  getEventsCountByDay 
 } from '@/app/_actions/dashboard/getDashboardMetrics'
 import { aproveEvent } from '@/app/_actions/events/aproveEvent'
 import NewsSection from '@/components/dashboard/NewsSection'
 import DashboardAlert from '@/components/dashboard/DashboardAlert'
 import { useRouter } from 'next/navigation'
 import { format, subMonths } from 'date-fns'
+import { ptBR } from 'date-fns/locale'
+import EventsBarChart from '@/components/dashboard/EventsBarChart'
+
+// Interface para os dados diários de eventos
+interface DailyEventCount {
+  date: string
+  total: number
+  approved: number
+  pending: number
+}
 
 // Interfaces para as métricas e eventos
 interface DashboardMetrics {
@@ -80,6 +92,7 @@ const Admin2Dashboard = () => {
   const [metrics, setMetrics] = useState<DashboardMetrics | null>(null)
   const [pendingEvents, setPendingEvents] = useState<Event[]>([])
   const [upcomingEvents, setUpcomingEvents] = useState<Event[]>([])
+  const [dailyEvents, setDailyEvents] = useState<DailyEventCount[]>([])
   const router = useRouter()
   
   // Estado para filtros de data
@@ -99,13 +112,17 @@ const Admin2Dashboard = () => {
       const metricsData = await getDashboardMetrics(start || undefined, end || undefined)
       setMetrics(metricsData as DashboardMetrics)
       
-      // Buscar eventos pendentes
-      const pendingEventsData = await getPendingEvents()
+      // Buscar eventos pendentes com o mesmo filtro de período
+      const pendingEventsData = await getPendingEvents(start || undefined, end || undefined)
       setPendingEvents(pendingEventsData as Event[])
       
-      // Buscar próximos eventos
-      const upcomingEventsData = await getUpcomingEvents()
+      // Buscar próximos eventos com o mesmo filtro de período
+      const upcomingEventsData = await getUpcomingEvents(undefined, end || undefined)
       setUpcomingEvents(upcomingEventsData as Event[])
+      
+      // Buscar dados para o gráfico de eventos por dia
+      const dailyEventsData = await getEventsCountByDay(start || undefined, end || undefined)
+      setDailyEvents(dailyEventsData as DailyEventCount[])
     } catch (error) {
       console.error('Erro ao buscar dados do dashboard:', error)
     } finally {
@@ -177,6 +194,19 @@ const Admin2Dashboard = () => {
     fetchDashboardData(startDate, endDate)
   }
 
+  // Função específica para atualizar apenas os dados do gráfico
+  const handleRefreshChart = async () => {
+    try {
+      setLoading(true)
+      const dailyEventsData = await getEventsCountByDay(startDate || undefined, endDate || undefined)
+      setDailyEvents(dailyEventsData as DailyEventCount[])
+    } catch (error) {
+      console.error('Erro ao buscar dados do gráfico:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
   if (status === 'loading') {
     return <p>Carregando...</p>
   }
@@ -193,9 +223,18 @@ const Admin2Dashboard = () => {
             <CCardTitle>
               <strong>Dashboard Administrativo</strong>
             </CCardTitle>
-            <span className="text-gray-400">
-              Visão geral do sistema
-            </span>
+            <div className="d-flex align-items-center">
+              <span className="text-gray-400 me-2">
+                Visão geral do sistema
+              </span>
+              {startDate && endDate && (
+                <CTooltip content="Período atual selecionado para filtrar as métricas e eventos">
+                  <CBadge color="info" shape="rounded-pill" className="px-3">
+                    {formatDate(startDate)} - {formatDate(endDate)}
+                  </CBadge>
+                </CTooltip>
+              )}
+            </div>
           </div>
           <div className="d-flex gap-2">
             <CButton 
@@ -355,7 +394,9 @@ const Admin2Dashboard = () => {
                 <strong>Eventos Pendentes</strong>
               </CCardTitle>
               <span className="text-gray-400">
-                Eventos que aguardam aprovação
+                {startDate && endDate 
+                  ? `Eventos pendentes de ${formatDate(startDate)} até ${formatDate(endDate)}`
+                  : 'Eventos que aguardam aprovação'}
               </span>
             </CCardHeader>
             <CCardBody>
@@ -396,7 +437,9 @@ const Admin2Dashboard = () => {
                   ) : (
                     <CTableRow>
                       <CTableDataCell colSpan={6} className="text-center">
-                        Nenhum evento pendente encontrado
+                        {startDate && endDate 
+                          ? `Nenhum evento pendente encontrado no período de ${formatDate(startDate)} até ${formatDate(endDate)}`
+                          : 'Nenhum evento pendente encontrado'}
                       </CTableDataCell>
                     </CTableRow>
                   )}
@@ -412,7 +455,9 @@ const Admin2Dashboard = () => {
                 <strong>Próximos Eventos</strong>
               </CCardTitle>
               <span className="text-gray-400">
-                Eventos programados a partir de hoje
+                {endDate 
+                  ? `Eventos programados a partir de hoje até ${formatDate(endDate)}`
+                  : 'Eventos programados a partir de hoje'}
               </span>
             </CCardHeader>
             <CCardBody>
@@ -452,7 +497,9 @@ const Admin2Dashboard = () => {
                   ) : (
                     <CTableRow>
                       <CTableDataCell colSpan={6} className="text-center">
-                        Nenhum evento próximo encontrado
+                        {endDate 
+                          ? `Nenhum evento futuro encontrado até ${formatDate(endDate)}`
+                          : 'Nenhum evento próximo encontrado'}
                       </CTableDataCell>
                     </CTableRow>
                   )}
@@ -460,6 +507,15 @@ const Admin2Dashboard = () => {
               </CTable>
             </CCardBody>
           </CCard>
+
+          {/* Nova seção de gráfico de eventos por dia */}
+          <EventsBarChart 
+            dailyEvents={dailyEvents}
+            startDate={startDate}
+            endDate={endDate}
+            formatDate={formatDate}
+            onRefresh={handleRefreshChart}
+          />
         </>
       )}
     </>
