@@ -375,10 +375,14 @@ const _nav = [
   },
   {
     component: CNavItem,
-    name: 'Calendário',
-    roleId: [1, 2, 3, 4],
-    href: '/app/mashguiach/freelancers',
+    name: 'Calendário de Eventos',
+    roleId: 2,
+    href: '/app/estabelecimento/calendar',
     icon: <CIcon icon={cilCalendar} customClassName="nav-icon" />,
+    badge: {
+      color: 'info-gradient',
+      text: 'NOVO',
+    },
   },
   {
     component: CNavItem,

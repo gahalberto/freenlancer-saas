@@ -3,6 +3,10 @@
 import { useSession } from 'next-auth/react'
 import {
   CButton,
+  CCard,
+  CCardBody,
+  CCardHeader,
+  CCardTitle,
   CCol,
   CDatePicker,
   CFormInput,
@@ -13,6 +17,10 @@ import {
   CModalHeader,
   CModalTitle,
   CRow,
+  CSpinner,
+  CWidgetStatsB,
+  CWidgetStatsC,
+  CAlert,
 } from '@coreui/react-pro'
 import EventsStoreDashboard from './EventsSection'
 import { useEffect, useState } from 'react'
@@ -24,6 +32,12 @@ import { EventsServices, StoreEvents, Stores } from '@prisma/client'
 import { useRouter } from 'next/navigation'
 import { getEventByEstabelecimento } from '@/app/_actions/events/getEventByEstabelecimento'
 import AddModalAddress from './AddressModal'
+import CIcon from '@coreui/icons-react'
+import { cilCalendar, cilCalendarCheck, cilCash, cilChartLine, cilMoney, cilClock, cilBell } from '@coreui/icons'
+import { getEstablishmentMetrics } from '@/app/_actions/dashboard/getEstablishmentMetrics'
+import { EstablishmentDashboardMetrics } from '@/app/_actions/dashboard/getEstablishmentMetrics'
+import EstablishmentBarChart from '@/components/dashboard/EstablishmentBarChart'
+import DashboardAlert from '@/components/dashboard/DashboardAlert'
 
 const schema = z.object({
   title: z.string().min(1, { message: 'Digite um título para o evento' }),
@@ -71,6 +85,10 @@ const MashguiachDashboardPage = () => {
   const [showMenuAlert, setShowMenuAlert] = useState(false)
   const [storeWithoutLogo, setStoreWithoutLogo] = useState<Stores | null>(null)
   const [storeWithoutMenu, setStoreWithoutMenu] = useState<Stores | null>(null)
+  
+  // Estado para métricas do dashboard
+  const [metrics, setMetrics] = useState<EstablishmentDashboardMetrics | null>(null)
+  const [loadingMetrics, setLoadingMetrics] = useState(true)
 
   const fetchEvents = async () => {
     const response = await getEventByEstabelecimento(userId) // Atualize com sua rota real
@@ -129,6 +147,20 @@ const MashguiachDashboardPage = () => {
 
   const router = useRouter()
 
+  const fetchMetrics = async () => {
+    if (!userId) return
+    
+    try {
+      setLoadingMetrics(true)
+      const metricsData = await getEstablishmentMetrics(userId)
+      setMetrics(metricsData)
+    } catch (error) {
+      console.error('Erro ao buscar métricas do estabelecimento:', error)
+    } finally {
+      setLoadingMetrics(false)
+    }
+  }
+
   useEffect(() => {
     if (status === 'loading') {
       return
@@ -143,6 +175,7 @@ const MashguiachDashboardPage = () => {
     if (status === 'authenticated' && session?.user?.id) {
       fetchEvents()
       fetchStores()
+      fetchMetrics()
     }
   }, [status, session])
 
@@ -206,8 +239,61 @@ const MashguiachDashboardPage = () => {
     }
   }
 
+  // Função para verificar se o evento está próximo (3 dias ou menos)
+  const isEventClose = (eventDate: Date) => {
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+    const eventDay = new Date(eventDate)
+    eventDay.setHours(0, 0, 0, 0)
+    
+    // Calcular a diferença em dias
+    const diffTime = eventDay.getTime() - today.getTime()
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
+    
+    // Retornar true se a diferença for 3 dias ou menos (e positiva)
+    return diffDays >= 0 && diffDays <= 3
+  }
+
+  // Função para formatar moeda
+  const formatCurrency = (value: number) => {
+    return new Intl.NumberFormat('pt-BR', {
+      style: 'currency',
+      currency: 'BRL'
+    }).format(value)
+  }
+
+  // Função para formatar data
+  const formatDate = (date: Date) => {
+    return new Date(date).toLocaleDateString('pt-BR', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+    })
+  }
+
   return (
     <>
+      {/* Sistema de Alertas do Dashboard */}
+      <DashboardAlert />
+      
+      {/* Alerta de eventos próximos */}
+      {events.filter(event => isEventClose(event.date)).length > 0 && (
+        <CAlert color="info" className="mb-4">
+          <div className="d-flex align-items-center">
+            <CIcon icon={cilClock} className="flex-shrink-0 me-2" width={24} height={24} />
+            <div>
+              <h5 className="alert-heading mb-1">Eventos próximos!</h5>
+              <p className="mb-0">
+                Você tem <strong>{events.filter(event => isEventClose(event.date)).length} eventos</strong> programados para os próximos 3 dias.
+                {events.filter(event => isEventClose(event.date) && !event.isApproved).length > 0 && (
+                  <span className="text-danger"> Atenção: {events.filter(event => isEventClose(event.date) && !event.isApproved).length} destes eventos ainda aguardam aprovação!</span>
+                )}
+              </p>
+            </div>
+          </div>
+        </CAlert>
+      )}
+      
       {showLogoAlert && (
         <CRow className="mt-4 mb-4">
           <CCol>
@@ -228,34 +314,139 @@ const MashguiachDashboardPage = () => {
         </CRow>
       )}
       
-      {showMenuAlert && (
-        <CRow className="mt-4 mb-4">
-          <CCol>
-            <div className="alert alert-warning d-flex align-items-center" role="alert">
-              <div className="me-3">
-                <strong>Atenção!</strong> Seu estabelecimento não possui cardápio cadastrado. 
-                Isso é importante para que os clientes conheçam seus produtos e serviços.
-              </div>
-              <CButton 
-                color="primary" 
-                size="sm" 
-                onClick={() => router.push(`/app/stores/edit/${storeWithoutMenu?.id}`)}
-              >
-                Editar Estabelecimento
-              </CButton>
-              <CButton 
-                color="secondary" 
-                size="sm" 
-                className="ms-2"
-                onClick={() => router.push(`/app/stores`)}
-              >
-                Ver Estabelecimentos
-              </CButton>
-            </div>
+      {/* Novo Dashboard de Métricas */}
+      {loadingMetrics ? (
+        <CRow className="mb-4">
+          <CCol className="d-flex justify-content-center">
+            <CSpinner color="primary" />
           </CCol>
         </CRow>
+      ) : (
+        <>
+          <CRow className="mb-4">
+            <CCol sm={6} lg={3}>
+              <CWidgetStatsC
+                className="mb-3"
+                icon={<CIcon icon={cilCalendarCheck} height={36} />}
+                color="primary"
+                inverse
+                title="Eventos esta semana"
+                value={metrics?.eventsThisWeek.toString() || '0'}
+              />
+            </CCol>
+            <CCol sm={6} lg={3}>
+              <CWidgetStatsC
+                className="mb-3"
+                icon={<CIcon icon={cilCalendar} height={36} />}
+                color="info"
+                inverse
+                title="Eventos este mês"
+                value={metrics?.eventsThisMonth.toString() || '0'}
+              />
+            </CCol>
+            <CCol sm={6} lg={3}>
+              <CWidgetStatsC
+                className="mb-3"
+                icon={<CIcon icon={cilChartLine} height={36} />}
+                color="success"
+                inverse
+                title="Total de eventos"
+                value={metrics?.totalEvents.toString() || '0'}
+              />
+            </CCol>
+            <CCol sm={6} lg={3}>
+              <CWidgetStatsC
+                className="mb-3"
+                icon={<CIcon icon={cilMoney} height={36} />}
+                color="warning"
+                inverse
+                title="Total a pagar (Mashguiach)"
+                value={formatCurrency(metrics?.totalPaymentToMashguiach || 0)}
+              />
+            </CCol>
+          </CRow>
+
+          {/* Painel de Eventos Pendentes */}
+          {metrics?.pendingEvents ? (
+            <CRow className="mb-4">
+              <CCol>
+                <CCard>
+                  <CCardBody className="d-flex align-items-center">
+                    <div className="me-3">
+                      <CIcon icon={cilCash} height={30} className="text-primary" />
+                    </div>
+                    <div>
+                      <div className="fs-6 fw-semibold text-primary">Eventos Pendentes de Aprovação</div>
+                      <div className="text-medium-emphasis small">
+                        Você tem <strong>{metrics.pendingEvents}</strong> eventos aguardando aprovação. 
+                        A aprovação é necessária para que os mashguichim possam ser designados para seu evento.
+                      </div>
+                    </div>
+                    <div className="ms-auto">
+                      <CButton 
+                        color="primary" 
+                        size="sm"
+                        onClick={() => router.push('/app/estabelecimento/events')}
+                      >
+                        Ver Eventos
+                      </CButton>
+                    </div>
+                  </CCardBody>
+                </CCard>
+              </CCol>
+            </CRow>
+          ) : null}
+
+          {/* Card de Eventos Próximos */}
+          {events.filter(event => isEventClose(event.date)).length > 0 && (
+            <CRow className="mb-4">
+              <CCol sm={6} lg={4}>
+                <CCard className="mb-3">
+                  <CCardBody className="p-3">
+                    <div className="d-flex justify-content-between">
+                      <div>
+                        <div className="text-medium-emphasis text-uppercase fw-semibold small">
+                          Eventos Próximos
+                        </div>
+                        <div className="fs-4 fw-semibold">
+                          {events.filter(event => isEventClose(event.date)).length}
+                        </div>
+                      </div>
+                      <CIcon icon={cilClock} className="text-info" height={42} />
+                    </div>
+                    {events.filter(event => isEventClose(event.date) && !event.isApproved).length > 0 && (
+                      <div className="small mt-3 text-danger">
+                        <CIcon icon={cilBell} className="me-1" width={16} height={16} />
+                        <strong>{events.filter(event => isEventClose(event.date) && !event.isApproved).length} eventos</strong> pendentes de aprovação
+                      </div>
+                    )}
+                    <div className="mt-3 text-end">
+                      <CButton 
+                        color="info" 
+                        size="sm" 
+                        variant="ghost"
+                        onClick={() => router.push('/app/estabelecimento/events')}
+                      >
+                        Ver Eventos
+                      </CButton>
+                    </div>
+                  </CCardBody>
+                </CCard>
+              </CCol>
+            </CRow>
+          )}
+
+          {/* Gráfico de Eventos Diários */}
+          {metrics?.dailyEvents && metrics.dailyEvents.length > 0 && (
+            <CRow className="mb-4">
+              <CCol>
+                <EstablishmentBarChart dailyEvents={metrics.dailyEvents} />
+              </CCol>
+            </CRow>
+          )}
+        </>
       )}
-      
+
       <CRow className="mt-4">
         <CRow className="mt-4 mb-4 align-items-center">
           <CCol xs="auto" className="d-flex align-items-center">

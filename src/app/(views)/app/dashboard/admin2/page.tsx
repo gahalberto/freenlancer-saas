@@ -172,6 +172,21 @@ const Admin2Dashboard = () => {
     }
   }
 
+  // Função para verificar se o evento está próximo (3 dias ou menos)
+  const isEventClose = (eventDate: Date) => {
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+    const eventDay = new Date(eventDate)
+    eventDay.setHours(0, 0, 0, 0)
+    
+    // Calcular a diferença em dias
+    const diffTime = eventDay.getTime() - today.getTime()
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
+    
+    // Retornar true se a diferença for 3 dias ou menos (e positiva)
+    return diffDays >= 0 && diffDays <= 3
+  }
+
   const handleApproveEvent = async (eventId: string, isApproved: boolean) => {
     try {
       await aproveEvent(eventId, isApproved)
@@ -307,6 +322,21 @@ const Admin2Dashboard = () => {
         </div>
       ) : (
         <>
+          {/* Alerta de eventos urgentes */}
+          {pendingEvents.filter(event => isEventClose(event.date)).length > 0 && (
+            <CAlert color="danger" className="mb-4">
+              <div className="d-flex align-items-center">
+                <CIcon icon={cilClock} className="flex-shrink-0 me-2" width={24} height={24} />
+                <div>
+                  <h5 className="alert-heading mb-1">Atenção! Eventos pendentes urgentes</h5>
+                  <p className="mb-0">
+                    Existem <strong>{pendingEvents.filter(event => isEventClose(event.date)).length} eventos</strong> pendentes que acontecerão nos próximos 3 dias e precisam de aprovação urgente.
+                  </p>
+                </div>
+              </div>
+            </CAlert>
+          )}
+
           {/* Widgets de métricas */}
           <CRow className="mb-4">
             <CCol sm={6} lg={3}>
@@ -387,6 +417,33 @@ const Admin2Dashboard = () => {
             </CCol>
           </CRow>
 
+          {/* Métrica de eventos pendentes com destaque para urgentes */}
+          <CRow className="mb-4">
+            <CCol sm={6} lg={3}>
+              <CCard className="mb-3">
+                <CCardBody className="p-3">
+                  <div className="d-flex justify-content-between">
+                    <div>
+                      <div className="text-medium-emphasis text-uppercase fw-semibold small">
+                        Eventos Pendentes
+                      </div>
+                      <div className="fs-4 fw-semibold">
+                        {metrics?.totalPendingEvents.toString() || '0'}
+                      </div>
+                    </div>
+                    <CIcon icon={cilCalendar} className="text-warning" height={42} />
+                  </div>
+                  {pendingEvents.filter(event => isEventClose(event.date)).length > 0 && (
+                    <div className="small mt-3 text-danger">
+                      <CIcon icon={cilClock} className="me-1" width={16} height={16} />
+                      <strong>{pendingEvents.filter(event => isEventClose(event.date)).length} eventos</strong> precisam de aprovação urgente
+                    </div>
+                  )}
+                </CCardBody>
+              </CCard>
+            </CCol>
+          </CRow>
+
           {/* Tabela de eventos pendentes */}
           <CCard className="mb-4">
             <CCardHeader>
@@ -412,9 +469,26 @@ const Admin2Dashboard = () => {
                 <CTableBody>
                   {pendingEvents.length > 0 ? (
                     pendingEvents.map((event) => (
-                      <CTableRow key={event.id}>
-                        <CTableDataCell>{event.title}</CTableDataCell>
-                        <CTableDataCell>{formatDate(event.date)}</CTableDataCell>
+                      <CTableRow 
+                        key={event.id} 
+                        className={isEventClose(event.date) ? 'bg-light-warning' : ''}
+                      >
+                        <CTableDataCell>
+                          {event.title}
+                          {isEventClose(event.date) && (
+                            <CBadge color="danger" className="ms-2" shape="rounded-pill">
+                              Urgente
+                            </CBadge>
+                          )}
+                        </CTableDataCell>
+                        <CTableDataCell>
+                          {formatDate(event.date)}
+                          {isEventClose(event.date) && (
+                            <div className="small text-danger mt-1">
+                              <strong>Evento próximo!</strong> Precisa de aprovação urgente.
+                            </div>
+                          )}
+                        </CTableDataCell>
                         <CTableDataCell>{event.storeName}</CTableDataCell>
                         <CTableDataCell>
                           <CBadge color={getStatusColor(event.status)}>
@@ -428,7 +502,13 @@ const Admin2Dashboard = () => {
                           <Link href={`/app/admin/events/${event.id}`}>
                             <CButton color="primary" size="sm">Ver detalhes</CButton>
                           </Link>
-                          <CButton color="secondary" size="sm" onClick={() => handleApproveEvent(event.id, false)}>Aprovar</CButton>
+                          <CButton 
+                            color={isEventClose(event.date) ? "danger" : "secondary"} 
+                            size="sm" 
+                            onClick={() => handleApproveEvent(event.id, false)}
+                          >
+                            Aprovar
+                          </CButton>
                         </CTableDataCell>
                       </CTableRow>
                     ))
