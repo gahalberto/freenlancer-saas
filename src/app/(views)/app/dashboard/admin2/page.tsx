@@ -19,6 +19,10 @@ import {
   CBadge,
   CButton,
   CAlert,
+  CFormLabel,
+  CInputGroup,
+  CFormInput,
+  CDatePicker,
 } from '@coreui/react-pro'
 import { useSession } from 'next-auth/react'
 import CIcon from '@coreui/icons-react'
@@ -32,6 +36,8 @@ import {
   cilWallet,
   cilDollar,
   cilBank,
+  cilFilter,
+  cilSync,
 } from '@coreui/icons'
 import Link from 'next/link'
 import { 
@@ -43,6 +49,7 @@ import { aproveEvent } from '@/app/_actions/events/aproveEvent'
 import NewsSection from '@/components/dashboard/NewsSection'
 import DashboardAlert from '@/components/dashboard/DashboardAlert'
 import { useRouter } from 'next/navigation'
+import { format, subMonths } from 'date-fns'
 
 // Interfaces para as métricas e eventos
 interface DashboardMetrics {
@@ -74,14 +81,22 @@ const Admin2Dashboard = () => {
   const [pendingEvents, setPendingEvents] = useState<Event[]>([])
   const [upcomingEvents, setUpcomingEvents] = useState<Event[]>([])
   const router = useRouter()
+  
+  // Estado para filtros de data
+  const [startDate, setStartDate] = useState<Date | null>(subMonths(new Date(), 1))
+  const [endDate, setEndDate] = useState<Date | null>(new Date())
+  const [filterVisible, setFilterVisible] = useState(false)
 
   // Função para buscar as métricas e eventos
-  const fetchDashboardData = async () => {
+  const fetchDashboardData = async (start?: Date | null, end?: Date | null) => {
     try {
       setLoading(true)
       
-      // Buscar métricas
-      const metricsData = await getDashboardMetrics()
+      // Adicionar timestamp para evitar cache das requisições
+      const timestamp = new Date().getTime()
+      
+      // Buscar métricas com filtro de período
+      const metricsData = await getDashboardMetrics(start || undefined, end || undefined)
       setMetrics(metricsData as DashboardMetrics)
       
       // Buscar eventos pendentes
@@ -101,9 +116,21 @@ const Admin2Dashboard = () => {
   // Carregar dados ao montar o componente
   useEffect(() => {
     if (status === 'authenticated') {
-      fetchDashboardData()
+      fetchDashboardData(startDate, endDate)
     }
   }, [status])
+
+  // Função para aplicar os filtros
+  const handleApplyFilters = () => {
+    fetchDashboardData(startDate, endDate)
+  }
+
+  // Função para resetar filtros
+  const handleResetFilters = () => {
+    setStartDate(subMonths(new Date(), 1))
+    setEndDate(new Date())
+    fetchDashboardData(subMonths(new Date(), 1), new Date())
+  }
 
   // Função para formatar data
   const formatDate = (date: Date) => {
@@ -131,7 +158,7 @@ const Admin2Dashboard = () => {
   const handleApproveEvent = async (eventId: string, isApproved: boolean) => {
     try {
       await aproveEvent(eventId, isApproved)
-      fetchDashboardData()
+      fetchDashboardData(startDate, endDate)
     } catch (error) {
       console.error('Erro ao aprovar evento:', error)
     }
@@ -145,6 +172,11 @@ const Admin2Dashboard = () => {
     }).format(value);
   }
 
+  // Função para forçar a atualização de dados
+  const handleRefreshData = () => {
+    fetchDashboardData(startDate, endDate)
+  }
+
   if (status === 'loading') {
     return <p>Carregando...</p>
   }
@@ -156,14 +188,75 @@ const Admin2Dashboard = () => {
   return (
     <>
       <CCard className="mb-4">
-        <CCardHeader>
-          <CCardTitle>
-            <strong>Dashboard Administrativo</strong>
-          </CCardTitle>
-          <span className="text-gray-400">
-            Visão geral do sistema
-          </span>
+        <CCardHeader className="d-flex justify-content-between align-items-center">
+          <div>
+            <CCardTitle>
+              <strong>Dashboard Administrativo</strong>
+            </CCardTitle>
+            <span className="text-gray-400">
+              Visão geral do sistema
+            </span>
+          </div>
+          <div className="d-flex gap-2">
+            <CButton 
+              color="primary" 
+              variant="outline" 
+              size="sm"
+              onClick={() => setFilterVisible(!filterVisible)}
+            >
+              <CIcon icon={cilFilter} className="me-2" />
+              Filtrar por período
+            </CButton>
+            <CButton 
+              color="success" 
+              variant="outline" 
+              size="sm"
+              onClick={handleRefreshData}
+              title="Atualizar dados"
+            >
+              <CIcon icon={cilSync} />
+            </CButton>
+          </div>
         </CCardHeader>
+        {filterVisible && (
+          <CCardBody>
+            <CRow>
+              <CCol md={5}>
+                <CFormLabel>Data Inicial</CFormLabel>
+                <CDatePicker
+                  locale="pt-BR"
+                  placeholder="Selecione a data inicial"
+                  className="mb-3"
+                  date={startDate}
+                  onDateChange={(date: Date | null) => setStartDate(date)}
+                />
+              </CCol>
+              <CCol md={5}>
+                <CFormLabel>Data Final</CFormLabel>
+                <CDatePicker
+                  locale="pt-BR"
+                  placeholder="Selecione a data final"
+                  className="mb-3"
+                  date={endDate}
+                  onDateChange={(date: Date | null) => setEndDate(date)}
+                />
+              </CCol>
+              <CCol md={2} className="d-flex align-items-end mb-3">
+                <CButton color="primary" className="me-2" onClick={handleApplyFilters}>
+                  Aplicar
+                </CButton>
+                <CButton color="secondary" variant="outline" onClick={handleResetFilters}>
+                  Resetar
+                </CButton>
+              </CCol>
+            </CRow>
+            {startDate && endDate && (
+              <CAlert color="info" className="mb-0">
+                Mostrando dados de {formatDate(startDate)} até {formatDate(endDate)}
+              </CAlert>
+            )}
+          </CCardBody>
+        )}
       </CCard>
       
       {/* Alertas do Dashboard */}
@@ -200,7 +293,7 @@ const Admin2Dashboard = () => {
                 className="mb-3"
                 color="success"
                 icon={<CIcon icon={cilCalendar} height={24} />}
-                title="Eventos (Ano Atual)"
+                title="Eventos (Período)"
                 value={metrics?.totalEventsThisYear.toString() || '0'}
               />
             </CCol>
@@ -240,7 +333,7 @@ const Admin2Dashboard = () => {
                 className="mb-3"
                 color="success"
                 icon={<CIcon icon={cilDollar} height={24} />}
-                title="Total Gerado Este Mês"
+                title="Total Gerado (Período)"
                 value={formatCurrency(metrics?.totalAmountThisMonth || 0)}
               />
             </CCol>

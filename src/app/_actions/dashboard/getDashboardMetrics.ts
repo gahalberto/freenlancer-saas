@@ -22,13 +22,25 @@ export interface DashboardMetrics {
  * Busca métricas para o dashboard administrativo
  * @returns Objeto com as métricas
  */
-export async function getDashboardMetrics(): Promise<DashboardMetrics> {
+export async function getDashboardMetrics(startDate?: Date, endDate?: Date): Promise<DashboardMetrics> {
   try {
     // Obter o ano atual
     const currentYear = new Date().getFullYear()
-    const startOfYear = new Date(currentYear, 0, 1) // 1º de janeiro do ano atual
-    const endOfYear = new Date(currentYear, 11, 31, 23, 59, 59) // 31 de dezembro do ano atual
+    const defaultStartOfYear = new Date(currentYear, 0, 1) // 1º de janeiro do ano atual
+    const defaultEndOfYear = new Date(currentYear, 11, 31, 23, 59, 59) // 31 de dezembro do ano atual
 
+    // Se datas não foram fornecidas, usar os valores padrão
+    const effectiveStartDate = startDate || defaultStartOfYear
+    const effectiveEndDate = endDate || defaultEndOfYear
+
+    // Ajustar final do dia para a data final
+    const adjustedEndDate = new Date(effectiveEndDate)
+    adjustedEndDate.setHours(23, 59, 59, 999)
+    
+    // Adicionar um timestamp para evitar cache
+    const timestamp = new Date().getTime()
+    console.log(`Iniciando busca de métricas [${timestamp}]...`)
+    
     // Contar total de mashguichim (usuários com roleId = 2)
     const totalMashguichim = await db.user.count({
       where: {
@@ -39,12 +51,12 @@ export async function getDashboardMetrics(): Promise<DashboardMetrics> {
     // Contar total de estabelecimentos
     const totalEstablishments = await db.stores.count()
 
-    // Contar total de eventos do ano atual
+    // Contar total de eventos no período selecionado
     const totalEventsThisYear = await db.storeEvents.count({
       where: {
         date: {
-          gte: startOfYear,
-          lte: endOfYear,
+          gte: effectiveStartDate,
+          lte: adjustedEndDate,
         },
       },
     })
@@ -56,6 +68,10 @@ export async function getDashboardMetrics(): Promise<DashboardMetrics> {
     const totalPendingEvents = await db.storeEvents.count({
       where: {
         isApproved: false,
+        date: {
+          gte: effectiveStartDate,
+          lte: adjustedEndDate,
+        },
       },
     })
 
@@ -67,6 +83,7 @@ export async function getDashboardMetrics(): Promise<DashboardMetrics> {
       where: {
         date: {
           gte: today,
+          lte: adjustedEndDate,
         },
       },
     })
@@ -75,6 +92,10 @@ export async function getDashboardMetrics(): Promise<DashboardMetrics> {
     const totalPendingPayments = await db.eventsServices.count({
       where: {
         paymentStatus: 'Pending',
+        arriveMashguiachTime: {
+          gte: effectiveStartDate,
+          lte: adjustedEndDate,
+        },
       }
     })
 
@@ -85,7 +106,11 @@ export async function getDashboardMetrics(): Promise<DashboardMetrics> {
         paymentStatus: 'Pending',
         NOT: {
           mashguiachId: null
-        }
+        },
+        arriveMashguiachTime: {
+          gte: effectiveStartDate,
+          lte: adjustedEndDate,
+        },
       },
       include: {
         Mashguiach: true,
@@ -120,19 +145,12 @@ export async function getDashboardMetrics(): Promise<DashboardMetrics> {
       }
     }
 
-    // Calcular o valor total gerado neste mês
-    const startOfMonth = new Date()
-    startOfMonth.setDate(1)
-    startOfMonth.setHours(0, 0, 0, 0)
-    const endOfMonth = new Date()
-    endOfMonth.setMonth(endOfMonth.getMonth() + 1, 0)
-    endOfMonth.setHours(23, 59, 59, 999)
-
-    const thisMonthServices = await db.eventsServices.findMany({
+    // Calcular o valor total gerado no período selecionado
+    const periodServices = await db.eventsServices.findMany({
       where: {
         arriveMashguiachTime: {
-          gte: startOfMonth,
-          lte: endOfMonth
+          gte: effectiveStartDate,
+          lte: adjustedEndDate
         },
         NOT: {
           mashguiachId: null
@@ -141,7 +159,7 @@ export async function getDashboardMetrics(): Promise<DashboardMetrics> {
     })
 
     let totalAmountThisMonth = 0
-    for (const service of thisMonthServices) {
+    for (const service of periodServices) {
       const startTime = service.arriveMashguiachTime
       const endTime = service.endMashguiachTime
 

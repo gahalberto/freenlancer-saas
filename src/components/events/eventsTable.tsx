@@ -21,7 +21,7 @@ import ChangeMashguiachModal from './ChangeMashguiachModal'
 import { getEventServices } from '@/app/_actions/events/getEventsServices'
 import { deleteEvent } from '@/app/_actions/events/deleteEvent'
 import Link from 'next/link'
-import { EventsServices } from '@prisma/client'
+import { EventsServices, StoreEvents, User } from '@prisma/client'
 import { getSession } from 'next-auth/react'
 import FinishJobModal from './finishJobModal'
 import { useUserSession } from '@/contexts/sessionContext'
@@ -32,9 +32,20 @@ type PropsType = {
   eventStoreId: string
 }
 
+// Interface para a versão completa de EventsServices com todas as relações necessárias
+interface EventsServiceWithRelations extends EventsServices {
+  StoreEvents?: StoreEvents
+  Mashguiach?: User | null
+}
+
+// Interface para o serviço retornado pela API
 interface ServiceType extends EventsServices {
+  StoreEvents?: StoreEvents
   Mashguiach: {
     name: string
+    id?: string
+    roleId?: number
+    [key: string]: any // Permitir propriedades adicionais
   }
 }
 
@@ -258,7 +269,7 @@ export const EventsTableByEvent = ({ eventStoreId }: PropsType) => {
                           setFinishEventModal(false)
                           fetchEventServices() // Atualiza a lista de serviços após o fechamento do modal
                         }}
-                        service={service}
+                        service={service as any}
                         serviceId={service.id}
                       />
                     )}
