@@ -73,14 +73,14 @@ const _nav = [
   },
   {
     component: CNavItem,
-    name: 'Dashboard',
+    name: 'Dashboard Financeiro',
     roleId: [3,4],
-    icon: <CIcon icon={cilSpeedometer} customClassName="nav-icon" />,
+    icon: <CIcon icon={cilMoney} customClassName="nav-icon" />,
     badge: {
-      color: 'info-gradient',
-      text: 'NEW',
+      color: 'danger-gradient',
+      text: 'NOVO',
     },
-    href: '/app',
+    href: '/app/dashboard/financeiro',
   },
   
   {

@@ -153,33 +153,6 @@ const Admin2Dashboard = () => {
       {/* Alertas do Dashboard */}
       <DashboardAlert />
       
-      {/* Alerta de fallback para depuração */}
-      <CAlert 
-        color="info"
-        className="d-flex align-items-center mb-4 mt-2"
-        dismissible
-      >
-        <div className="d-flex flex-column flex-grow-1">
-          <div className="d-flex justify-content-between align-items-center">
-            <strong>Alerta de Teste Fixo</strong>
-          </div>
-          <div className="mt-2">
-            Este é um alerta fixo para teste. Se você está vendo este alerta, a renderização está funcionando, 
-            mas pode haver problemas com a busca dinâmica de alertas.
-          </div>
-          <div className="mt-2 d-flex gap-2">
-            <CButton 
-              color="info" 
-              variant="outline"
-              size="sm" 
-              onClick={() => router.push('/app/debug-alert')}
-            >
-              Página de Debug
-            </CButton>
-          </div>
-        </div>
-      </CAlert>
-      
       {loading ? (
         <div className="d-flex justify-content-center">
           <CSpinner color="primary" />
