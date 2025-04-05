@@ -239,29 +239,22 @@ export async function getDashboardMetrics(startDate?: Date, endDate?: Date): Pro
 
 /**
  * Busca eventos pendentes
- * @param startDate Data inicial opcional para filtrar
- * @param endDate Data final opcional para filtrar
+ * @param startDate Data inicial opcional para filtrar (ignorado na versão atual)
+ * @param endDate Data final opcional para filtrar (ignorado na versão atual)
  * @returns Array de eventos pendentes
  */
 export async function getPendingEvents(startDate?: Date, endDate?: Date) {
   try {
-    // Se as datas não foram fornecidas, usar valores padrão
-    const today = new Date()
-    const effectiveStartDate = startDate || new Date(today.getFullYear(), 0, 1) // 1º de janeiro do ano atual
-    const effectiveEndDate = endDate || new Date(today.getFullYear(), 11, 31, 23, 59, 59) // 31 de dezembro do ano atual
-
+    // Ignorar os parâmetros de data e sempre mostrar todos os eventos pendentes
+    
     // Adicionar timestamp para evitar cache
     const timestamp = new Date().getTime()
-    console.log(`Buscando eventos pendentes [${timestamp}] de ${effectiveStartDate} até ${effectiveEndDate}`)
+    console.log(`Buscando eventos pendentes [${timestamp}]`)
     
     const pendingEvents = await db.storeEvents.findMany({
       where: {
         isApproved: false,
         deletedAt: null,
-        date: {
-          gte: effectiveStartDate,
-          lte: effectiveEndDate,
-        },
       },
       include: {
         store: {
@@ -303,8 +296,8 @@ export async function getPendingEvents(startDate?: Date, endDate?: Date) {
 
 /**
  * Busca próximos eventos (a partir de hoje)
- * @param startDate Data inicial opcional para filtrar
- * @param endDate Data final opcional para filtrar
+ * @param startDate Data inicial opcional para filtrar (ignorado na versão atual)
+ * @param endDate Data final opcional para filtrar (ignorado na versão atual)
  * @returns Array de próximos eventos
  */
 export async function getUpcomingEvents(startDate?: Date, endDate?: Date) {
@@ -312,22 +305,18 @@ export async function getUpcomingEvents(startDate?: Date, endDate?: Date) {
     const today = new Date()
     today.setHours(0, 0, 0, 0)
     
-    // Se a data final não foi fornecida, usar valor padrão
-    const effectiveEndDate = endDate || new Date(today.getFullYear(), 11, 31, 23, 59, 59) // 31 de dezembro do ano atual
-    
-    // A data inicial para próximos eventos é sempre a data atual
-    const effectiveStartDate = today
+    // Ignorar os parâmetros de data e sempre mostrar eventos a partir de hoje
+    // sem limite de data final
     
     // Adicionar timestamp para evitar cache
     const timestamp = new Date().getTime()
-    console.log(`Buscando próximos eventos [${timestamp}] de ${effectiveStartDate} até ${effectiveEndDate}`)
+    console.log(`Buscando próximos eventos [${timestamp}] a partir de ${today}`)
 
     const upcomingEvents = await db.storeEvents.findMany({
       where: {
         deletedAt: null,
         date: {
-          gte: effectiveStartDate,
-          lte: effectiveEndDate,
+          gte: today,
         },
       },
       include: {

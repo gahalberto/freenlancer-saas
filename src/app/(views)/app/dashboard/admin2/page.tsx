@@ -112,12 +112,12 @@ const Admin2Dashboard = () => {
       const metricsData = await getDashboardMetrics(start || undefined, end || undefined)
       setMetrics(metricsData as DashboardMetrics)
       
-      // Buscar eventos pendentes com o mesmo filtro de período
-      const pendingEventsData = await getPendingEvents(start || undefined, end || undefined)
+      // Buscar eventos pendentes (sem filtro de período)
+      const pendingEventsData = await getPendingEvents()
       setPendingEvents(pendingEventsData as Event[])
       
-      // Buscar próximos eventos com o mesmo filtro de período
-      const upcomingEventsData = await getUpcomingEvents(undefined, end || undefined)
+      // Buscar próximos eventos (sem filtro de período)
+      const upcomingEventsData = await getUpcomingEvents()
       setUpcomingEvents(upcomingEventsData as Event[])
       
       // Buscar dados para o gráfico de eventos por dia
@@ -394,9 +394,7 @@ const Admin2Dashboard = () => {
                 <strong>Eventos Pendentes</strong>
               </CCardTitle>
               <span className="text-gray-400">
-                {startDate && endDate 
-                  ? `Eventos pendentes de ${formatDate(startDate)} até ${formatDate(endDate)}`
-                  : 'Eventos que aguardam aprovação'}
+                Eventos que aguardam aprovação
               </span>
             </CCardHeader>
             <CCardBody>
@@ -437,9 +435,7 @@ const Admin2Dashboard = () => {
                   ) : (
                     <CTableRow>
                       <CTableDataCell colSpan={6} className="text-center">
-                        {startDate && endDate 
-                          ? `Nenhum evento pendente encontrado no período de ${formatDate(startDate)} até ${formatDate(endDate)}`
-                          : 'Nenhum evento pendente encontrado'}
+                        Nenhum evento pendente encontrado
                       </CTableDataCell>
                     </CTableRow>
                   )}
@@ -455,9 +451,7 @@ const Admin2Dashboard = () => {
                 <strong>Próximos Eventos</strong>
               </CCardTitle>
               <span className="text-gray-400">
-                {endDate 
-                  ? `Eventos programados a partir de hoje até ${formatDate(endDate)}`
-                  : 'Eventos programados a partir de hoje'}
+                Eventos programados a partir de hoje
               </span>
             </CCardHeader>
             <CCardBody>
@@ -497,9 +491,7 @@ const Admin2Dashboard = () => {
                   ) : (
                     <CTableRow>
                       <CTableDataCell colSpan={6} className="text-center">
-                        {endDate 
-                          ? `Nenhum evento futuro encontrado até ${formatDate(endDate)}`
-                          : 'Nenhum evento próximo encontrado'}
+                        Nenhum evento próximo encontrado
                       </CTableDataCell>
                     </CTableRow>
                   )}
